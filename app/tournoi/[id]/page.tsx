@@ -30,7 +30,6 @@ export default function TournoiPage() {
 
   useEffect(() => {
     setLienPartage(`${window.location.origin}/partage/${params.id}`);
-
     async function initialiser() {
       const {
         data: { user },
