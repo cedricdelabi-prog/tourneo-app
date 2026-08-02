@@ -29,7 +29,7 @@ export default function TournoiPage() {
   const [messageCloud, setMessageCloud] = useState("");
 
   useEffect(() => {
-    setLienPartage(window.location.href);
+    setLienPartage(`${window.location.origin}/partage/${params.id}`);
 
     async function initialiser() {
       const {
