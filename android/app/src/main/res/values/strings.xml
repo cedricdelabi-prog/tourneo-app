@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tourneo</string>
+    <string name="title_activity_main">Tourneo</string>
+    <string name="package_name">com.cedricdelabi.tourneo</string>
+    <string name="custom_url_scheme">com.cedricdelabi.tourneo</string>
+</resources>

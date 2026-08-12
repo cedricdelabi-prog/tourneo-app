@@ -2,6 +2,10 @@
   "name": "tourneo-app",
   "version": "0.1.0",
   "private": true,
+  "browserslist": [
+  "Chrome >= 80",
+  "Android >= 10"
+],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,6 +13,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
     "next": "16.2.11",
