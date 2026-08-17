@@ -1095,12 +1095,14 @@ export default function TournoiPage() {
             <div key={groupe.journee} style={styles.eliminationGroup}>
               <div style={styles.eliminationGroupTitle}>Éliminés en {groupe.titre.toLowerCase()}</div>
               <div style={styles.eliminationGroupTeams}>
-                {groupe.equipes.map((equipe) => (
-                  <div key={equipe.id} style={styles.eliminationChip}>
-                    <TeamAvatar equipe={equipe} taille={30} />
-                    <span>{equipe.nom}</span>
-                  </div>
-                ))}
+                {groupe.equipes
+  .filter((equipe): equipe is Equipe => Boolean(equipe))
+  .map((equipe) => (
+    <div key={equipe.id} style={styles.eliminationChip}>
+      <TeamAvatar equipe={equipe} taille={30} />
+      <span>{equipe.nom}</span>
+    </div>
+  ))}
               </div>
             </div>
           ))}
