@@ -4,6 +4,7 @@ export type Equipe = {
   emoji: string;
   couleur: string;
   photo?: string;
+  joueurs?: string[];
 };
 
 export type Match = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Equipe } from "@/types";
 
 const EMOJIS = ["⚽", "🏀", "🎾", "🏐", "🏓", "🦁", "🐯", "🐺", "🦈", "🦅", "🔥", "⚡", "👑", "🚀", "⭐"];
@@ -8,10 +8,12 @@ const COULEURS = ["#2563eb", "#dc2626", "#16a34a", "#ca8a04", "#7c3aed", "#db277
 
 export default function TeamModal({
   ouvert,
+  equipeAModifier,
   onFermer,
   onAjouter,
 }: {
   ouvert: boolean;
+  equipeAModifier?: Equipe | null;
   onFermer: () => void;
   onAjouter: (equipe: Equipe) => void;
 }) {
@@ -19,6 +21,8 @@ export default function TeamModal({
   const [emoji, setEmoji] = useState("⚽");
   const [couleur, setCouleur] = useState("#2563eb");
   const [photo, setPhoto] = useState("");
+  const [joueurs, setJoueurs] = useState<string[]>([]);
+  const [nouveauJoueur, setNouveauJoueur] = useState("");
   const inputPhoto = useRef<HTMLInputElement>(null);
 
   if (!ouvert) return null;
@@ -30,8 +34,16 @@ export default function TeamModal({
     lecteur.readAsDataURL(fichier);
   }
 
-  function ajouter() {
-    if (!nom.trim()) {
+ function ajouterJoueur() {
+     const nomJoueur = nouveauJoueur.trim();
+
+  if (!nomJoueur) return;
+
+  setJoueurs([...joueurs, nomJoueur]);
+  setNouveauJoueur("");
+}
+  function ajouter() {  
+if (!nom.trim()) {
       alert("Ajoute un nom à l’équipe.");
       return;
     }
@@ -42,12 +54,15 @@ export default function TeamModal({
       emoji,
       couleur,
       photo: photo || undefined,
+      joueurs,
     });
 
     setNom("");
     setEmoji("⚽");
     setCouleur("#2563eb");
     setPhoto("");
+    setJoueurs([]);
+setNouveauJoueur("");
     onFermer();
   }
 
@@ -55,15 +70,15 @@ export default function TeamModal({
     <div style={styles.fond}>
       <section style={styles.modal}>
         <div style={styles.entete}>
-          <h2 style={{ margin: 0 }}>Nouvelle équipe</h2>
+         <h2 style={{ margin: 0 }}>Nouveau participant</h2>
           <button style={styles.fermer} onClick={onFermer}>×</button>
         </div>
 
-        <label style={styles.label}>Nom de l’équipe</label>
+        <label style={styles.label}>Nom de l'équipe ou du joueur</label>
         <input
           value={nom}
           onChange={(e) => setNom(e.target.value)}
-          placeholder="Ex : Les Lions"
+         placeholder="Ex : Les Lions ou Cédric"
           style={styles.champ}
         />
 

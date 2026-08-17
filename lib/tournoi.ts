@@ -39,7 +39,27 @@ export function genererMatchs(equipesInitiales: Equipe[]): Match[] {
 
   return matchs;
 }
+export function genererMatchsElimination(equipes: Equipe[]): Match[] {
+  const matchs: Match[] = [];
 
+  for (let i = 0; i < equipes.length; i += 2) {
+    const equipe1 = equipes[i];
+    const equipe2 = equipes[i + 1];
+
+    if (!equipe1 || !equipe2) continue;
+
+    matchs.push({
+      id: 100000 + matchs.length + 1,
+      journee: 1,
+      equipe1Id: equipe1.id,
+      equipe2Id: equipe2.id,
+      score1: "",
+      score2: "",
+    });
+  }
+
+  return matchs;
+}
 export function calculerClassement(
   equipes: Equipe[],
   matchs: Match[]
