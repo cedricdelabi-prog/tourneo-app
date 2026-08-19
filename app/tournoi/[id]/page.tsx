@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ChangeEvent } from "react";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import TeamAvatar from "@/components/TeamAvatar";
@@ -15,6 +15,8 @@ import {
 import type { Equipe, Match } from "@/types";
 import { supabase } from "@/lib/supabase";
 import AdSlot from "@/components/AdSlot";
+import TourneoBrand from "@/components/TourneoBrand";
+import TourneoNav from "@/components/TourneoNav";
 
 const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
@@ -35,6 +37,13 @@ const LIBELLES_FORMAT: Record<FormatTournoi, string> = {
   poules: "Phase de poules",
   elimination: "Élimination directe",
   poulesFinale: "Poules puis phase finale",
+};
+
+const EXPLICATIONS_FORMAT: Record<FormatTournoi, string> = {
+  complet: "Tout le monde rencontre tout le monde. Classement général aux points.",
+  poules: "Les participants sont répartis en groupes avec un classement par poule.",
+  elimination: "Une défaite élimine. Les vainqueurs avancent jusqu’à la finale.",
+  poulesFinale: "Phase de poules puis qualification automatique vers une phase finale.",
 };
 
 const LIBELLES_SPORT: Record<string, string> = {
@@ -68,10 +77,25 @@ const LIBELLES_SPORT: Record<string, string> = {
   autre: "Autre sport / jeu",
 };
 
+const PARTENAIRES_SUGGERES: Record<string, string> = {
+  petanque: "OBUT",
+  football: "Nike",
+  futsal: "Nike",
+  basket: "Nike",
+  tennis: "Wilson",
+  padel: "HEAD",
+  badminton: "Yonex",
+  "ping-pong": "Cornilleau",
+  flechettes: "Winmau",
+  multisport: "Decathlon",
+};
+
+function partenairePourSport(sport: string) {
+  return PARTENAIRES_SUGGERES[sport] ?? "Decathlon";
+}
 
 function capitaliserNom(valeur: string) {
-  if (!valeur) return valeur;
-  return valeur.charAt(0).toUpperCase() + valeur.slice(1);
+  return valeur.replace(/(^|\s|[-’'])\p{L}/gu, (lettre) => lettre.toUpperCase());
 }
 
 function pointsPourRang(rang: number) {
@@ -108,41 +132,7 @@ function nomTourDepuisNombreMatchs(nombreMatchs: number) {
 }
 
 function LogoTourneo({ compact = false }: { compact?: boolean }) {
-  return (
-    <div style={styles.brand} aria-label="Tourneo">
-      <svg
-        width={compact ? 34 : 42}
-        height={compact ? 34 : 42}
-        viewBox="0 0 42 42"
-        fill="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="tourneoMark" x1="5" y1="4" x2="38" y2="39" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#7C5CFF" />
-            <stop offset="0.52" stopColor="#3B82F6" />
-            <stop offset="1" stopColor="#22D3EE" />
-          </linearGradient>
-        </defs>
-        <rect x="1" y="1" width="40" height="40" rx="13" fill="url(#tourneoMark)" />
-        <circle cx="31.5" cy="10.5" r="4.2" fill="white" fillOpacity="0.18" />
-        <path
-          d="M11 12.5H31V17H23.4V30H18.6V17H11V12.5Z"
-          fill="white"
-        />
-        <path
-          d="M11.5 26.8C14.2 29.6 17.4 31 21 31C24.6 31 27.8 29.6 30.5 26.8"
-          stroke="#D8F7FF"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-      </svg>
-      <div>
-        <div style={{ ...styles.brandName, fontSize: compact ? 20 : 26 }}>Tourneo</div>
-        {!compact && <div style={styles.brandBaseline}>Tournament manager · V10</div>}
-      </div>
-    </div>
-  );
+  return <TourneoBrand compact={compact} />;
 }
 
 export default function TournoiPage() {
@@ -172,8 +162,11 @@ export default function TournoiPage() {
   const [aideOuverte, setAideOuverte] = useState(false);
   const [codeJoueur, setCodeJoueur] = useState("");
   const [messageCodeJoueur, setMessageCodeJoueur] = useState("");
+  const [creationEtape, setCreationEtape] = useState<"configuration" | "participants">("configuration");
+  const [matchsValides, setMatchsValides] = useState<number[]>([]);
+  const [ajoutMoiEnCours, setAjoutMoiEnCours] = useState(false);
+  const [souvenirOuvert, setSouvenirOuvert] = useState(false);
   const [podiumPhotoUrl, setPodiumPhotoUrl] = useState("");
-  const [podiumUpload, setPodiumUpload] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -198,7 +191,10 @@ export default function TournoiPage() {
         setMatchsPhaseFinale([]);
         setOnglet("matchs");
         setMessageCloud("");
-        setPodiumPhotoUrl("");
+        setCreationEtape("configuration");
+        setMatchsValides([]);
+        setAjoutMoiEnCours(false);
+        setSouvenirOuvert(false);
       }
 
       const chargerLocal = () => {
@@ -228,7 +224,7 @@ export default function TournoiPage() {
           setQualifiesParPoule(data.qualifiesParPoule ?? 2);
           setPoules(data.poules ?? []);
           setMatchsPhaseFinale(data.matchsPhaseFinale ?? []);
-          setPodiumPhotoUrl(data.podiumPhotoUrl ?? "");
+          setMatchsValides(data.matchsValides ?? []);
           return true;
         } catch {
           localStorage.removeItem(CLE);
@@ -312,7 +308,7 @@ export default function TournoiPage() {
           setQualifiesParPoule(donnees.qualifiesParPoule ?? 2);
           setPoules(donnees.poules ?? []);
           setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
-          setPodiumPhotoUrl(donnees.podiumPhotoUrl ?? "");
+          setMatchsValides(donnees.matchsValides ?? []);
           setLienPartage(`${window.location.origin}/partage/${tournoiCloud.id}`);
           setMessageCloud("Synchronisé");
         } else if (!localCharge) {
@@ -352,7 +348,7 @@ export default function TournoiPage() {
         qualifiesParPoule,
         poules,
         matchsPhaseFinale,
-        podiumPhotoUrl,
+        matchsValides,
       })
     );
 
@@ -378,7 +374,7 @@ export default function TournoiPage() {
             qualifiesParPoule,
             poules,
             matchsPhaseFinale,
-            podiumPhotoUrl,
+            matchsValides,
           },
         })
         .eq("id", tournoiId)
@@ -409,7 +405,7 @@ export default function TournoiPage() {
     qualifiesParPoule,
     poules,
     matchsPhaseFinale,
-    podiumPhotoUrl,
+    matchsValides,
   ]);
 
   const matchsPoules = useMemo(
@@ -668,6 +664,7 @@ export default function TournoiPage() {
           matchsPhaseFinale: nouveauxMatchs.filter(
             (match) => match.id >= SEUIL_PHASE_FINALE
           ),
+          matchsValides: [],
         },
       })
       .select("id")
@@ -714,117 +711,153 @@ export default function TournoiPage() {
     champ: "score1" | "score2",
     valeur: string
   ) {
-    setMatchs((actuels) => {
-      const matchsMisAJour = actuels.map((match) =>
+    if (matchsValides.includes(id)) return;
+    setMatchs((actuels) =>
+      actuels.map((match) =>
         match.id === id ? { ...match, [champ]: valeur } : match
-      );
+      )
+    );
+  }
 
-      if (formatTournoi === "complet" || formatTournoi === "poules") {
-        return matchsMisAJour;
-      }
+  function avancerTournoiSiPossible(matchsSource: Match[], validesSource: number[]) {
+    if (formatTournoi === "complet" || formatTournoi === "poules") return matchsSource;
 
-      if (formatTournoi === "poulesFinale") {
-        const poulesMisAJour = matchsMisAJour.filter(
-          (match) => match.id < SEUIL_PHASE_FINALE
-        );
-        const finaleExistante = matchsMisAJour.filter(
-          (match) => match.id >= SEUIL_PHASE_FINALE
-        );
-
-        if (finaleExistante.length === 0) {
-          const poulesTerminees =
-            poulesMisAJour.length > 0 &&
-            poulesMisAJour.every(
-              (match) => match.score1 !== "" && match.score2 !== ""
-            );
-
-          if (!poulesTerminees) return matchsMisAJour;
-
-          const qualifies = obtenirQualifiesCroises(poulesMisAJour);
-          if (!estPuissanceDeDeux(qualifies.length)) return matchsMisAJour;
-
-          const derniereJourneePoules = Math.max(
-            ...poulesMisAJour.map((match) => match.journee)
-          );
-          const premierTour = genererTourElimination(
-            qualifies,
-            derniereJourneePoules + 1
-          );
-
-          return [...matchsMisAJour, ...premierTour];
-        }
-      }
-
-      const matchsElimination = matchsMisAJour.filter((match) =>
-        formatTournoi === "elimination" ? true : match.id >= SEUIL_PHASE_FINALE
-      );
-
-      if (matchsElimination.length === 0) return matchsMisAJour;
-
-      const derniereJournee = Math.max(
-        ...matchsElimination.map((match) => match.journee)
-      );
-      const matchsDuTour = matchsElimination.filter(
-        (match) => match.journee === derniereJournee
-      );
-
-      const tourTermine =
-        matchsDuTour.length > 0 &&
-        matchsDuTour.every(
+    if (formatTournoi === "poulesFinale") {
+      const poulesSource = matchsSource.filter((match) => match.id < SEUIL_PHASE_FINALE);
+      const finaleExistante = matchsSource.filter((match) => match.id >= SEUIL_PHASE_FINALE);
+      const poulesTerminees =
+        poulesSource.length > 0 &&
+        poulesSource.every(
           (match) =>
             match.score1 !== "" &&
             match.score2 !== "" &&
-            Number(match.score1) !== Number(match.score2)
+            validesSource.includes(match.id)
         );
 
-      if (!tourTermine) return matchsMisAJour;
+      if (finaleExistante.length === 0 && poulesTerminees) {
+        const qualifies = obtenirQualifiesCroises(poulesSource);
+        if (!estPuissanceDeDeux(qualifies.length)) return matchsSource;
+        const derniereJourneePoules = Math.max(...poulesSource.map((match) => match.journee));
+        return [...matchsSource, ...genererTourElimination(qualifies, derniereJourneePoules + 1)];
+      }
+    }
 
-      const vainqueurs = matchsDuTour
-        .map((match) => {
-          const gagnantId =
-            Number(match.score1) > Number(match.score2)
-              ? match.equipe1Id
-              : match.equipe2Id;
-          return equipes.find((equipe) => equipe.id === gagnantId);
-        })
-        .filter((equipe): equipe is Equipe => Boolean(equipe));
+    const elimination = matchsSource.filter((match) =>
+      formatTournoi === "elimination" ? true : match.id >= SEUIL_PHASE_FINALE
+    );
+    if (elimination.length === 0) return matchsSource;
 
-      if (vainqueurs.length <= 1) return matchsMisAJour;
-
-      const tourSuivantExiste = matchsElimination.some(
-        (match) => match.journee === derniereJournee + 1
-      );
-      if (tourSuivantExiste) return matchsMisAJour;
-
-      const prochainId = Math.max(
-        SEUIL_PHASE_FINALE,
-        ...matchsMisAJour.map((match) => match.id + 1)
-      );
-      const tourSuivant = genererTourElimination(
-        vainqueurs,
-        derniereJournee + 1,
-        prochainId
+    const derniereJournee = Math.max(...elimination.map((match) => match.journee));
+    const tour = elimination.filter((match) => match.journee === derniereJournee);
+    const tourValide =
+      tour.length > 0 &&
+      tour.every(
+        (match) =>
+          match.score1 !== "" &&
+          match.score2 !== "" &&
+          Number(match.score1) !== Number(match.score2) &&
+          validesSource.includes(match.id)
       );
 
-      return [...matchsMisAJour, ...tourSuivant];
-    });
+    if (!tourValide) return matchsSource;
+
+    const vainqueurs = tour
+      .map((match) => {
+        const gagnantId =
+          Number(match.score1) > Number(match.score2)
+            ? match.equipe1Id
+            : match.equipe2Id;
+        return equipes.find((equipe) => equipe.id === gagnantId);
+      })
+      .filter((equipe): equipe is Equipe => Boolean(equipe));
+
+    if (vainqueurs.length <= 1) return matchsSource;
+
+    const existe = elimination.some((match) => match.journee === derniereJournee + 1);
+    if (existe) return matchsSource;
+
+    const prochainId = Math.max(
+      SEUIL_PHASE_FINALE,
+      ...matchsSource.map((match) => match.id + 1)
+    );
+    return [
+      ...matchsSource,
+      ...genererTourElimination(vainqueurs, derniereJournee + 1, prochainId),
+    ];
+  }
+
+  function validerScore(match: Match) {
+    if (match.score1 === "" || match.score2 === "") {
+      alert("Saisissez les deux scores avant de valider.");
+      return;
+    }
+
+    if (
+      (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
+      Number(match.score1) === Number(match.score2)
+    ) {
+      alert("Un vainqueur est nécessaire pour ce match.");
+      return;
+    }
+
+    const nouveauxValides = [...new Set([...matchsValides, match.id])];
+    setMatchsValides(nouveauxValides);
+    setMatchs((actuels) => avancerTournoiSiPossible(actuels, nouveauxValides));
+  }
+
+  function corrigerScore(match: Match) {
+    const toursSuivants = matchs.some((item) => item.journee > match.journee);
+    if (toursSuivants && (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE)) {
+      if (!confirm("Corriger ce résultat supprimera les tours générés après celui-ci. Continuer ?")) return;
+      setMatchs((actuels) => actuels.filter((item) => item.journee <= match.journee));
+      setMatchsValides((actuels) =>
+        actuels.filter((id) => {
+          const cible = matchs.find((item) => item.id === id);
+          return !cible || cible.journee <= match.journee;
+        }).filter((id) => id !== match.id)
+      );
+      return;
+    }
+
+    setMatchsValides((actuels) => actuels.filter((id) => id !== match.id));
   }
 
   function scoreModifiable(match: Match) {
-    if (formatTournoi === "complet" || formatTournoi === "poules") return true;
+    return !matchsValides.includes(match.id);
+  }
 
-    if (formatTournoi === "poulesFinale" && match.id < SEUIL_PHASE_FINALE) {
-      return matchsFinale.length === 0;
+  async function ajouterMonProfil() {
+    if (!userId) return;
+    setAjoutMoiEnCours(true);
+    setMessageCodeJoueur("Chargement de votre profil…");
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, display_name, player_code, avatar_url, favorite_color")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      setMessageCodeJoueur("Créez d’abord votre profil Tourneo.");
+      setAjoutMoiEnCours(false);
+      return;
     }
 
-    const matchsElimination =
-      formatTournoi === "elimination" ? matchs : matchsFinale;
-    if (matchsElimination.length === 0) return false;
+    if (equipes.some((equipe) => equipe.id === userId)) {
+      setMessageCodeJoueur("Votre profil est déjà dans ce tournoi.");
+      setAjoutMoiEnCours(false);
+      return;
+    }
 
-    const derniereJournee = Math.max(
-      ...matchsElimination.map((item) => item.journee)
-    );
-    return match.journee === derniereJournee;
+    enregistrerEquipe({
+      id: userId,
+      nom: data.display_name || data.player_code || "Moi",
+      emoji: "●",
+      couleur: data.favorite_color || "#3B82F6",
+      photo: data.avatar_url || undefined,
+    });
+
+    setMessageCodeJoueur("Votre profil a été ajouté.");
+    setAjoutMoiEnCours(false);
   }
 
   async function ajouterViaCodeTourneo() {
@@ -852,8 +885,7 @@ export default function TournoiPage() {
       id: data.id,
       nom: data.display_name || data.player_code,
       emoji: "👤",
-      couleur: data.favorite_color || "#3B82F6",
-      photo: data.avatar_url || undefined,
+      couleur: "#3B82F6",
     };
 
     setEquipes((actuelles) => [...actuelles, nouvelleEquipe]);
@@ -881,23 +913,21 @@ export default function TournoiPage() {
     }
   }
 
-  async function enregistrerPhotoPodium(fichier?: File) {
-    if (!fichier || !tournoiId || !userId) return;
-    setPodiumUpload(true);
-    const extension = (fichier.name.split(".").pop() || "jpg").toLowerCase();
-    const chemin = `${userId}/podiums/${tournoiId}-${Date.now()}.${extension}`;
-    const { error } = await supabase.storage.from("tourneo-media").upload(chemin, fichier, {
-      upsert: true,
-      contentType: fichier.type || undefined,
-    });
-    if (error) {
-      alert(error.message);
-      setPodiumUpload(false);
+
+  function choisirPhotoPodium(event: ChangeEvent<HTMLInputElement>) {
+    const fichier = event.target.files?.[0];
+    if (!fichier) return;
+
+    if (!fichier.type.startsWith("image/")) {
+      alert("Choisissez une image.");
       return;
     }
-    const { data } = supabase.storage.from("tourneo-media").getPublicUrl(chemin);
-    setPodiumPhotoUrl(data.publicUrl);
-    setPodiumUpload(false);
+
+    const lecteur = new FileReader();
+    lecteur.onload = () => {
+      if (typeof lecteur.result === "string") setPodiumPhotoUrl(lecteur.result);
+    };
+    lecteur.readAsDataURL(fichier);
   }
 
   async function partagerTournoi() {
@@ -1095,14 +1125,12 @@ export default function TournoiPage() {
             <div key={groupe.journee} style={styles.eliminationGroup}>
               <div style={styles.eliminationGroupTitle}>Éliminés en {groupe.titre.toLowerCase()}</div>
               <div style={styles.eliminationGroupTeams}>
-                {groupe.equipes
-  .filter((equipe): equipe is Equipe => Boolean(equipe))
-  .map((equipe) => (
-    <div key={equipe.id} style={styles.eliminationChip}>
-      <TeamAvatar equipe={equipe} taille={30} />
-      <span>{equipe.nom}</span>
-    </div>
-  ))}
+                {groupe.equipes.filter((equipe): equipe is Equipe => Boolean(equipe)).map((equipe) => (
+                  <div key={equipe.id} style={styles.eliminationChip}>
+                    <TeamAvatar equipe={equipe} taille={30} />
+                    <span>{equipe.nom}</span>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -1160,11 +1188,6 @@ export default function TournoiPage() {
             <strong style={styles.championName}>{gagnant.nom}</strong>
           </div>
         </div>
-        <div style={styles.podiumMemory}>
-          <div><span style={styles.eyebrow}>Souvenir du tournoi</span><strong style={{display:"block",marginTop:4}}>Photo du podium</strong><span style={styles.muted}>Ajoutez une photo des vainqueurs pour conserver le souvenir avec le tournoi.</span></div>
-          <label style={styles.photoButton}>{podiumUpload ? "Envoi…" : podiumPhotoUrl ? "Changer la photo" : "Ajouter une photo"}<input hidden type="file" accept="image/*" disabled={podiumUpload} onChange={(event)=>enregistrerPhotoPodium(event.target.files?.[0])}/></label>
-        </div>
-        {podiumPhotoUrl && <img src={podiumPhotoUrl} alt="Podium du tournoi" style={styles.podiumPhoto} />}
       </section>
     );
   }
@@ -1247,170 +1270,193 @@ export default function TournoiPage() {
     return (
       <main style={styles.page}>
         <div style={styles.shell}>
-          <header style={styles.appBar}>
-            <LogoTourneo compact />
-            <div style={styles.appBarActions}>
-              <button style={styles.ghostButton} onClick={() => (window.location.href = "/dashboard")}>Mes tournois</button>
-              <button style={styles.ghostButton} onClick={() => (window.location.href = "/profil")}>Mon profil</button>
-              <button style={styles.ghostButton} onClick={() => setAideOuverte(true)}>Aide & sécurité</button>
-              <button style={styles.ghostButton} onClick={seDeconnecter}>Déconnexion</button>
+          <TourneoNav
+            active="tournoi"
+            onLogout={seDeconnecter}
+            primaryLabel="Mes tournois"
+            primaryHref="/dashboard"
+          />
+
+          <section style={{ ...styles.formCard, maxWidth: 900, margin: "0 auto" }}>
+            <div style={styles.formHeader}>
+              <div>
+                <span style={styles.eyebrow}>Nouveau tournoi</span>
+                <h1 style={{ ...styles.heroTitle, marginBottom: 8 }}>Créer votre tournoi</h1>
+                <p style={styles.heroText}>Deux étapes simples : configurez, puis ajoutez les participants.</p>
+              </div>
+              <span style={styles.pill}>{equipes.length} participant(s)</span>
             </div>
-          </header>
 
-          <div style={styles.creationLayout}>
-            <section style={styles.heroCard}>
-              <span style={styles.eyebrow}>Nouveau tournoi</span>
-              <h1 style={styles.heroTitle}>Votre tournoi, autrement.</h1>
-              <p style={styles.heroText}>
-                Créez vos rencontres, suivez les scores en direct et faites vivre la compétition dans une interface pensée comme une vraie app.
-              </p>
-              <div style={styles.heroFeatureGrid}>
-                <div style={styles.heroFeature}><strong>4</strong><span>formats disponibles</span></div>
-                <div style={styles.heroFeature}><strong>Live</strong><span>scores et classement</span></div>
-                <div style={styles.heroFeature}><strong>Cloud</strong><span>sauvegarde automatique</span></div>
-              </div>
-            </section>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, padding: 6, borderRadius: 16, background: "#090E17", margin: "18px 0" }}>
+              <button
+                style={{ ...styles.ghostButton, ...(creationEtape === "configuration" ? styles.tabActive : {}) }}
+                onClick={() => setCreationEtape("configuration")}
+              >
+                1 · Configuration
+              </button>
+              <button
+                style={{ ...styles.ghostButton, ...(creationEtape === "participants" ? styles.tabActive : {}) }}
+                onClick={() => setCreationEtape("participants")}
+              >
+                2 · Participants
+              </button>
+            </div>
 
-            <section style={styles.formCard}>
-              <div style={styles.formHeader}>
-                <div>
-                  <span style={styles.eyebrow}>Configuration</span>
-                  <h2 style={styles.sectionTitle}>Votre tournoi</h2>
-                </div>
-                <span style={styles.pill}>{equipes.length} participant(s)</span>
-              </div>
+            {creationEtape === "configuration" ? (
+              <>
+                <label style={styles.label}>Nom du tournoi</label>
+                <input
+                  style={styles.input}
+                  value={nomTournoi}
+                  onChange={(event) => setNomTournoi(capitaliserNom(event.target.value))}
+                  placeholder="Ex. Tournoi été 2026"
+                />
 
-              <label style={styles.label}>Nom du tournoi</label>
-              <input
-                style={styles.input}
-                value={nomTournoi}
-                onChange={(event) => setNomTournoi(capitaliserNom(event.target.value))}
-                placeholder="Ex. Tournoi été 2026"
-              />
+                <div style={styles.twoColumns}>
+                  <div>
+                    <label style={styles.label}>Sport</label>
+                    <select style={styles.input} value={sport} onChange={(event) => setSport(event.target.value)}>
+                      {Object.entries(LIBELLES_SPORT).map(([value, label]) => (
+                        <option value={value} key={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div style={styles.twoColumns}>
-                <div>
-                  <label style={styles.label}>Sport</label>
-                  <select style={styles.input} value={sport} onChange={(event) => setSport(event.target.value)}>
-                    {Object.entries(LIBELLES_SPORT).map(([value, label]) => (
-                      <option value={value} key={value}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={styles.label}>Format</label>
-                  <select
-                    style={styles.input}
-                    value={formatTournoi}
-                    onChange={(event) => setFormatTournoi(event.target.value as FormatTournoi)}
-                  >
-                    {Object.entries(LIBELLES_FORMAT).map(([value, label]) => (
-                      <option value={value} key={value}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {(formatTournoi === "poules" || formatTournoi === "poulesFinale") && (
-                <div style={styles.configBox}>
-                  <label style={styles.label}>Organisation des poules</label>
-                  <select
-                    style={styles.input}
-                    value={modePoules}
-                    onChange={(event) => setModePoules(event.target.value as ModePoules)}
-                  >
-                    <option value="nombrePoules">Choisir le nombre de poules</option>
-                    <option value="taillePoules">Choisir les participants par poule</option>
-                  </select>
-
-                  <div style={styles.twoColumns}>
-                    <div>
-                      <label style={styles.label}>
-                        {modePoules === "nombrePoules" ? "Nombre de poules" : "Participants par poule"}
-                      </label>
-                      <input
-                        style={styles.input}
-                        type="number"
-                        min="2"
-                        value={modePoules === "nombrePoules" ? nombrePoules : taillePoules}
-                        onChange={(event) =>
-                          modePoules === "nombrePoules"
-                            ? setNombrePoules(Number(event.target.value))
-                            : setTaillePoules(Number(event.target.value))
-                        }
-                      />
+                  <div>
+                    <label style={styles.label}>Format</label>
+                    <select
+                      style={styles.input}
+                      value={formatTournoi}
+                      onChange={(event) => setFormatTournoi(event.target.value as FormatTournoi)}
+                    >
+                      {Object.entries(LIBELLES_FORMAT).map(([value, label]) => (
+                        <option value={value} key={value}>{label}</option>
+                      ))}
+                    </select>
+                    <div style={styles.formatExplanation}>
+                      <strong>{LIBELLES_FORMAT[formatTournoi]}</strong>
+                      <span>{EXPLICATIONS_FORMAT[formatTournoi]}</span>
                     </div>
-                    {formatTournoi === "poulesFinale" && (
+                  </div>
+                </div>
+
+                {(formatTournoi === "poules" || formatTournoi === "poulesFinale") && (
+                  <div style={styles.configBox}>
+                    <label style={styles.label}>Organisation des poules</label>
+                    <select
+                      style={styles.input}
+                      value={modePoules}
+                      onChange={(event) => setModePoules(event.target.value as ModePoules)}
+                    >
+                      <option value="nombrePoules">Choisir le nombre de poules</option>
+                      <option value="taillePoules">Choisir les participants par poule</option>
+                    </select>
+
+                    <div style={styles.twoColumns}>
                       <div>
-                        <label style={styles.label}>Qualifiés par poule</label>
+                        <label style={styles.label}>
+                          {modePoules === "nombrePoules" ? "Nombre de poules" : "Participants par poule"}
+                        </label>
                         <input
                           style={styles.input}
                           type="number"
-                          min="1"
-                          value={qualifiesParPoule}
-                          onChange={(event) => setQualifiesParPoule(Number(event.target.value))}
+                          min="2"
+                          value={modePoules === "nombrePoules" ? nombrePoules : taillePoules}
+                          onChange={(event) =>
+                            modePoules === "nombrePoules"
+                              ? setNombrePoules(Number(event.target.value))
+                              : setTaillePoules(Number(event.target.value))
+                          }
                         />
                       </div>
-                    )}
+                      {formatTournoi === "poulesFinale" && (
+                        <div>
+                          <label style={styles.label}>Qualifiés par poule</label>
+                          <input
+                            style={styles.input}
+                            type="number"
+                            min="1"
+                            value={qualifiesParPoule}
+                            onChange={(event) => setQualifiesParPoule(Number(event.target.value))}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-
-              <div style={styles.participantsHeader}>
-                <div>
-                  <span style={styles.eyebrow}>Participants</span>
-                  <h3 style={styles.smallTitle}>Équipes / joueurs</h3>
-                </div>
-                <button
-                  style={styles.secondaryButton}
-                  onClick={() => {
-                    setEquipeAModifier(null);
-                    setModalOuvert(true);
-                  }}
-                >
-                  Ajouter
-                </button>
-              </div>
-
-              <div style={styles.playerCodeBox}>
-                <div>
-                  <strong>Ajouter un joueur Tourneo</strong>
-                  <span style={styles.muted}>Scannez son QR depuis son téléphone ou saisissez son code joueur.</span>
-                </div>
-                <div style={styles.playerCodeActions}>
-                  <input
-                    style={{ ...styles.input, margin: 0 }}
-                    value={codeJoueur}
-                    onChange={(event) => setCodeJoueur(event.target.value)}
-                    placeholder="Ex. TRN-12AB-34CD"
-                  />
-                  <button style={styles.secondaryButton} onClick={ajouterViaCodeTourneo}>Ajouter par code</button>
-                </div>
-                {messageCodeJoueur && <span style={styles.statusLine}>{messageCodeJoueur}</span>}
-              </div>
-
-              <div style={styles.teamList}>
-                {equipes.length === 0 ? (
-                  <div style={styles.emptyState}>Ajoutez au moins deux participants pour commencer.</div>
-                ) : (
-                  equipes.map((equipe) => (
-                    <TeamCard
-                      key={equipe.id}
-                      equipe={equipe}
-                      onModifier={() => {
-                        setEquipeAModifier(equipe);
-                        setModalOuvert(true);
-                      }}
-                      onSupprimer={() => setEquipes((actuelles) => actuelles.filter((item) => item.id !== equipe.id))}
-                    />
-                  ))
                 )}
-              </div>
 
-              <button style={styles.primaryButton} onClick={lancerTournoi}>Créer le tournoi</button>
-              {messageCloud && <div style={styles.statusLine}>{messageCloud}</div>}
-            </section>
-          </div>
+                <button style={styles.primaryButton} onClick={() => setCreationEtape("participants")}>
+                  Continuer vers les participants →
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={styles.participantsHeader}>
+                  <div>
+                    <span style={styles.eyebrow}>Participants</span>
+                    <h2 style={styles.sectionTitle}>Équipes / joueurs</h2>
+                  </div>
+                  <button
+                    style={styles.secondaryButton}
+                    onClick={() => {
+                      setEquipeAModifier(null);
+                      setModalOuvert(true);
+                    }}
+                  >
+                    Ajouter
+                  </button>
+                </div>
+
+                <div style={styles.playerCodeBox}>
+                  <div style={{ display: "grid", gap: 5 }}>
+                    <strong>Ajouter avec un profil Tourneo</strong>
+                    <span style={styles.muted}>
+                      Le QR ou le code joueur sert à récupérer automatiquement le nom, la photo et la couleur du profil.
+                    </span>
+                  </div>
+
+                  <button style={styles.secondaryButton} disabled={ajoutMoiEnCours} onClick={ajouterMonProfil}>
+                    {ajoutMoiEnCours ? "Ajout…" : "M’ajouter moi-même"}
+                  </button>
+
+                  <div style={styles.playerCodeActions}>
+                    <input
+                      style={{ ...styles.input, margin: 0 }}
+                      value={codeJoueur}
+                      onChange={(event) => setCodeJoueur(event.target.value)}
+                      placeholder="Ex. TRN-12AB-34CD"
+                    />
+                    <button style={styles.secondaryButton} onClick={ajouterViaCodeTourneo}>Ajouter par code</button>
+                  </div>
+                  {messageCodeJoueur && <span style={styles.statusLine}>{messageCodeJoueur}</span>}
+                </div>
+
+                <div style={styles.teamList}>
+                  {equipes.length === 0 ? (
+                    <div style={styles.emptyState}>Ajoutez au moins deux participants pour commencer.</div>
+                  ) : (
+                    equipes.map((equipe) => (
+                      <TeamCard
+                        key={equipe.id}
+                        equipe={equipe}
+                        onModifier={() => {
+                          setEquipeAModifier(equipe);
+                          setModalOuvert(true);
+                        }}
+                        onSupprimer={() => setEquipes((actuelles) => actuelles.filter((item) => item.id !== equipe.id))}
+                      />
+                    ))
+                  )}
+                </div>
+
+                <button style={styles.primaryButton} onClick={lancerTournoi}>Créer le tournoi</button>
+                <button style={{ ...styles.ghostButton, width: "100%", marginTop: 8 }} onClick={() => setCreationEtape("configuration")}>
+                  ← Revenir à la configuration
+                </button>
+                {messageCloud && <div style={styles.statusLine}>{messageCloud}</div>}
+              </>
+            )}
+          </section>
         </div>
 
         <TeamModal
@@ -1428,14 +1474,85 @@ export default function TournoiPage() {
 
   return (
     <main style={styles.page}>
+      <style jsx global>{`
+        @media (max-width: 760px) {
+          .tourneo-creation-mobile-fix { grid-template-columns: 1fr !important; }
+          input, select, button { max-width: 100%; }
+
+          .tourneo-souvenir-poster {
+            display: block !important;
+            aspect-ratio: auto !important;
+          }
+        }
+
+        @media (min-width: 900px) {
+          .tourneo-souvenir-modal {
+            width: min(1080px, calc(100vw - 36px)) !important;
+            max-height: calc(100vh - 24px) !important;
+            overflow-y: auto !important;
+            padding: 16px !important;
+          }
+
+          .tourneo-souvenir-poster {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1.34fr) minmax(340px, .66fr) !important;
+            grid-template-rows: auto minmax(0, 1fr) !important;
+            grid-template-areas:
+              "brand right"
+              "photo right" !important;
+            column-gap: 24px !important;
+            row-gap: 14px !important;
+            aspect-ratio: 16 / 9 !important;
+            min-height: 0 !important;
+            padding: 22px !important;
+          }
+
+          .tourneo-souvenir-brand {
+            grid-area: brand !important;
+          }
+
+          .tourneo-souvenir-photo-zone {
+            grid-area: photo !important;
+            margin-top: 0 !important;
+            height: 100% !important;
+            min-height: 0 !important;
+          }
+
+          .tourneo-souvenir-photo-zone img {
+            height: 100% !important;
+            min-height: 0 !important;
+          }
+
+          .tourneo-souvenir-right {
+            grid-area: right !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-width: 0 !important;
+            height: 100% !important;
+          }
+
+          .tourneo-souvenir-podium {
+            margin-top: 22px !important;
+            padding-top: 0 !important;
+          }
+
+          .tourneo-souvenir-footer {
+            margin-top: auto !important;
+            padding-top: 16px !important;
+          }
+        }
+
+        @media print {
+          body * { visibility: hidden !important; }
+          #tourneo-souvenir, #tourneo-souvenir * { visibility: visible !important; }
+          #tourneo-souvenir { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+      `}</style>
       <div style={styles.shell}>
-        <header style={styles.appBar}>
-          <LogoTourneo compact />
-          <div style={styles.appBarActions}>
-            <button style={styles.ghostButton} onClick={() => (window.location.href = "/dashboard")}>Mes tournois</button>
-            <button style={styles.ghostButton} onClick={seDeconnecter}>Déconnexion</button>
-          </div>
-        </header>
+        <TourneoNav
+          active="tournoi"
+          onLogout={seDeconnecter}
+        />
 
         <section style={styles.tournamentHeader}>
           <div style={{ minWidth: 0 }}>
@@ -1474,7 +1591,14 @@ export default function TournoiPage() {
           </div>
         </section>
 
-        <AdSlot label="Publicité" />
+        <section style={styles.sponsorCard}>
+          <div>
+            <span style={styles.eyebrow}>Espace partenaire</span>
+            <strong style={styles.sponsorTitle}>{partenairePourSport(sport)}</strong>
+            <span style={styles.muted}>Emplacement publicitaire contextuel prévu pour la monétisation. Aucun partenariat n’est actuellement revendiqué.</span>
+          </div>
+          <span style={styles.sponsorBadge}>{LIBELLES_SPORT[sport] ?? sport}</span>
+        </section>
 
         <nav style={styles.nav}>
           {([
@@ -1736,6 +1860,16 @@ export default function TournoiPage() {
                       </div>
 
                       {nulInterdit && <div style={styles.inlineWarning}>Un vainqueur est requis pour poursuivre la phase finale.</div>}
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                        {matchsValides.includes(match.id) ? (
+                          <>
+                            <span style={{ ...styles.pill, color: "#9EF4C5" }}>Résultat validé</span>
+                            <button style={styles.ghostButton} onClick={() => corrigerScore(match)}>Corriger le score</button>
+                          </>
+                        ) : (
+                          <button style={styles.secondaryButton} onClick={() => validerScore(match)}>Valider le résultat</button>
+                        )}
+                      </div>
                     </article>
                   );
                 })}
@@ -1752,28 +1886,54 @@ export default function TournoiPage() {
                   <section style={styles.card}>
                     <span style={styles.eyebrow}>{joues === matchs.length && matchs.length > 0 ? "Résultat" : "Classement provisoire"}</span>
                     <h2 style={styles.sectionTitle}>Podium</h2>
-                    <div style={styles.podiumModern}>
+                    <div style={styles.podiumStage}>
                       {[podium[1], podium[0], podium[2]].map((ligne, index) => {
                         const rang = index === 0 ? 2 : index === 1 ? 1 : 3;
+                        const hauteur = rang === 1 ? 150 : rang === 2 ? 118 : 96;
+                        const medaille = rang === 1 ? "🥇" : rang === 2 ? "🥈" : "🥉";
+
                         return (
-                          <div key={ligne.equipe.id} style={{ ...styles.podiumModernCard, ...(rang === 1 ? styles.podiumWinner : {}) }}>
-                            <span style={styles.rankNumber}>{rang}</span>
-                            <TeamAvatar equipe={ligne.equipe} taille={rang === 1 ? 70 : 58} />
-                            <strong style={styles.finalName}>{ligne.equipe.nom}</strong>
-                            <span style={styles.muted}>{ligne.pts} pts</span>
+                          <div
+                            key={ligne.equipe.id}
+                            style={{
+                              ...styles.podiumColumn,
+                              ...(rang === 1 ? styles.podiumColumnFirst : {}),
+                            }}
+                          >
+                            <div
+                              style={{
+                                ...styles.podiumPlayer,
+                                ...(rang === 1 ? styles.podiumPlayerFirst : {}),
+                              }}
+                            >
+                              <span style={styles.podiumRankBadge}>{rang}</span>
+                              <span style={styles.podiumMedal}>{medaille}</span>
+                              <TeamAvatar equipe={ligne.equipe} taille={rang === 1 ? 78 : 64} />
+                              <strong style={styles.finalName}>{ligne.equipe.nom}</strong>
+                              <span style={styles.podiumScore}>{ligne.pts} pts</span>
+                            </div>
+
+                            <div
+                              style={{
+                                ...styles.podiumBlock,
+                                minHeight: hauteur,
+                                ...(rang === 1
+                                  ? styles.podiumBlockFirst
+                                  : rang === 2
+                                  ? styles.podiumBlockSecond
+                                  : styles.podiumBlockThird),
+                              }}
+                            >
+                              <strong style={styles.podiumPlace}>{rang}</strong>
+                              <span style={styles.podiumPlaceLabel}>
+                                {rang === 1 ? "Champion" : `${rang}e place`}
+                              </span>
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                    {joues === matchs.length && matchs.length > 0 && (
-                      <>
-                        <div style={styles.podiumMemory}>
-                          <div><span style={styles.eyebrow}>Souvenir du tournoi</span><strong style={{display:"block",marginTop:4}}>Photo du podium</strong><span style={styles.muted}>Prenez ou importez une photo des trois premiers.</span></div>
-                          <label style={styles.photoButton}>{podiumUpload ? "Envoi…" : podiumPhotoUrl ? "Changer la photo" : "Ajouter une photo"}<input hidden type="file" accept="image/*" disabled={podiumUpload} onChange={(event)=>enregistrerPhotoPodium(event.target.files?.[0])}/></label>
-                        </div>
-                        {podiumPhotoUrl && <img src={podiumPhotoUrl} alt="Podium du tournoi" style={styles.podiumPhoto} />}
-                      </>
-                    )}
+                    <button style={{ ...styles.primaryButton, marginTop: 16 }} onClick={() => setSouvenirOuvert(true)}>Créer l’affiche souvenir</button>
                   </section>
                 )}
 
@@ -1922,6 +2082,103 @@ export default function TournoiPage() {
         )}
       </div>
 
+      {souvenirOuvert && (
+        <div style={styles.modalBackdrop}>
+          <section className="tourneo-souvenir-modal" style={{ ...styles.modalCard, maxWidth: 1180 }}>
+            <div style={styles.modalHeader}>
+              <div>
+                <span style={styles.eyebrow}>Souvenir du tournoi</span>
+                <h2 style={styles.sectionTitle}>{nomTournoi}</h2>
+              </div>
+              <button style={styles.modalClose} onClick={() => setSouvenirOuvert(false)}>×</button>
+            </div>
+
+            {podiumPhotoUrl && (
+              <div style={styles.souvenirTools}>
+                <button style={styles.ghostButton} onClick={() => setPodiumPhotoUrl("")}>Retirer la photo</button>
+              </div>
+            )}
+
+            <div id="tourneo-souvenir" className="tourneo-souvenir-poster" style={styles.souvenirPoster}>
+              <div className="tourneo-souvenir-brand" style={styles.souvenirBrand}>
+                <TourneoBrand />
+              </div>
+
+              <label
+                className="tourneo-souvenir-photo-zone"
+                style={podiumPhotoUrl ? styles.souvenirPhotoFrame : styles.souvenirPhotoPlaceholder}
+                title={podiumPhotoUrl ? "Changer la photo des finalistes" : "Ajouter la photo des 3 finalistes"}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={choisirPhotoPodium}
+                  style={{ display: "none" }}
+                />
+
+                {podiumPhotoUrl ? (
+                  <>
+                    <img src={podiumPhotoUrl} alt="Photo des finalistes" style={styles.souvenirPhoto} />
+                    <span style={styles.photoCaption}>📷 Cliquer pour changer la photo</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 34 }}>📸</span>
+                    <strong>Photo des 3 finalistes</strong>
+                    <span>Ajoutez une photo avant d’imprimer ou partager l’affiche.</span>
+                    <span style={styles.photoTapHint}>Cliquer ici pour prendre ou choisir une photo</span>
+                  </>
+                )}
+              </label>
+
+              <div className="tourneo-souvenir-right" style={styles.souvenirRight}>
+                <div style={styles.souvenirTitleBox}>
+                  <span style={styles.eyebrow}>Résultats officiels</span>
+                  <h2 style={styles.souvenirTitle}>{nomTournoi}</h2>
+                  <p style={styles.souvenirMeta}>{LIBELLES_SPORT[sport] ?? sport} · {LIBELLES_FORMAT[formatTournoi]}</p>
+                </div>
+
+                {podium.length >= 3 && (
+                  <div className="tourneo-souvenir-podium" style={styles.souvenirPodium}>
+                    {[podium[1], podium[0], podium[2]].map((ligne, index) => {
+                      const rang = index === 0 ? 2 : index === 1 ? 1 : 3;
+                      const hauteur = rang === 1 ? 140 : rang === 2 ? 112 : 96;
+                      return (
+                        <div key={ligne.equipe.id} style={styles.souvenirPodiumColumn}>
+                          <TeamAvatar equipe={ligne.equipe} taille={rang === 1 ? 64 : 52} />
+                          <strong style={styles.souvenirPlayerName}>{ligne.equipe.nom}</strong>
+                          <span style={styles.souvenirPoints}>{ligne.pts} pts</span>
+                          <div style={{ ...styles.souvenirPodiumBlock, minHeight: hauteur, ...(rang === 1 ? styles.souvenirFirst : rang === 2 ? styles.souvenirSecond : styles.souvenirThird) }}>
+                            <span style={styles.souvenirMedal}>{rang === 1 ? "🥇" : rang === 2 ? "🥈" : "🥉"}</span>
+                            <strong>{rang}</strong>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="tourneo-souvenir-footer" style={styles.souvenirFooter}>
+                  <div style={styles.qrSouvenirBox}>
+                    {lienPartage && <QRCodeSVG value={lienPartage} size={92} />}
+                  </div>
+                  <div style={styles.qrSouvenirText}>
+                    <strong>Voir le classement complet</strong>
+                    <span>Scannez ce QR code pour retrouver tous les participants, les matchs et le classement du tournoi.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+              <button style={styles.primaryButton} onClick={() => window.print()}>Imprimer / enregistrer en PDF</button>
+              <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager les résultats</button>
+            </div>
+          </section>
+        </div>
+      )}
+
       <TeamModal
         ouvert={modalOuvert}
         equipeAModifier={equipeAModifier}
@@ -2003,6 +2260,19 @@ const styles: Record<string, CSSProperties> = {
   ghostButton: { padding: "10px 12px", borderRadius: 11, border: "1px solid transparent", background: "transparent", color: "#AEB5C5", fontWeight: 700, cursor: "pointer" },
   dangerButton: { width: "100%", marginTop: 10, padding: "13px 16px", borderRadius: 13, border: "1px solid rgba(248,113,113,.25)", background: "rgba(248,113,113,.08)", color: "#FDA4AF", fontWeight: 800, cursor: "pointer" },
   statusLine: { marginTop: 12, textAlign: "center", color: "#8D95A7", fontSize: 13 },
+  formatExplanation: {
+    marginTop: 10,
+    padding: "12px 14px",
+    display: "grid",
+    gap: 5,
+    borderRadius: 14,
+    background: "rgba(114,231,255,.045)",
+    border: "1px solid rgba(114,231,255,.10)",
+    color: "#8D95A7",
+    fontSize: 13,
+    lineHeight: 1.5,
+    textAlign: "left",
+  },
   tournamentHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 22, flexWrap: "wrap", padding: "34px 0 22px" },
   metaRow: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
   formatBadge: { padding: "7px 11px", borderRadius: 999, background: "linear-gradient(90deg,rgba(124,92,255,.20),rgba(34,211,238,.13))", border: "1px solid rgba(92,207,255,.28)", color: "#BFEAFF", fontSize: 12, fontWeight: 900, boxShadow: "0 6px 18px rgba(34,211,238,.08)" },
@@ -2048,6 +2318,20 @@ const styles: Record<string, CSSProperties> = {
   podiumModern: { display: "grid", gridTemplateColumns: "repeat(3,minmax(150px,1fr))", gap: 10, marginTop: 22, overflowX: "auto" },
   podiumModernCard: { minWidth: 150, padding: 18, borderRadius: 18, background: "#0D1017", border: "1px solid #252B3A", display: "grid", justifyItems: "center", gap: 9, textAlign: "center" },
   podiumWinner: { background: "linear-gradient(180deg, rgba(99,91,255,.18), #0D1017)", borderColor: "rgba(99,91,255,.38)" },
+  podiumStage: { display: "grid", gridTemplateColumns: "repeat(3,minmax(165px,1fr))", gap: 16, alignItems: "end", marginTop: 26, overflowX: "auto", padding: "12px 4px 2px" },
+  podiumColumn: { minWidth: 165, display: "grid", alignItems: "end" },
+  podiumColumnFirst: { transform: "translateY(-10px)" },
+  podiumPlayer: { position: "relative", display: "grid", justifyItems: "center", gap: 8, textAlign: "center", padding: "18px 12px 16px", margin: "0 7px 10px", borderRadius: 22, background: "linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028))", border: "1px solid rgba(148,163,184,.16)", boxShadow: "0 18px 45px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.05)" },
+  podiumPlayerFirst: { background: "radial-gradient(circle at 50% 0%,rgba(250,204,21,.18),transparent 45%),linear-gradient(180deg,rgba(124,92,255,.16),rgba(255,255,255,.035))", border: "1px solid rgba(250,204,21,.30)", boxShadow: "0 22px 60px rgba(124,92,255,.18),inset 0 1px 0 rgba(255,255,255,.08)" },
+  podiumRankBadge: { position: "absolute", top: 10, left: 10, width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 999, background: "rgba(5,10,20,.68)", border: "1px solid rgba(255,255,255,.12)", color: "#EAF4FF", fontWeight: 950, fontSize: 12 },
+  podiumMedal: { fontSize: 28, lineHeight: 1 },
+  podiumScore: { color: "#9DB1C8", fontSize: 12, fontWeight: 800 },
+  podiumBlock: { display: "grid", placeItems: "center", alignContent: "center", gap: 5, borderRadius: "20px 20px 8px 8px", border: "1px solid rgba(255,255,255,.14)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.18)" },
+  podiumBlockFirst: { background: "linear-gradient(180deg,#EED06C 0%,#C58B22 56%,#9F6310 100%)", color: "#FFF9E8" },
+  podiumBlockSecond: { background: "linear-gradient(180deg,#C6D2E1 0%,#8193AA 58%,#5B6B80 100%)", color: "#F8FBFF" },
+  podiumBlockThird: { background: "linear-gradient(180deg,#D49A6A 0%,#9B6240 58%,#6D3E27 100%)", color: "#FFF4EC" },
+  podiumPlace: { fontSize: 38, lineHeight: 1, textShadow: "0 4px 18px rgba(0,0,0,.20)" },
+  podiumPlaceLabel: { fontSize: 10, fontWeight: 900, letterSpacing: ".08em", textTransform: "uppercase", opacity: .82 },
   rankNumber: { width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 999, background: "#23293A", color: "#B7BDCC", fontWeight: 900, fontSize: 12 },
   finalResult: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12, marginTop: 22, alignItems: "stretch" },
   finalistCard: { padding: 22, borderRadius: 18, background: "#0D1017", border: "1px solid #252B3A", display: "grid", justifyItems: "center", gap: 8, textAlign: "center" },
@@ -2063,13 +2347,13 @@ const styles: Record<string, CSSProperties> = {
   activityList: { display: "grid", gap: 0, marginTop: 16, borderTop: "1px solid #232837" },
   activityRow: { display: "flex", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "1px solid #232837", color: "#9DA5B6" },
   modalBackdrop: { position: "fixed", inset: 0, zIndex: 100, display: "grid", placeItems: "center", padding: 18, background: "rgba(5,7,11,.82)", backdropFilter: "blur(10px)" },
+  modalCard: { width: "100%", maxHeight: "92vh", overflowY: "auto", padding: 22, borderRadius: 24, background: "#0B1323", border: "1px solid rgba(148,163,184,.18)", color: "white", boxShadow: "0 24px 70px rgba(0,0,0,.45)" },
+  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 },
+  modalClose: { width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: 13, border: "1px solid rgba(148,163,184,.16)", background: "rgba(255,255,255,.04)", color: "white", fontSize: 24, cursor: "pointer" },
   qrModal: { width: "100%", maxWidth: 420, padding: 26, borderRadius: 24, background: "#12151E", border: "1px solid #2A3040", boxShadow: "0 28px 90px rgba(0,0,0,.45)" },
   qrBox: { width: "fit-content", margin: "20px auto 0", padding: 14, borderRadius: 16, background: "white" },
   playerCodeBox: { padding: 16, margin: "14px 0", borderRadius: 18, display: "grid", gap: 12, background: "rgba(59,130,246,.07)", border: "1px solid rgba(96,165,250,.16)" },
   playerCodeActions: { display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center" },
-  podiumMemory: { marginTop: 16, padding: 16, borderRadius: 18, display: "flex", justifyContent: "space-between", gap: 14, alignItems: "center", flexWrap: "wrap", background: "rgba(255,255,255,.03)", border: "1px solid rgba(148,163,184,.10)" },
-  photoButton: { padding: "11px 14px", borderRadius: 13, background: "linear-gradient(135deg,#7C5CFF,#3B82F6,#22D3EE)", color: "white", fontWeight: 900, cursor: "pointer" },
-  podiumPhoto: { width: "100%", maxHeight: 430, objectFit: "cover", borderRadius: 20, marginTop: 14, border: "1px solid rgba(148,163,184,.12)" },
   sponsorCard: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap", padding: "16px 18px", marginBottom: 16, borderRadius: 20, background: "linear-gradient(135deg,rgba(124,92,255,.10),rgba(34,211,238,.05))", border: "1px solid rgba(148,163,184,.11)" },
   sponsorTitle: { display: "block", margin: "4px 0", fontSize: 20 },
   sponsorBadge: { padding: "7px 10px", borderRadius: 999, color: "#9eeeff", background: "rgba(34,211,238,.08)", border: "1px solid rgba(34,211,238,.16)", fontSize: 11, fontWeight: 900 },
@@ -2079,6 +2363,31 @@ const styles: Record<string, CSSProperties> = {
   legalBox: { padding: 16, marginTop: 10, borderRadius: 16, background: "rgba(124,92,255,.055)", border: "1px solid rgba(124,92,255,.14)", color: "#aabbd0", lineHeight: 1.55 },
   shareLink: { color: "#858DA0", fontSize: 12, overflowWrap: "anywhere", textAlign: "center" },
   ghostWide: { width: "100%", marginTop: 8, padding: "12px 14px", borderRadius: 12, border: "1px solid #313748", background: "transparent", color: "#B1B8C8", fontWeight: 750, cursor: "pointer" },
+  souvenirTools: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 14 },
+  photoButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "11px 14px", borderRadius: 13, background: "linear-gradient(110deg,rgba(124,92,255,.28),rgba(34,211,238,.16))", border: "1px solid rgba(114,231,255,.24)", color: "white", fontWeight: 850, cursor: "pointer" },
+  souvenirPoster: { padding: "clamp(20px,4vw,34px)", borderRadius: 28, background: "radial-gradient(circle at 18% 0%,rgba(124,92,255,.28),transparent 30%),radial-gradient(circle at 90% 12%,rgba(34,211,238,.18),transparent 28%),linear-gradient(145deg,#06101C,#0D1830 58%,#101A2D)", border: "1px solid rgba(114,231,255,.22)", boxShadow: "0 28px 80px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.06)", overflow: "hidden" },
+  souvenirBrand: { display: "flex", alignItems: "flex-start", minWidth: 0 },
+  souvenirRight: { minWidth: 0, display: "flex", flexDirection: "column" },
+  souvenirTitleBox: { textAlign: "right", minWidth: 0, position: "relative", zIndex: 2 },
+  souvenirTitle: { margin: "4px 0", fontSize: "clamp(28px,4.2vw,44px)", lineHeight: 1, letterSpacing: "-.045em" },
+  souvenirMeta: { margin: 0, color: "#9CB1C9", fontWeight: 700, lineHeight: 1.35, overflowWrap: "anywhere" },
+  souvenirPhotoFrame: { marginTop: 24, padding: 8, borderRadius: 24, background: "rgba(255,255,255,.055)", border: "1px solid rgba(255,255,255,.10)", position: "relative", display: "block", cursor: "pointer", overflow: "hidden" },
+  souvenirPhoto: { width: "100%", height: "clamp(220px,38vw,360px)", objectFit: "cover", borderRadius: 18, display: "block" },
+  photoCaption: { position: "absolute", left: 20, bottom: 18, padding: "8px 11px", borderRadius: 999, background: "rgba(6,12,24,.78)", color: "white", fontSize: 12, fontWeight: 800, backdropFilter: "blur(10px)" },
+  souvenirPhotoPlaceholder: { marginTop: 24, minHeight: 180, display: "grid", placeItems: "center", alignContent: "center", gap: 7, padding: 22, borderRadius: 22, border: "1px dashed rgba(114,231,255,.28)", background: "rgba(255,255,255,.025)", color: "#9DB0C8", textAlign: "center", cursor: "pointer" },
+  photoTapHint: { marginTop: 5, padding: "7px 10px", borderRadius: 999, color: "#8EEBFF", background: "rgba(34,211,238,.07)", border: "1px solid rgba(34,211,238,.12)", fontSize: 11, fontWeight: 850 },
+  souvenirPodium: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 7, alignItems: "end", marginTop: 22, overflow: "hidden", minWidth: 0, position: "relative", zIndex: 1 },
+  souvenirPodiumColumn: { minWidth: 0, display: "grid", justifyItems: "center", alignItems: "end", textAlign: "center" },
+  souvenirPlayerName: { marginTop: 7, fontSize: 15, maxWidth: "100%", overflowWrap: "anywhere" },
+  souvenirPoints: { margin: "4px 0 10px", color: "#A9BDD2", fontSize: 12, fontWeight: 750 },
+  souvenirPodiumBlock: { width: "100%", minWidth: 0, display: "grid", placeItems: "center", alignContent: "center", gap: 4, borderRadius: "17px 17px 5px 5px", border: "1px solid rgba(255,255,255,.14)", fontSize: 31, fontWeight: 950, boxShadow: "inset 0 1px 0 rgba(255,255,255,.12),0 16px 30px rgba(0,0,0,.18)" },
+  souvenirFirst: { background: "linear-gradient(180deg,#E5BE60,#A96D13)", color: "#FFF8E7" },
+  souvenirSecond: { background: "linear-gradient(180deg,#AEBED2,#596D87)", color: "#F7FAFF" },
+  souvenirThird: { background: "linear-gradient(180deg,#C88A5C,#744429)", color: "#FFF2E8" },
+  souvenirMedal: { fontSize: 24 },
+  souvenirFooter: { display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", gap: 14, alignItems: "center", marginTop: 26, paddingTop: 22, borderTop: "1px solid rgba(255,255,255,.10)", minWidth: 0 },
+  qrSouvenirBox: { padding: 10, borderRadius: 15, background: "white", width: "fit-content" },
+  qrSouvenirText: { display: "grid", gap: 5, color: "#A8BAD0", lineHeight: 1.5 },
   loaderCard: { minHeight: "100vh", display: "grid", placeItems: "center", alignContent: "center", gap: 16 },
   muted: { color: "#858DA0", lineHeight: 1.55 },
   eliminationRanking: { display: "grid", gap: 12, marginTop: 20 },

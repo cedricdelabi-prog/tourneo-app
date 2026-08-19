@@ -1,220 +1,166 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
+import TourneoBrand from "@/components/TourneoBrand";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"connexion" | "inscription">("connexion");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [nom, setNom] = useState("");
+  const [pseudo, setPseudo] = useState("");
+  const [ville, setVille] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
 
+  async function connexionGoogle() {
+    setMessage("");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    });
+    if (error) setMessage(error.message);
+  }
+
   async function envoyer() {
     setMessage("");
-    setChargement(true);
-
     if (!email || !password) {
-      setMessage("Merci de remplir l’e-mail et le mot de passe.");
-      setChargement(false);
+      setMessage("Renseignez votre e-mail et votre mot de passe.");
       return;
     }
-
     if (password.length < 6) {
       setMessage("Le mot de passe doit contenir au moins 6 caractères.");
-      setChargement(false);
       return;
     }
 
-    if (mode === "inscription") {
-    const { error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
- emailRedirectTo: window.location.origin,
-  },
-});
+    setChargement(true);
+    try {
+      if (mode === "inscription") {
+        if (!prenom.trim() || !nom.trim()) {
+          setMessage("Prénom et nom sont nécessaires pour créer votre profil Tourneo.");
+          return;
+        }
 
-      if (error) {
-        setMessage(error.message);
-      } else {
-        setMessage(
-          "Compte créé ! Vérifie maintenant ta boîte mail pour confirmer ton adresse."
-        );
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+        const displayName = pseudo.trim() || `${prenom.trim()} ${nom.trim()}`;
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: {
+              first_name: prenom.trim(),
+              last_name: nom.trim(),
+              display_name: displayName,
+              city: ville.trim(),
+            },
+          },
+        });
 
-      if (error) {
-        setMessage("E-mail ou mot de passe incorrect.");
+        if (error) {
+          setMessage(error.message);
+        } else {
+          setMessage("Compte créé. Un e-mail Tourneo vous attend pour confirmer votre adresse.");
+        }
       } else {
-        window.location.href = "/";
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) setMessage("E-mail ou mot de passe incorrect.");
+        else window.location.href = "/dashboard";
       }
+    } finally {
+      setChargement(false);
     }
+  }
 
-    setChargement(false);
+  async function motDePasseOublie() {
+    if (!email) {
+      setMessage("Saisissez d’abord votre adresse e-mail.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setMessage(error ? error.message : "Un e-mail de réinitialisation vient d’être envoyé.");
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-        background: "#0f172a",
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 380,
-          padding: 30,
-          borderRadius: 20,
-          background: "#1e293b",
-          border: "1px solid #334155",
-        }}
-      >
-        <div style={{ textAlign: "center", fontSize: 50 }}>🏆</div>
+    <main style={s.page}>
+      <div style={s.glow1} />
+      <div style={s.glow2} />
+      <section style={s.card}>
+        <div style={s.brandCenter}><TourneoBrand /></div>
+        <div style={s.switcher}>
+          <button style={{ ...s.switch, ...(mode === "connexion" ? s.switchActive : {}) }} onClick={() => setMode("connexion")}>Connexion</button>
+          <button style={{ ...s.switch, ...(mode === "inscription" ? s.switchActive : {}) }} onClick={() => setMode("inscription")}>Créer un compte</button>
+        </div>
 
-        <h1 style={{ textAlign: "center", marginBottom: 8 }}>Tourneo</h1>
-
-        <p
-          style={{
-            textAlign: "center",
-            color: "#94a3b8",
-            marginBottom: 25,
-          }}
-        >
-          {mode === "connexion"
-            ? "Connecte-toi à ton compte"
-            : "Crée ton compte gratuitement"}
-        </p>
-
-        <label style={{ display: "block", marginBottom: 6 }}>E-mail</label>
-
-        <input
-          type="email"
-          placeholder="exemple@email.fr"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: 12,
-            marginBottom: 15,
-            borderRadius: 8,
-            border: "1px solid #475569",
-          }}
-        />
-
-        <label style={{ display: "block", marginBottom: 6 }}>
-          Mot de passe
-        </label>
-
-        <input
-          type="password"
-          placeholder="6 caractères minimum"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: 12,
-            marginBottom: 20,
-            borderRadius: 8,
-            border: "1px solid #475569",
-          }}
-        />
-
-        <button
-          onClick={envoyer}
-          disabled={chargement}
-          style={{
-            width: "100%",
-            padding: 13,
-            background: "#2563eb",
-            color: "white",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          {chargement
-            ? "Chargement..."
-            : mode === "connexion"
-              ? "Se connecter"
-              : "Créer mon compte"}
+        <button style={s.google} onClick={connexionGoogle}>
+          <span style={s.googleMark}>G</span>
+          Continuer avec Google
         </button>
 
-        {message && (
-          <p
-            style={{
-              marginTop: 15,
-              padding: 10,
-              borderRadius: 8,
-              background: "#0f172a",
-              color: "#bfdbfe",
-            }}
-          >
-            {message}
-          </p>
+        <div style={s.separator}><span>ou</span></div>
+
+        {mode === "inscription" && (
+          <>
+            <div style={s.two}>
+              <div>
+                <label style={s.label}>Prénom</label>
+                <input style={s.input} value={prenom} onChange={(e) => setPrenom(e.target.value)} autoComplete="given-name" />
+              </div>
+              <div>
+                <label style={s.label}>Nom</label>
+                <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} autoComplete="family-name" />
+              </div>
+            </div>
+
+            <label style={s.label}>Pseudo Tourneo <span style={s.optional}>facultatif</span></label>
+            <input style={s.input} value={pseudo} onChange={(e) => setPseudo(e.target.value)} placeholder="Ex. Cedric62" />
+
+            <label style={s.label}>Ville <span style={s.optional}>facultatif</span></label>
+            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} autoComplete="address-level2" placeholder="Ex. Calais" />
+          </>
         )}
-{mode === "connexion" && (
-  <button
-    type="button"
-    onClick={async () => {
-  if (!email) {
-    setMessage("Veuillez saisir votre adresse e-mail.");
-    return;
-  }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
+        <label style={s.label}>E-mail</label>
+        <input style={s.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="vous@email.fr" />
 
-  if (error) {
-    setMessage(error.message);
-  } else {
-    setMessage("📧 Un e-mail vient d'être envoyé.");
-  }
-}}
-    style={{
-      width: "100%",
-      marginTop: 12,
-      background: "transparent",
-      border: "none",
-      color: "#60a5fa",
-      cursor: "pointer",
-      fontSize: 14,
-    }}
-  >
-    Mot de passe oublié ?
-  </button>
-)}
-        <button
-          onClick={() => {
-            setMode(mode === "connexion" ? "inscription" : "connexion");
-            setMessage("");
-          }}
-          style={{
-            width: "100%",
-            marginTop: 20,
-            background: "transparent",
-            border: "none",
-            color: "#93c5fd",
-            cursor: "pointer",
-          }}
-        >
-          {mode === "connexion"
-            ? "Pas encore de compte ? Créer un compte"
-            : "Déjà un compte ? Se connecter"}
+        <label style={s.label}>Mot de passe</label>
+        <input style={s.input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "connexion" ? "current-password" : "new-password"} placeholder="6 caractères minimum" />
+
+        <button style={s.primary} onClick={envoyer} disabled={chargement}>
+          {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer mon compte"}
         </button>
-      </div>
+
+        {mode === "connexion" && <button style={s.link} onClick={motDePasseOublie}>Mot de passe oublié ?</button>}
+        {message && <div style={s.message}>{message}</div>}
+
+        <p style={s.legal}>En créant un compte, vous acceptez le fonctionnement et les règles de sécurité présentés dans la rubrique Aide & sécurité.</p>
+      </section>
     </main>
   );
 }
+
+const s: Record<string, CSSProperties> = {
+  page: { minHeight: "100vh", position: "relative", overflow: "hidden", display: "grid", placeItems: "center", padding: 18, background: "linear-gradient(145deg,#050811,#0B1220)", color: "white", fontFamily: "Inter,system-ui,sans-serif" },
+  glow1: { position: "fixed", width: 500, height: 500, left: "-10%", top: "-15%", borderRadius: "50%", background: "rgba(124,92,255,.17)", filter: "blur(80px)" },
+  glow2: { position: "fixed", width: 420, height: 420, right: "-12%", bottom: "-15%", borderRadius: "50%", background: "rgba(34,211,238,.10)", filter: "blur(80px)" },
+  card: { position: "relative", width: "100%", maxWidth: 480, padding: 26, borderRadius: 28, border: "1px solid rgba(148,163,184,.16)", background: "rgba(11,19,35,.88)", backdropFilter: "blur(18px)", boxShadow: "0 30px 80px rgba(0,0,0,.38)" },
+  brandCenter: { display: "flex", justifyContent: "center", marginBottom: 20 },
+  switcher: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 16, background: "#07101E", marginBottom: 14 },
+  switch: { padding: 11, border: 0, borderRadius: 12, background: "transparent", color: "#8293A9", fontWeight: 900, cursor: "pointer" },
+  switchActive: { background: "rgba(124,92,255,.18)", color: "white" },
+  google: { width: "100%", padding: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 14, border: "1px solid rgba(148,163,184,.18)", background: "white", color: "#111827", fontWeight: 900, cursor: "pointer" },
+  googleMark: { width: 24, height: 24, borderRadius: "50%", display: "grid", placeItems: "center", color: "#2563EB", fontWeight: 1000 },
+  separator: { display: "grid", placeItems: "center", margin: "14px 0", color: "#65758C", fontSize: 12 },
+  two: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+  label: { display: "block", margin: "12px 0 6px", color: "#B7C2D2", fontSize: 13, fontWeight: 800 },
+  optional: { color: "#65758C", fontWeight: 700 },
+  input: { width: "100%", boxSizing: "border-box", padding: 13, borderRadius: 13, border: "1px solid rgba(148,163,184,.18)", background: "#07101E", color: "white", fontSize: 16, outline: "none" },
+  primary: { width: "100%", marginTop: 18, padding: 14, border: 0, borderRadius: 14, background: "linear-gradient(135deg,#7C5CFF,#3B82F6 55%,#22D3EE)", color: "white", fontSize: 16, fontWeight: 900, cursor: "pointer" },
+  link: { width: "100%", marginTop: 12, border: 0, background: "transparent", color: "#72E7FF", cursor: "pointer", fontWeight: 800 },
+  message: { marginTop: 14, padding: 12, borderRadius: 13, background: "rgba(59,130,246,.10)", border: "1px solid rgba(59,130,246,.18)", color: "#CFEAFF", fontSize: 13, lineHeight: 1.5 },
+  legal: { color: "#65758C", fontSize: 11, lineHeight: 1.5, textAlign: "center", margin: "16px 0 0" },
+};

@@ -1,157 +1,185 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/lib/supabase";
-
-type Resultat = { id:string; tournament_name:string; sport:string; placement:number; points:number; created_at:string };
+import TourneoNav from "@/components/TourneoNav";
 
 type Profil = {
+  id: string;
   display_name: string;
   player_code: string;
   avatar_url?: string | null;
   favorite_color?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  city?: string | null;
 };
 
-function codeDepuisId(id:string){
-  const c=id.replaceAll("-","").toUpperCase();
-  return `TRN-${c.slice(0,4)}-${c.slice(4,8)}-${c.slice(8,12)}`;
-}
+export default function ProfilPage() {
+  const [profil, setProfil] = useState<Profil | null>(null);
+  const [nom, setNom] = useState("");
+  const [prenom, setPrenom] = useState("");
+  const [nomFamille, setNomFamille] = useState("");
+  const [ville, setVille] = useState("");
+  const [couleur, setCouleur] = useState("#3B82F6");
+  const [avatar, setAvatar] = useState("");
+  const [message, setMessage] = useState("");
+  const inputPhoto = useRef<HTMLInputElement>(null);
 
-export default function ProfilPage(){
-  const[nom,setNom]=useState("");
-  const[code,setCode]=useState("");
-  const[uid,setUid]=useState("");
-  const[avatarUrl,setAvatarUrl]=useState("");
-  const[couleur,setCouleur]=useState("#3B82F6");
-  const[resultats,setResultats]=useState<Resultat[]>([]);
-  const[pret,setPret]=useState(false);
-  const[msg,setMsg]=useState("");
-  const[upload,setUpload]=useState(false);
+  useEffect(() => { charger(); }, []);
 
-  useEffect(()=>{
-    async function init(){
-      const{data}=await supabase.auth.getSession();
-      const user=data.session?.user;
-      if(!user){location.href="/login";return;}
-      setUid(user.id);
+  async function charger() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) { window.location.href = "/login"; return; }
 
-      const{data:p}=await supabase
-        .from("profiles")
-        .select("display_name,player_code,avatar_url,favorite_color")
-        .eq("id",user.id)
-        .maybeSingle();
-
-      const display=p?.display_name||user.email?.split("@")[0]||"Joueur Tourneo";
-      const pc=p?.player_code||codeDepuisId(user.id);
-      if(!p){
-        await supabase.from("profiles").insert({
-          id:user.id,
-          display_name:display,
-          player_code:pc,
-          favorite_color:"#3B82F6",
-        });
-      }
-
-      setNom(display);
-      setCode(pc);
-      setAvatarUrl(p?.avatar_url||"");
-      setCouleur(p?.favorite_color||"#3B82F6");
-
-      const{data:r}=await supabase
-        .from("player_results")
-        .select("id,tournament_name,sport,placement,points,created_at")
-        .eq("profile_id",user.id)
-        .order("created_at",{ascending:false});
-      setResultats((r??[]) as Resultat[]);
-      setPret(true);
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    if (data) {
+      const p = data as Profil;
+      setProfil(p);
+      setNom(p.display_name || "");
+      setPrenom(p.first_name || String(user.user_metadata?.first_name || ""));
+      setNomFamille(p.last_name || String(user.user_metadata?.last_name || ""));
+      setVille(p.city || String(user.user_metadata?.city || ""));
+      setCouleur(p.favorite_color || "#3B82F6");
+      setAvatar(p.avatar_url || "");
+      return;
     }
-    init();
-  },[]);
 
-  const points=useMemo(()=>resultats.reduce((s,r)=>s+r.points,0),[resultats]);
-  const victoires=resultats.filter(r=>r.placement===1).length;
-  const sports=new Set(resultats.map(r=>r.sport)).size;
-  const badges=[
-    resultats.length>=1&&"Premier tournoi",
-    victoires>=1&&"Champion",
-    victoires>=5&&"Série de champions",
-    resultats.length>=10&&"Habitué",
-    sports>=3&&"Multisport",
-  ].filter(Boolean) as string[];
-
-  async function sauver(){
-    if(!uid)return;
-    const payload: Profil & {id:string} = {
-      id:uid,
-      display_name:nom.trim()||"Joueur Tourneo",
-      player_code:code,
-      avatar_url:avatarUrl||null,
-      favorite_color:couleur,
-    };
-    const{error}=await supabase.from("profiles").upsert(payload,{onConflict:"id"});
-    setMsg(error?error.message:"Profil enregistré");
+    const displayName =
+      String(user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Joueur");
+    const code = `TRN-${user.id.slice(0,4).toUpperCase()}-${user.id.slice(4,8).toUpperCase()}`;
+    await supabase.from("profiles").insert({
+      id: user.id,
+      display_name: displayName,
+      player_code: code,
+      first_name: user.user_metadata?.first_name || null,
+      last_name: user.user_metadata?.last_name || null,
+      city: user.user_metadata?.city || null,
+      favorite_color: "#3B82F6",
+    });
+    charger();
   }
 
-  async function choisirAvatar(fichier?: File){
-    if(!fichier||!uid)return;
-    setUpload(true);
-    setMsg("Envoi de l’image…");
-    const extension=(fichier.name.split(".").pop()||"png").toLowerCase();
-    const chemin=`${uid}/avatar-${Date.now()}.${extension}`;
-    const{error}=await supabase.storage.from("tourneo-media").upload(chemin,fichier,{upsert:true,contentType:fichier.type||undefined});
-    if(error){setMsg(error.message);setUpload(false);return;}
-    const{data}=supabase.storage.from("tourneo-media").getPublicUrl(chemin);
-    setAvatarUrl(data.publicUrl);
-    await supabase.from("profiles").upsert({id:uid,display_name:nom.trim()||"Joueur Tourneo",player_code:code,avatar_url:data.publicUrl,favorite_color:couleur},{onConflict:"id"});
-    setMsg("Photo / GIF enregistré");
-    setUpload(false);
+  async function changerPhoto(file?: File) {
+    if (!file || !profil) return;
+    setMessage("Envoi de la photo…");
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${profil.id}/profil-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("tourneo-media").upload(path, file, { upsert: true });
+    if (error) { setMessage(error.message); return; }
+    const { data } = supabase.storage.from("tourneo-media").getPublicUrl(path);
+    setAvatar(data.publicUrl);
+    setMessage("Photo prête. Enregistrez votre profil.");
   }
 
-  if(!pret)return <main style={styles.center}>Chargement du profil…</main>;
-  const lien=`${location.origin}/joueur/${code}`;
+  async function enregistrer() {
+    if (!profil || !nom.trim()) return;
+    setMessage("Enregistrement…");
+    const { error } = await supabase.from("profiles").update({
+      display_name: nom.trim(),
+      first_name: prenom.trim() || null,
+      last_name: nomFamille.trim() || null,
+      city: ville.trim() || null,
+      avatar_url: avatar || null,
+      favorite_color: couleur,
+      updated_at: new Date().toISOString(),
+    }).eq("id", profil.id);
+    setMessage(error ? error.message : "Profil enregistré.");
+  }
 
-  return <main style={styles.page}><div style={styles.shell}>
-    <header style={styles.header}>
-      <div><span style={styles.eyebrow}>Profil joueur</span><h1 style={styles.title}>{nom}</h1><p style={styles.muted}>Votre identité Tourneo vous suit de tournoi en tournoi.</p></div>
-      <div style={styles.actions}><button style={styles.ghost} onClick={()=>location.href="/dashboard"}>Mes tournois</button><button style={styles.ghost} onClick={()=>location.href="/aide"}>Aide</button><button style={styles.ghost} onClick={()=>location.href="/contact"}>Contact</button></div>
-    </header>
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }
 
-    <section style={styles.grid}>
-      <article style={styles.identityCard}>
-        <span style={styles.eyebrow}>Identité visuelle</span>
-        <div style={styles.avatarWrap}>
-          {avatarUrl?<img src={avatarUrl} alt="Avatar Tourneo" style={{...styles.avatar,borderColor:couleur}}/>:<div style={{...styles.avatarFallback,background:`linear-gradient(135deg,${couleur},#22D3EE)`}}>{nom.slice(0,1).toUpperCase()}</div>}
-        </div>
-        <label style={styles.label}>Photo ou GIF</label>
-        <input style={styles.file} type="file" accept="image/*,.gif" disabled={upload} onChange={(e)=>choisirAvatar(e.target.files?.[0])}/>
-        <label style={styles.label}>Couleur du profil</label>
-        <div style={styles.colorRow}><input type="color" value={couleur} onChange={(e)=>setCouleur(e.target.value)} style={styles.colorInput}/><strong>{couleur}</strong></div>
-        <p style={styles.muted}>Cette photo et cette couleur seront reprises automatiquement quand un organisateur vous ajoute avec votre code Tourneo.</p>
-      </article>
+  return (
+    <main style={s.page}>
+      <div style={s.shell}>
+        <TourneoNav active="profil" showBack backHref="/dashboard" onLogout={logout} primaryLabel="Créer un tournoi" primaryHref="/tournoi/nouveau" />
 
-      <article style={styles.qrCard}>
-        <span style={styles.eyebrow}>Identifiant personnel</span><h2>{code}</h2><div style={styles.qr}><QRCodeSVG value={lien} size={210}/></div><p style={styles.muted}>L’organisateur peut scanner ce QR ou saisir votre code pour vous ajouter à un tournoi.</p>
-      </article>
+        <section style={s.hero}>
+          <div style={s.avatarWrap}>
+            <div style={{ ...s.avatar, background: couleur }}>
+              {avatar ? <img src={avatar} alt="" style={s.avatarImg} /> : <span>{(nom || "T").slice(0,1).toUpperCase()}</span>}
+            </div>
+            <input ref={inputPhoto} hidden type="file" accept="image/*,image/gif" onChange={(e) => changerPhoto(e.target.files?.[0])} />
+            <button style={s.secondary} onClick={() => inputPhoto.current?.click()}>Photo / GIF</button>
+          </div>
+          <div style={s.heroCopy}>
+            <span style={s.eyebrow}>Profil joueur</span>
+            <h1 style={s.title}>{nom || "Mon profil Tourneo"}</h1>
+            <p style={s.muted}>Votre identité vous suit dans les tournois : nom, avatar, couleur, QR et futur palmarès.</p>
+          </div>
+        </section>
 
-      <article style={styles.statsCard}>
-        <div style={styles.stat}><span>Points</span><strong>{points}</strong></div><div style={styles.stat}><span>Victoires</span><strong>{victoires}</strong></div><div style={styles.stat}><span>Tournois</span><strong>{resultats.length}</strong></div><div style={styles.stat}><span>Sports</span><strong>{sports}</strong></div>
-        <label style={styles.label}>Pseudo public</label><input style={styles.input} value={nom} onChange={e=>setNom(e.target.value)}/><button style={styles.primary} onClick={sauver}>Enregistrer</button>{msg&&<span style={styles.muted}>{msg}</span>}
-      </article>
-    </section>
+        <section style={s.grid}>
+          <article style={s.card}>
+            <span style={s.eyebrow}>Identité</span>
+            <label style={s.label}>Nom affiché / pseudo</label>
+            <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} />
+            <div style={s.two}>
+              <div>
+                <label style={s.label}>Prénom</label>
+                <input style={s.input} value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+              </div>
+              <div>
+                <label style={s.label}>Nom</label>
+                <input style={s.input} value={nomFamille} onChange={(e) => setNomFamille(e.target.value)} />
+              </div>
+            </div>
+            <label style={s.label}>Ville</label>
+            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Facultatif" />
 
-    <section style={styles.card}><span style={styles.eyebrow}>Badges</span><h2>Votre collection</h2><div style={styles.badges}>{badges.length?badges.map(b=><span key={b} style={styles.badge}>{b}</span>):<span style={styles.muted}>Jouez votre premier tournoi identifié pour débloquer vos badges.</span>}</div></section>
-    <section style={styles.card}><span style={styles.eyebrow}>Palmarès</span><h2>Historique</h2><div style={styles.list}>{resultats.map(r=><div key={r.id} style={styles.row}><div><strong>{r.tournament_name}</strong><span style={styles.muted}>{r.sport}</span></div><strong>#{r.placement}</strong><strong>+{r.points} pts</strong></div>)}</div></section>
-  </div></main>;
+            <label style={s.label}>Couleur du profil</label>
+            <input style={s.colorInput} type="color" value={couleur} onChange={(e) => setCouleur(e.target.value)} />
+            <button style={s.primary} onClick={enregistrer}>Enregistrer mon profil</button>
+            {message && <div style={s.feedback}>{message}</div>}
+          </article>
+
+          <article style={s.card}>
+            <span style={s.eyebrow}>Carte joueur</span>
+            <h2 style={s.cardTitle}>Mon identifiant Tourneo</h2>
+            <p style={s.muted}>Montrez ce QR à l’organisateur. Votre nom, votre avatar et votre couleur pourront être ajoutés sans ressaisie.</p>
+            {profil && (
+              <>
+                <div style={s.qr}>
+                  <QRCodeSVG value={`${window.location.origin}/joueur/${profil.player_code}`} size={190} />
+                </div>
+                <strong style={s.code}>{profil.player_code}</strong>
+                <button style={s.secondary} onClick={() => navigator.clipboard.writeText(profil.player_code)}>Copier mon code</button>
+              </>
+            )}
+          </article>
+        </section>
+      </div>
+    </main>
+  );
 }
 
-const styles:Record<string,CSSProperties>={
-  page:{minHeight:"100vh",padding:"22px 18px 70px",background:"radial-gradient(circle at 18% 8%,rgba(124,92,255,.18),transparent 26%),radial-gradient(circle at 82% 12%,rgba(34,211,238,.10),transparent 24%),linear-gradient(145deg,#070a12,#0b1220)",color:"#f8fbff",fontFamily:"Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif"},
-  center:{minHeight:"100vh",display:"grid",placeItems:"center",background:"#08101d",color:"white"},shell:{maxWidth:1100,margin:"0 auto"},
-  header:{display:"flex",justifyContent:"space-between",gap:18,alignItems:"center",flexWrap:"wrap",marginBottom:24},eyebrow:{color:"#72e7ff",fontSize:10,fontWeight:900,letterSpacing:1.5,textTransform:"uppercase"},title:{fontSize:"clamp(38px,6vw,64px)",margin:"8px 0"},muted:{display:"block",color:"#8398b2",fontSize:13},actions:{display:"flex",gap:8,flexWrap:"wrap"},ghost:{padding:"11px 14px",borderRadius:13,border:"1px solid rgba(148,163,184,.14)",background:"rgba(255,255,255,.03)",color:"white",cursor:"pointer"},
-  grid:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:16,marginBottom:16},identityCard:{padding:24,borderRadius:28,background:"rgba(15,25,43,.78)",border:"1px solid rgba(148,163,184,.12)",display:"grid",gap:10},qrCard:{padding:24,borderRadius:28,background:"linear-gradient(135deg,rgba(124,92,255,.14),rgba(59,130,246,.07))",border:"1px solid rgba(148,163,184,.12)"},qr:{display:"inline-block",padding:14,borderRadius:18,background:"white",margin:"12px 0"},statsCard:{padding:24,borderRadius:28,display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,background:"rgba(15,25,43,.78)",border:"1px solid rgba(148,163,184,.12)"},
-  avatarWrap:{display:"grid",placeItems:"center",padding:10},avatar:{width:132,height:132,borderRadius:"50%",objectFit:"cover",border:"4px solid",boxShadow:"0 14px 45px rgba(0,0,0,.22)"},avatarFallback:{width:132,height:132,borderRadius:"50%",display:"grid",placeItems:"center",fontSize:48,fontWeight:900},
-  file:{padding:10,borderRadius:12,border:"1px solid rgba(148,163,184,.16)",background:"#0a1322",color:"#9fb3c9"},colorRow:{display:"flex",gap:12,alignItems:"center"},colorInput:{width:56,height:40,border:0,borderRadius:10,background:"transparent"},
-  stat:{padding:16,borderRadius:18,background:"rgba(255,255,255,.03)",display:"grid",gap:6},label:{gridColumn:"1/-1",fontWeight:800,fontSize:12,color:"#9ab0c9"},input:{gridColumn:"1/-1",padding:13,borderRadius:13,border:"1px solid rgba(148,163,184,.18)",background:"#0a1322",color:"white"},primary:{gridColumn:"1/-1",padding:13,border:0,borderRadius:14,background:"linear-gradient(135deg,#7C5CFF,#3B82F6,#22D3EE)",color:"white",fontWeight:900,cursor:"pointer"},card:{padding:22,marginBottom:16,borderRadius:24,background:"rgba(15,25,43,.78)",border:"1px solid rgba(148,163,184,.12)"},badges:{display:"flex",flexWrap:"wrap",gap:8},badge:{padding:"9px 12px",borderRadius:999,background:"rgba(124,92,255,.10)",border:"1px solid rgba(124,92,255,.18)",color:"#c7bdff",fontWeight:800},list:{display:"grid",gap:8},row:{display:"grid",gridTemplateColumns:"minmax(0,1fr) 70px 85px",gap:10,alignItems:"center",padding:13,borderBottom:"1px solid rgba(148,163,184,.09)"}
+const s: Record<string, CSSProperties> = {
+  page: { minHeight: "100vh", padding: "22px 18px 80px", background: "radial-gradient(circle at 15% 5%,rgba(124,92,255,.18),transparent 28%),linear-gradient(145deg,#050811,#0B1220)", color: "white", fontFamily: "Inter,system-ui,sans-serif" },
+  shell: { width: "100%", maxWidth: 1050, margin: "0 auto" },
+  hero: { display: "grid", gridTemplateColumns: "auto 1fr", gap: 22, alignItems: "center", padding: 22, borderRadius: 26, background: "rgba(15,25,43,.75)", border: "1px solid rgba(148,163,184,.14)", marginBottom: 16, overflow: "hidden" },
+  avatarWrap: { display: "grid", justifyItems: "center", gap: 8 },
+  avatar: { width: 112, height: 112, borderRadius: 30, display: "grid", placeItems: "center", fontSize: 42, fontWeight: 1000, overflow: "hidden", boxShadow: "0 16px 45px rgba(0,0,0,.28)" },
+  avatarImg: { width: "100%", height: "100%", objectFit: "cover" },
+  heroCopy: { minWidth: 0, overflow: "hidden" },
+  eyebrow: { color: "#72E7FF", fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" },
+  title: { margin: "7px 0", fontSize: "clamp(32px,6vw,56px)", overflowWrap: "anywhere" },
+  muted: { color: "#8597AF", lineHeight: 1.55, overflowWrap: "anywhere", maxWidth: "100%" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))", gap: 16 },
+  card: { minWidth: 0, padding: 22, borderRadius: 24, background: "rgba(15,25,43,.78)", border: "1px solid rgba(148,163,184,.14)", overflow: "hidden" },
+  cardTitle: { margin: "7px 0" },
+  label: { display: "block", margin: "14px 0 6px", color: "#B7C2D2", fontSize: 13, fontWeight: 800 },
+  input: { width: "100%", boxSizing: "border-box", padding: 13, borderRadius: 13, border: "1px solid rgba(148,163,184,.17)", background: "#07101E", color: "white", fontSize: 16 },
+  two: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+  colorInput: { width: "100%", height: 50, border: 0, borderRadius: 13, background: "#07101E", padding: 5 },
+  primary: { width: "100%", marginTop: 18, padding: 14, border: 0, borderRadius: 14, background: "linear-gradient(135deg,#7C5CFF,#3B82F6 55%,#22D3EE)", color: "white", fontWeight: 900, cursor: "pointer" },
+  secondary: { padding: "10px 13px", borderRadius: 13, border: "1px solid rgba(148,163,184,.16)", background: "rgba(255,255,255,.035)", color: "white", fontWeight: 800, cursor: "pointer" },
+  feedback: { marginTop: 10, color: "#A8EFFF", fontSize: 13 },
+  qr: { width: "fit-content", background: "white", padding: 14, borderRadius: 20, margin: "18px auto 12px" },
+  code: { display: "block", textAlign: "center", marginBottom: 10, letterSpacing: 1.2, overflowWrap: "anywhere" },
 };

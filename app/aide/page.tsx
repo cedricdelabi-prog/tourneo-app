@@ -1,97 +1,67 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import TourneoNav from "@/components/TourneoNav";
 
-export default function Aide() {
+const formats = [
+  { title: "Championnat complet", text: "Chaque participant rencontre tous les autres. Le classement se fait aux points. Idéal si vous voulez une compétition complète et un classement précis." },
+  { title: "Phase de poules", text: "Les participants sont répartis en groupes. Chaque poule possède son propre classement. Idéal quand il y a beaucoup de participants." },
+  { title: "Élimination directe", text: "Le gagnant avance, le perdant est éliminé. Quarts, demi-finales puis finale. Idéal pour un tournoi rapide et spectaculaire." },
+  { title: "Poules + phase finale", text: "Les meilleurs de chaque poule se qualifient ensuite pour une phase à élimination directe. C’est le format le plus proche des grands tournois." },
+];
+
+export default function AidePage() {
   return (
     <main style={s.page}>
       <div style={s.shell}>
-        <header style={s.header}>
+        <TourneoNav active="aide" primaryLabel="Créer un tournoi" primaryHref="/tournoi/nouveau" />
+        <section style={s.hero}>
           <div>
-            <span style={s.eyebrow}>Tourneo</span>
-            <h1 style={s.title}>Aide, sécurité & fonctionnement</h1>
-            <p style={s.muted}>Tout ce qu’il faut savoir pour organiser un tournoi proprement.</p>
+            <span style={s.eyebrow}>Aide & sécurité</span>
+            <h1 style={s.title}>Tourneo doit être compréhensible sans mode d’emploi.</h1>
+            <p style={s.muted}>Retrouvez ici les formats, le QR joueur, le partage public et les principales règles de fonctionnement.</p>
           </div>
-          <div style={s.actions}>
-            <button style={s.button} onClick={() => (window.location.href = "/contact")}>Nous contacter</button>
-            <button style={s.button} onClick={() => history.back()}>Retour</button>
-          </div>
-        </header>
+        </section>
 
-        <section style={s.cardWide}>
+        <section style={s.section}>
           <span style={s.eyebrow}>Choisir le bon format</span>
-          <h2>Les 4 formats de tournoi</h2>
-          <div style={s.formats}>
-            <article style={s.formatCard}>
-              <strong>Championnat complet</strong>
-              <p>Chaque participant rencontre tous les autres. Idéal pour un petit groupe quand on veut un classement final très juste.</p>
-            </article>
-            <article style={s.formatCard}>
-              <strong>Phase de poules</strong>
-              <p>Les participants sont répartis en groupes. Chacun joue contre les membres de sa poule. Pratique quand il y a beaucoup de monde.</p>
-            </article>
-            <article style={s.formatCard}>
-              <strong>Élimination directe</strong>
-              <p>Une défaite élimine le participant. Les vainqueurs avancent jusqu’à la finale. Format rapide et très lisible.</p>
-            </article>
-            <article style={s.formatCard}>
-              <strong>Poules puis phase finale</strong>
-              <p>On commence par des poules, puis les meilleurs se qualifient pour une phase à élimination directe. C’est le format le plus complet.</p>
-            </article>
+          <div style={s.grid}>
+            {formats.map((f, i) => (
+              <article key={f.title} style={s.card}>
+                <span style={s.number}>{String(i + 1).padStart(2, "0")}</span>
+                <h2 style={s.cardTitle}>{f.title}</h2>
+                <p style={s.muted}>{f.text}</p>
+              </article>
+            ))}
           </div>
         </section>
 
         <section style={s.grid}>
           <article style={s.card}>
-            <h2>Comment ça marche ?</h2>
-            <p>1. Créez le tournoi et choisissez son format.</p>
-            <p>2. Ajoutez les participants manuellement ou avec leur code Tourneo.</p>
-            <p>3. Saisissez les résultats au fil des rencontres.</p>
-            <p>4. Partagez le QR du tournoi : les visiteurs suivent le live en lecture seule.</p>
+            <span style={s.eyebrow}>Identifiant joueur</span>
+            <h2 style={s.cardTitle}>À quoi sert le QR personnel ?</h2>
+            <p style={s.muted}>Chaque profil possède un code et un QR Tourneo. L’organisateur peut ajouter un joueur sans ressaisir son nom, son avatar et sa couleur. Le créateur du tournoi peut aussi utiliser directement le bouton « M’ajouter ».</p>
           </article>
-
           <article style={s.card}>
-            <h2>Profils joueurs</h2>
-            <p>Un joueur peut enregistrer son pseudo, sa photo ou son GIF et sa couleur préférée. Quand son code Tourneo est utilisé dans un tournoi, son identité visuelle est automatiquement reprise.</p>
+            <span style={s.eyebrow}>Partage</span>
+            <h2 style={s.cardTitle}>Le QR du tournoi est en lecture seule</h2>
+            <p style={s.muted}>Les spectateurs peuvent suivre les matchs, scores et classements sans modifier les résultats. L’organisation reste réservée au compte créateur.</p>
           </article>
-
           <article style={s.card}>
-            <h2>Intégrité des résultats</h2>
-            <p>L’organisateur reste responsable du règlement, de l’arbitrage et de la validation des scores. Tourneo facilite l’organisation mais ne remplace pas une décision officielle de l’organisateur.</p>
-            <p>En cas de litige ou d’écart lié à un incident technique, la décision humaine et les justificatifs conservés par l’organisateur prévalent.</p>
+            <span style={s.eyebrow}>Scores</span>
+            <h2 style={s.cardTitle}>Valider puis corriger si nécessaire</h2>
+            <p style={s.muted}>Un score reste modifiable tant qu’il n’est pas validé. Après validation, l’organisateur peut demander une correction. En élimination, corriger un ancien tour peut supprimer les tours suivants pour garantir la cohérence.</p>
           </article>
-
           <article style={s.card}>
-            <h2>Sécurité</h2>
-            <p>Ne partagez jamais votre mot de passe. La page publique d’un tournoi est conçue pour être en lecture seule. Les données de contact d’un joueur ne sont pas affichées sur son profil public.</p>
-            <p>Évitez de saisir des données sensibles dans un nom d’équipe, de tournoi ou de joueur.</p>
+            <span style={s.eyebrow}>Responsabilité</span>
+            <h2 style={s.cardTitle}>Tourneo est un outil d’organisation</h2>
+            <p style={s.muted}>Tourneo aide à gérer une compétition mais ne remplace pas le règlement de l’organisateur. L’organisateur reste responsable des règles, participants, scores saisis, décisions sportives et conditions de sécurité de son événement.</p>
           </article>
+        </section>
 
-          <article style={s.card}>
-            <h2>Données & confidentialité</h2>
-            <p>Tourneo limite les données utiles au fonctionnement : compte, pseudo, identifiant joueur, avatar, couleur, tournois et résultats. Le palmarès sert à suivre la progression du joueur.</p>
-          </article>
-
-          <article style={s.card}>
-            <h2>Suivre un tournoi</h2>
-            <p>Le QR public permet de suivre les matchs et les scores sans pouvoir les modifier. Un joueur identifié peut aussi activer des alertes locales pour être prévenu lorsque son prochain match apparaît.</p>
-          </article>
-
-          <article style={s.card}>
-            <h2>Publicité</h2>
-            <p>Tourneo peut afficher des annonces automatiques afin de maintenir une version gratuite. Les emplacements publicitaires sont intégrés au design pour ne pas gêner la saisie des scores ni la lecture d’un tournoi.</p>
-          </article>
-
-          <article style={s.card}>
-            <h2>Responsive</h2>
-            <p>Tourneo est pensé pour ordinateur, tablette et téléphone. Les pages utilisent des grilles adaptatives et de gros contrôles tactiles.</p>
-          </article>
-
-          <article style={s.card}>
-            <h2>Une idée, un bug ou une publicité ?</h2>
-            <p>Utilisez la rubrique Contact pour signaler un problème, proposer une amélioration, parler publicité ou partenariat, ou poser une question.</p>
-            <button style={s.primary} onClick={() => (window.location.href = "/contact")}>Ouvrir Contactez-nous</button>
-          </article>
+        <section style={s.notice}>
+          <strong>Conseil</strong>
+          <span>Pour un tournoi important, définissez le règlement avant le début, vérifiez les participants et faites confirmer les résultats litigieux avant la clôture.</span>
         </section>
       </div>
     </main>
@@ -99,18 +69,16 @@ export default function Aide() {
 }
 
 const s: Record<string, CSSProperties> = {
-  page: { minHeight: "100vh", padding: "28px 18px", background: "radial-gradient(circle at 18% 8%,rgba(124,92,255,.16),transparent 27%),linear-gradient(145deg,#070a12,#0b1220)", color: "white", fontFamily: "Inter,system-ui,sans-serif" },
+  page: { minHeight: "100vh", padding: "22px 18px 90px", background: "radial-gradient(circle at 15% 7%,rgba(124,92,255,.18),transparent 28%),linear-gradient(145deg,#050811,#0B1220)", color: "white", fontFamily: "Inter,system-ui,sans-serif" },
   shell: { maxWidth: 1100, margin: "0 auto" },
-  header: { display: "flex", justifyContent: "space-between", gap: 18, alignItems: "center", flexWrap: "wrap", marginBottom: 20 },
-  title: { fontSize: "clamp(34px,5vw,58px)", margin: "8px 0" },
-  eyebrow: { color: "#72e7ff", fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: 1.3 },
-  muted: { color: "#8195ae" },
-  actions: { display: "flex", gap: 8, flexWrap: "wrap" },
-  button: { padding: "11px 14px", borderRadius: 13, border: "1px solid rgba(148,163,184,.14)", background: "rgba(255,255,255,.03)", color: "white", cursor: "pointer" },
-  primary: { marginTop: 8, padding: "11px 14px", borderRadius: 13, border: 0, background: "linear-gradient(135deg,#7C5CFF,#3B82F6,#22D3EE)", color: "white", fontWeight: 900, cursor: "pointer" },
-  cardWide: { padding: 24, marginBottom: 16, borderRadius: 26, background: "linear-gradient(135deg,rgba(124,92,255,.11),rgba(59,130,246,.05))", border: "1px solid rgba(148,163,184,.12)" },
-  formats: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 },
-  formatCard: { padding: 18, borderRadius: 18, background: "rgba(255,255,255,.035)", border: "1px solid rgba(148,163,184,.10)", color: "#aebed1", lineHeight: 1.55 },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 },
-  card: { padding: 22, borderRadius: 22, background: "rgba(15,25,43,.78)", border: "1px solid rgba(148,163,184,.12)", color: "#aebed1", lineHeight: 1.6 },
+  hero: { display: "block", marginBottom: 28, padding: 24, borderRadius: 28, border: "1px solid rgba(148,163,184,.14)", background: "rgba(15,25,43,.72)" },
+  eyebrow: { color: "#72E7FF", fontSize: 10, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { margin: "7px 0", fontSize: "clamp(34px,6vw,64px)", lineHeight: 1.02 },
+  muted: { color: "#8A9BB1", lineHeight: 1.6, overflowWrap: "anywhere" },
+  section: { marginBottom: 18 },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 14, marginTop: 12, marginBottom: 18 },
+  card: { minWidth: 0, padding: 20, borderRadius: 22, background: "rgba(15,25,43,.78)", border: "1px solid rgba(148,163,184,.13)", overflow: "hidden" },
+  number: { color: "#7C5CFF", fontWeight: 1000, fontSize: 24 },
+  cardTitle: { margin: "8px 0", fontSize: 21 },
+  notice: { display: "grid", gap: 5, padding: 18, borderRadius: 18, border: "1px solid rgba(114,231,255,.18)", background: "rgba(114,231,255,.05)", color: "#CDEFF8" },
 };
