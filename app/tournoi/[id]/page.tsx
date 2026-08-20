@@ -805,6 +805,21 @@ export default function TournoiPage() {
     setMatchs((actuels) => avancerTournoiSiPossible(actuels, nouveauxValides));
   }
 
+  function enregistrerScoreAutomatiquement(matchId: number) {
+    const match = matchs.find((item) => item.id === matchId);
+    if (!match || matchsValides.includes(matchId)) return;
+    if (match.score1 === "" || match.score2 === "") return;
+
+    if (
+      (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
+      Number(match.score1) === Number(match.score2)
+    ) {
+      return;
+    }
+
+    validerScore(match);
+  }
+
   function corrigerScore(match: Match) {
     const toursSuivants = matchs.some((item) => item.journee > match.journee);
     if (toursSuivants && (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE)) {
@@ -996,7 +1011,7 @@ export default function TournoiPage() {
           <span style={styles.pill}>{poule.equipes.length} équipes</span>
         </div>
 
-        <div style={styles.tableWrap}>
+        <div className="tourneo-ranking-table" style={styles.tableWrap}>
           <table style={{ ...styles.table, minWidth: 520 }}>
             <thead>
               <tr>
@@ -1277,7 +1292,7 @@ export default function TournoiPage() {
             primaryHref="/dashboard"
           />
 
-          <section style={{ ...styles.formCard, maxWidth: 900, margin: "0 auto" }}>
+          <section className="tourneo-create-card" style={{ ...styles.formCard, maxWidth: 900, margin: "0 auto" }}>
             <div style={styles.formHeader}>
               <div>
                 <span style={styles.eyebrow}>Nouveau tournoi</span>
@@ -1397,17 +1412,18 @@ export default function TournoiPage() {
                     <h2 style={styles.sectionTitle}>Équipes / joueurs</h2>
                   </div>
                   <button
+                    className="tourneo-add-player-main"
                     style={styles.secondaryButton}
                     onClick={() => {
                       setEquipeAModifier(null);
                       setModalOuvert(true);
                     }}
                   >
-                    Ajouter
+                    + Ajouter un joueur
                   </button>
                 </div>
 
-                <div style={styles.playerCodeBox}>
+                <div className="tourneo-player-profile-box" style={styles.playerCodeBox}>
                   <div style={{ display: "grid", gap: 5 }}>
                     <strong>Ajouter avec un profil Tourneo</strong>
                     <span style={styles.muted}>
@@ -1415,7 +1431,7 @@ export default function TournoiPage() {
                     </span>
                   </div>
 
-                  <button style={styles.secondaryButton} disabled={ajoutMoiEnCours} onClick={ajouterMonProfil}>
+                  <button className="tourneo-add-self" style={styles.secondaryButton} disabled={ajoutMoiEnCours} onClick={ajouterMonProfil}>
                     {ajoutMoiEnCours ? "Ajout…" : "M’ajouter moi-même"}
                   </button>
 
@@ -1479,9 +1495,125 @@ export default function TournoiPage() {
           .tourneo-creation-mobile-fix { grid-template-columns: 1fr !important; }
           input, select, button { max-width: 100%; }
 
+          .tourneo-create-card {
+            padding: 18px !important;
+            border-radius: 22px !important;
+          }
+
+          .tourneo-create-card h1 {
+            font-size: 38px !important;
+            line-height: 1.02 !important;
+          }
+
+          .tourneo-player-profile-box {
+            padding: 14px !important;
+            gap: 10px !important;
+          }
+
+          .tourneo-add-player-main {
+            padding: 12px 15px !important;
+            font-size: 15px !important;
+            background: linear-gradient(135deg,#7C5CFF,#3B82F6 55%,#22D3EE) !important;
+            border-color: rgba(114,231,255,.22) !important;
+          }
+
+          .tourneo-add-self {
+            justify-self: start !important;
+            width: auto !important;
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+            font-weight: 750 !important;
+            color: #9FB0C5 !important;
+            background: rgba(255,255,255,.035) !important;
+          }
+
+          .tourneo-score-actions {
+            justify-content: space-between !important;
+            align-items: center !important;
+          }
+
+          .tourneo-podium-stage {
+            grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+            gap: 7px !important;
+            overflow: hidden !important;
+            padding: 8px 0 0 !important;
+            margin-top: 18px !important;
+          }
+
+          .tourneo-podium-stage > div {
+            min-width: 0 !important;
+            transform: none !important;
+          }
+
+          .tourneo-podium-stage > div > div:first-child {
+            margin: 0 2px 7px !important;
+            padding: 10px 5px 10px !important;
+            border-radius: 16px !important;
+            gap: 5px !important;
+          }
+
+          .tourneo-podium-stage img {
+            max-width: 54px !important;
+            max-height: 54px !important;
+          }
+
+          .tourneo-ranking-table {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            margin-left: -4px !important;
+            margin-right: -4px !important;
+            padding-bottom: 3px !important;
+          }
+
+          .tourneo-ranking-table table {
+            min-width: 600px !important;
+            font-size: 12px !important;
+          }
+
+          .tourneo-souvenir-modal {
+            width: calc(100vw - 16px) !important;
+            max-width: calc(100vw - 16px) !important;
+            max-height: calc(100vh - 16px) !important;
+            padding: 14px !important;
+            border-radius: 20px !important;
+          }
+
           .tourneo-souvenir-poster {
             display: block !important;
             aspect-ratio: auto !important;
+            padding: 18px !important;
+            border-radius: 22px !important;
+          }
+
+          .tourneo-souvenir-right {
+            margin-top: 18px !important;
+          }
+
+          .tourneo-souvenir-podium {
+            margin-top: 18px !important;
+          }
+
+          .tourneo-souvenir-footer {
+            grid-template-columns: 108px minmax(0,1fr) !important;
+            gap: 12px !important;
+            align-items: start !important;
+          }
+
+          .tourneo-souvenir-footer svg {
+            width: 88px !important;
+            height: 88px !important;
+          }
+
+          .tourneo-souvenir-actions {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+            margin-bottom: 112px !important;
+          }
+
+          .tourneo-souvenir-actions button {
+            width: 100% !important;
+            margin-top: 0 !important;
           }
         }
 
@@ -1543,9 +1675,79 @@ export default function TournoiPage() {
         }
 
         @media print {
-          body * { visibility: hidden !important; }
-          #tourneo-souvenir, #tourneo-souvenir * { visibility: visible !important; }
-          #tourneo-souvenir { position: absolute; left: 0; top: 0; width: 100%; }
+          @page {
+            size: A4 landscape;
+            margin: 0;
+          }
+
+          html, body {
+            width: 297mm !important;
+            height: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06101C !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          body * {
+            visibility: hidden !important;
+          }
+
+          .tourneo-mobile-bottom-nav,
+          .tourneo-mobile-more,
+          .tourneo-souvenir-actions,
+          .tourneo-souvenir-modal > div:first-child,
+          .tourneo-souvenir-modal > button {
+            display: none !important;
+          }
+
+          #tourneo-souvenir,
+          #tourneo-souvenir * {
+            visibility: visible !important;
+          }
+
+          #tourneo-souvenir {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            display: grid !important;
+            grid-template-columns: 1.34fr .66fr !important;
+            grid-template-rows: auto 1fr !important;
+            grid-template-areas:
+              "brand right"
+              "photo right" !important;
+            gap: 8mm !important;
+            padding: 10mm !important;
+            overflow: hidden !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            background: radial-gradient(circle at 18% 0%,rgba(124,92,255,.28),transparent 30%),radial-gradient(circle at 90% 12%,rgba(34,211,238,.18),transparent 28%),linear-gradient(145deg,#06101C,#0D1830 58%,#101A2D) !important;
+          }
+
+          .tourneo-souvenir-brand { grid-area: brand !important; }
+          .tourneo-souvenir-photo-zone {
+            grid-area: photo !important;
+            margin-top: 0 !important;
+            height: 100% !important;
+          }
+          .tourneo-souvenir-photo-zone img {
+            height: 100% !important;
+            object-fit: cover !important;
+          }
+          .tourneo-souvenir-right {
+            grid-area: right !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .tourneo-souvenir-footer {
+            margin-top: auto !important;
+          }
         }
       `}</style>
       <div style={styles.shell}>
@@ -1840,6 +2042,7 @@ export default function TournoiPage() {
                           value={match.score1}
                           disabled={!editable}
                           onChange={(event) => changerScore(match.id, "score1", event.target.value)}
+                          onBlur={() => enregistrerScoreAutomatiquement(match.id)}
                         />
 
                         <span style={styles.scoreSeparator}>–</span>
@@ -1851,6 +2054,7 @@ export default function TournoiPage() {
                           value={match.score2}
                           disabled={!editable}
                           onChange={(event) => changerScore(match.id, "score2", event.target.value)}
+                          onBlur={() => enregistrerScoreAutomatiquement(match.id)}
                         />
 
                         <div style={styles.teamRight}>
@@ -1860,16 +2064,12 @@ export default function TournoiPage() {
                       </div>
 
                       {nulInterdit && <div style={styles.inlineWarning}>Un vainqueur est requis pour poursuivre la phase finale.</div>}
-                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                        {matchsValides.includes(match.id) ? (
-                          <>
-                            <span style={{ ...styles.pill, color: "#9EF4C5" }}>Résultat validé</span>
-                            <button style={styles.ghostButton} onClick={() => corrigerScore(match)}>Corriger le score</button>
-                          </>
-                        ) : (
-                          <button style={styles.secondaryButton} onClick={() => validerScore(match)}>Valider le résultat</button>
-                        )}
-                      </div>
+                      {matchsValides.includes(match.id) && (
+                        <div className="tourneo-score-actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                          <span style={{ ...styles.pill, color: "#9EF4C5" }}>Enregistré</span>
+                          <button style={styles.ghostButton} onClick={() => corrigerScore(match)}>Modifier le résultat</button>
+                        </div>
+                      )}
                     </article>
                   );
                 })}
@@ -1886,7 +2086,7 @@ export default function TournoiPage() {
                   <section style={styles.card}>
                     <span style={styles.eyebrow}>{joues === matchs.length && matchs.length > 0 ? "Résultat" : "Classement provisoire"}</span>
                     <h2 style={styles.sectionTitle}>Podium</h2>
-                    <div style={styles.podiumStage}>
+                    <div className="tourneo-podium-stage" style={styles.podiumStage}>
                       {[podium[1], podium[0], podium[2]].map((ligne, index) => {
                         const rang = index === 0 ? 2 : index === 1 ? 1 : 3;
                         const hauteur = rang === 1 ? 150 : rang === 2 ? 118 : 96;
@@ -2171,7 +2371,7 @@ export default function TournoiPage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+            <div className="tourneo-souvenir-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
               <button style={styles.primaryButton} onClick={() => window.print()}>Imprimer / enregistrer en PDF</button>
               <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager les résultats</button>
             </div>

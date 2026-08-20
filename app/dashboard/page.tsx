@@ -107,27 +107,121 @@ export default function DashboardPage() {
   return (
     <main style={s.page} onClick={() => menuOuvert && setMenuOuvert(null)}>
       <div style={s.shell}>
+        <style jsx global>{`
+          @media (max-width: 760px) {
+            .dashboard-create-hero {
+              grid-template-columns: 1fr !important;
+              gap: 14px !important;
+              padding: 20px !important;
+              border-radius: 22px !important;
+              text-align: left !important;
+            }
+
+            .dashboard-create-hero h1 {
+              font-size: 40px !important;
+              line-height: 1.02 !important;
+              margin: 8px 0 12px !important;
+            }
+
+            .dashboard-create-hero p {
+              font-size: 16px !important;
+              line-height: 1.5 !important;
+              margin-bottom: 0 !important;
+            }
+
+            .dashboard-big-create {
+              width: 100% !important;
+              min-height: 52px !important;
+              justify-self: stretch !important;
+              white-space: normal !important;
+            }
+
+            .dashboard-metrics {
+              grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+              gap: 8px !important;
+              margin: 14px 0 !important;
+            }
+
+            .dashboard-metrics > div {
+              padding: 13px 14px !important;
+              border-radius: 16px !important;
+              background: rgba(255,255,255,.035) !important;
+              border: 1px solid rgba(148,163,184,.10) !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: space-between !important;
+              gap: 8px !important;
+            }
+
+            .dashboard-metrics span {
+              color: #91A2B8 !important;
+              font-size: 12px !important;
+            }
+
+            .dashboard-metrics strong {
+              font-size: 18px !important;
+            }
+
+            .dashboard-ad {
+              margin-top: 10px !important;
+            }
+
+            .dashboard-toolbar {
+              display: grid !important;
+              grid-template-columns: 1fr !important;
+              gap: 10px !important;
+            }
+
+            .dashboard-toolbar input {
+              width: 100% !important;
+              box-sizing: border-box !important;
+              font-size: 16px !important;
+            }
+
+            .dashboard-toolbar > div {
+              width: 100% !important;
+              display: grid !important;
+              grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+              gap: 6px !important;
+            }
+
+            .dashboard-toolbar button {
+              width: 100% !important;
+              padding: 10px 6px !important;
+            }
+
+            .dashboard-grid {
+              grid-template-columns: 1fr !important;
+            }
+
+            .dashboard-grid article {
+              padding: 17px !important;
+              border-radius: 20px !important;
+            }
+          }
+        `}</style>
+
         <TourneoNav active="dashboard" onLogout={logout} primaryLabel="Créer un tournoi" primaryHref="/tournoi/nouveau" />
 
-        <section style={s.createHero}>
+        <section style={s.createHero} className="dashboard-create-hero">
           <div>
             <span style={s.eyebrow}>Créer maintenant</span>
             <h1 style={s.title}>Lancez votre prochain tournoi.</h1>
             <p style={s.muted}>Configurez le format, ajoutez les participants et partagez les résultats depuis un seul endroit.</p>
           </div>
-          <button style={s.bigCreate} onClick={() => (window.location.href = "/tournoi/nouveau")}>Créer un tournoi →</button>
+          <button className="dashboard-big-create" style={s.bigCreate} onClick={() => (window.location.href = "/tournoi/nouveau")}>Créer un tournoi →</button>
         </section>
 
-        <section style={s.metrics}>
+        <section style={s.metrics} className="dashboard-metrics">
           <div><span>Tournois</span><strong>{tournois.length}</strong></div>
           <div><span>En cours</span><strong>{stats.encours}</strong></div>
           <div><span>Terminés</span><strong>{stats.termines}</strong></div>
           <div><span>Participants</span><strong>{stats.participants}</strong></div>
         </section>
 
-        <AdSlot label="Publicité" compact />
+        <div className="dashboard-ad"><AdSlot label="Publicité" compact /></div>
 
-        <section style={s.toolbar}>
+        <section style={s.toolbar} className="dashboard-toolbar">
           <input style={s.search} value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Rechercher un tournoi" />
           <div style={s.filters}>
             {(["tous","encours","termines"] as const).map((f) => (
@@ -138,7 +232,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section style={s.grid}>
+        <section style={s.grid} className="dashboard-grid">
           {resultats.map((t) => {
             const e = etat(t);
             const format = t.donnees?.formatTournoi ?? "complet";

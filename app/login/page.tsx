@@ -17,12 +17,7 @@ export default function LoginPage() {
   const [chargement, setChargement] = useState(false);
 
   async function connexionGoogle() {
-    setMessage("");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    });
-    if (error) setMessage(error.message);
+    setMessage("La connexion Google sera disponible prochainement.");
   }
 
   async function envoyer() {
@@ -65,9 +60,16 @@ export default function LoginPage() {
           setMessage("Compte créé. Un e-mail Tourneo vous attend pour confirmer votre adresse.");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) setMessage("E-mail ou mot de passe incorrect.");
-        else window.location.href = "/dashboard";
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error) {
+          console.error("Erreur connexion Supabase :", error);
+          setMessage(error.message || "Impossible de vous connecter.");
+        } else {
+          window.location.href = "/dashboard";
+        }
       }
     } finally {
       setChargement(false);
@@ -96,9 +98,14 @@ export default function LoginPage() {
           <button style={{ ...s.switch, ...(mode === "inscription" ? s.switchActive : {}) }} onClick={() => setMode("inscription")}>Créer un compte</button>
         </div>
 
-        <button style={s.google} onClick={connexionGoogle}>
+        <button
+          style={{ ...s.google, opacity: .55, cursor: "not-allowed" }}
+          onClick={connexionGoogle}
+          disabled
+          aria-disabled="true"
+        >
           <span style={s.googleMark}>G</span>
-          Continuer avec Google
+          Google bientôt disponible
         </button>
 
         <div style={s.separator}><span>ou</span></div>

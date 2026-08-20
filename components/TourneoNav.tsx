@@ -77,9 +77,9 @@ export default function TourneoNav({
           .tourneo-top-nav {
             position: relative !important;
             top: auto !important;
-            min-height: 64px !important;
-            padding: 10px 2px !important;
-            margin-bottom: 14px !important;
+            min-height: 54px !important;
+            padding: 6px 0 !important;
+            margin-bottom: 8px !important;
             background: transparent !important;
             border: 0 !important;
             box-shadow: none !important;
@@ -90,34 +90,34 @@ export default function TourneoNav({
           .tourneo-mobile-bottom-nav {
             display: grid !important;
             position: fixed !important;
-            left: 10px !important;
-            right: 10px !important;
-            bottom: max(10px, env(safe-area-inset-bottom)) !important;
+            left: 12px !important;
+            right: 12px !important;
+            bottom: max(8px, env(safe-area-inset-bottom)) !important;
             grid-template-columns: repeat(4, 1fr) !important;
-            padding: 8px !important;
-            border-radius: 22px !important;
-            background: rgba(7, 12, 24, .94) !important;
-            border: 1px solid rgba(148,163,184,.18) !important;
+            padding: 6px !important;
+            border-radius: 20px !important;
+            background: rgba(6, 11, 22, .97) !important;
+            border: 1px solid rgba(148,163,184,.16) !important;
             backdrop-filter: blur(18px) !important;
             z-index: 120 !important;
-            box-shadow: 0 18px 50px rgba(0,0,0,.35) !important;
+            box-shadow: 0 14px 40px rgba(0,0,0,.34) !important;
           }
 
           .tourneo-mobile-bottom-nav button {
             display: grid;
             place-items: center;
             gap: 2px;
-            min-height: 48px;
-            padding: 5px 4px;
+            min-height: 44px;
+            padding: 4px 3px;
             border: 0;
-            border-radius: 15px;
+            border-radius: 14px;
             background: transparent;
             color: #8798B0;
             font: inherit;
           }
 
           .tourneo-mobile-bottom-nav button span {
-            font-size: 21px;
+            font-size: 20px;
             line-height: 1;
           }
 
@@ -136,11 +136,11 @@ export default function TourneoNav({
             position: fixed !important;
             left: 18px !important;
             right: 18px !important;
-            bottom: 86px !important;
+            bottom: 78px !important;
             padding: 10px !important;
             gap: 6px !important;
-            border-radius: 20px !important;
-            background: rgba(9, 16, 31, .98) !important;
+            border-radius: 18px !important;
+            background: rgba(9, 16, 31, .99) !important;
             border: 1px solid rgba(148,163,184,.18) !important;
             z-index: 121 !important;
             box-shadow: 0 18px 50px rgba(0,0,0,.4) !important;
@@ -156,7 +156,9 @@ export default function TourneoNav({
             font-weight: 800;
           }
 
-          main { padding-bottom: 100px !important; }
+          main {
+            padding-bottom: calc(132px + env(safe-area-inset-bottom)) !important;
+          }
         }
       `}</style>
     </>
