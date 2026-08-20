@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import TourneoBrand from "@/components/TourneoBrand";
+import AdSlot from "@/components/AdSlot";
 
 type Active = "dashboard" | "tournoi" | "profil" | "aide" | "contact" | "none";
 
@@ -29,6 +30,14 @@ export default function TourneoNav({
 
   return (
     <>
+      <div className="tourneo-global-ad-rail tourneo-global-ad-left">
+        <AdSlot label="Publicité" />
+      </div>
+
+      <div className="tourneo-global-ad-rail tourneo-global-ad-right">
+        <AdSlot label="Publicité" />
+      </div>
+
       <header style={s.header} className="tourneo-top-nav">
         <div style={s.left}>
           <TourneoBrand compact />
@@ -72,6 +81,41 @@ export default function TourneoNav({
       <style jsx global>{`
         .tourneo-mobile-bottom-nav,
         .tourneo-mobile-more { display: none !important; }
+
+        .tourneo-global-ad-rail {
+          display: none;
+        }
+
+        @media (min-width: 1540px) {
+          .tourneo-global-ad-rail {
+            display: block;
+            position: fixed;
+            top: 138px;
+            width: 150px;
+            height: min(620px, calc(100vh - 180px));
+            min-height: 430px;
+            z-index: 20;
+          }
+
+          .tourneo-global-ad-left {
+            left: 14px;
+          }
+
+          .tourneo-global-ad-right {
+            right: 14px;
+          }
+
+          .tourneo-global-ad-rail aside {
+            height: 100% !important;
+            min-height: 430px !important;
+            border-radius: 20px !important;
+          }
+
+          .tourneo-global-ad-rail .adsbygoogle {
+            min-height: 390px !important;
+            height: 100% !important;
+          }
+        }
 
         @media (max-width: 760px) {
           .tourneo-top-nav {

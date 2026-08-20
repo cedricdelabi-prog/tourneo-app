@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent } from "react";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -167,6 +167,10 @@ export default function TournoiPage() {
   const [ajoutMoiEnCours, setAjoutMoiEnCours] = useState(false);
   const [souvenirOuvert, setSouvenirOuvert] = useState(false);
   const [podiumPhotoUrl, setPodiumPhotoUrl] = useState("");
+  const [scannerOuvert, setScannerOuvert] = useState(false);
+  const [scannerMessage, setScannerMessage] = useState("");
+  const videoScannerRef = useRef<HTMLVideoElement | null>(null);
+  const scannerStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -328,6 +332,12 @@ export default function TournoiPage() {
   useEffect(() => {
     setMatchsPhaseFinale(matchs.filter((match) => match.id >= SEUIL_PHASE_FINALE));
   }, [matchs]);
+
+  useEffect(() => {
+    return () => {
+      scannerStreamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
 
   useEffect(() => {
     if (!pret) return;
@@ -875,9 +885,9 @@ export default function TournoiPage() {
     setAjoutMoiEnCours(false);
   }
 
-  async function ajouterViaCodeTourneo() {
-    const code = codeJoueur.trim().toUpperCase();
-    if (!code) return;
+  async function ajouterProfilParCode(codeBrut: string) {
+    const code = codeBrut.trim().toUpperCase();
+    if (!code) return false;
 
     setMessageCodeJoueur("Recherche du joueur…");
     const { data, error } = await supabase
@@ -887,25 +897,126 @@ export default function TournoiPage() {
       .maybeSingle();
 
     if (error || !data) {
-      setMessageCodeJoueur("Code introuvable. Vérifiez le code ou activez le module V10 dans Supabase.");
-      return;
+      setMessageCodeJoueur("Code Tourneo introuvable.");
+      return false;
     }
 
     if (equipes.some((equipe) => equipe.id === data.id)) {
       setMessageCodeJoueur("Ce joueur participe déjà au tournoi.");
-      return;
+      return false;
     }
 
     const nouvelleEquipe: Equipe = {
       id: data.id,
       nom: data.display_name || data.player_code,
       emoji: "👤",
-      couleur: "#3B82F6",
+      couleur: data.favorite_color || "#3B82F6",
+      photo: data.avatar_url || undefined,
     };
 
     setEquipes((actuelles) => [...actuelles, nouvelleEquipe]);
     setCodeJoueur("");
     setMessageCodeJoueur(`${nouvelleEquipe.nom} ajouté via son profil Tourneo.`);
+    return true;
+  }
+
+  async function ajouterViaCodeTourneo() {
+    await ajouterProfilParCode(codeJoueur);
+  }
+
+  function extraireCodeTourneoDepuisQr(valeur: string) {
+    const brut = valeur.trim();
+    if (!brut) return "";
+
+    try {
+      const objet = JSON.parse(brut);
+      const possible = objet?.player_code ?? objet?.playerCode ?? objet?.code;
+      if (typeof possible === "string") return possible.trim().toUpperCase();
+    } catch {
+      // Le QR peut être un code simple ou une URL.
+    }
+
+    try {
+      const url = new URL(brut);
+      const possible =
+        url.searchParams.get("player_code") ||
+        url.searchParams.get("playerCode") ||
+        url.searchParams.get("code");
+      if (possible) return possible.trim().toUpperCase();
+    } catch {
+      // Ce n'est pas une URL, on continue.
+    }
+
+    const correspondance = brut.toUpperCase().match(/TRN-[A-Z0-9-]{4,}/);
+    return correspondance?.[0] ?? brut.toUpperCase();
+  }
+
+  function fermerScanner() {
+    scannerStreamRef.current?.getTracks().forEach((track) => track.stop());
+    scannerStreamRef.current = null;
+    setScannerOuvert(false);
+    setScannerMessage("");
+  }
+
+  async function ouvrirScanner() {
+    setScannerMessage("");
+    setScannerOuvert(true);
+
+    await new Promise((resolve) => window.setTimeout(resolve, 120));
+
+    const video = videoScannerRef.current;
+    if (!video) {
+      setScannerMessage("Impossible d’ouvrir la caméra.");
+      return;
+    }
+
+    const BarcodeDetectorCtor = (window as any).BarcodeDetector;
+    if (!BarcodeDetectorCtor) {
+      setScannerMessage("Le scan QR n’est pas pris en charge par ce navigateur. Utilisez le code joueur.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+
+      scannerStreamRef.current = stream;
+      video.srcObject = stream;
+      await video.play();
+
+      const detector = new BarcodeDetectorCtor({ formats: ["qr_code"] });
+      let actif = true;
+
+      const scanner = async () => {
+        if (!actif || !scannerStreamRef.current || !videoScannerRef.current) return;
+
+        try {
+          if (video.readyState >= 2) {
+            const codes = await detector.detect(video);
+            const valeur = codes?.[0]?.rawValue;
+            if (valeur) {
+              actif = false;
+              const code = extraireCodeTourneoDepuisQr(String(valeur));
+              setCodeJoueur(code);
+              const ajoute = await ajouterProfilParCode(code);
+              fermerScanner();
+              if (!ajoute) setMessageCodeJoueur(`QR lu : ${code}`);
+              return;
+            }
+          }
+        } catch {
+          // On continue la détection sur l'image suivante.
+        }
+
+        window.setTimeout(scanner, 250);
+      };
+
+      scanner();
+    } catch {
+      setScannerMessage("Accès caméra refusé ou indisponible. Autorisez la caméra ou utilisez le code joueur.");
+    }
   }
 
   async function seDeconnecter() {
@@ -1406,34 +1517,43 @@ export default function TournoiPage() {
               </>
             ) : (
               <>
-                <div style={styles.participantsHeader}>
+                <div className="tourneo-participants-header-mobile" style={styles.participantsHeader}>
                   <div>
                     <span style={styles.eyebrow}>Participants</span>
                     <h2 style={styles.sectionTitle}>Équipes / joueurs</h2>
                   </div>
+                </div>
+
+                <button
+                  className="tourneo-add-player-main"
+                  style={styles.primaryButton}
+                  onClick={() => {
+                    setEquipeAModifier(null);
+                    setModalOuvert(true);
+                  }}
+                >
+                  + Ajouter un joueur sans profil
+                </button>
+
+                <div style={styles.selfAddLine}>
+                  <span style={styles.selfAddHint}>Votre propre profil ?</span>
                   <button
-                    className="tourneo-add-player-main"
-                    style={styles.secondaryButton}
-                    onClick={() => {
-                      setEquipeAModifier(null);
-                      setModalOuvert(true);
-                    }}
+                    className="tourneo-add-self"
+                    style={styles.selfAddButton}
+                    disabled={ajoutMoiEnCours}
+                    onClick={ajouterMonProfil}
                   >
-                    + Ajouter un joueur
+                    {ajoutMoiEnCours ? "Ajout…" : "M’ajouter moi-même"}
                   </button>
                 </div>
 
                 <div className="tourneo-player-profile-box" style={styles.playerCodeBox}>
                   <div style={{ display: "grid", gap: 5 }}>
-                    <strong>Ajouter avec un profil Tourneo</strong>
+                    <strong>Ajouter un joueur avec son profil Tourneo</strong>
                     <span style={styles.muted}>
-                      Le QR ou le code joueur sert à récupérer automatiquement le nom, la photo et la couleur du profil.
+                      Saisissez son code joueur ou scannez directement le QR affiché sur son profil.
                     </span>
                   </div>
-
-                  <button className="tourneo-add-self" style={styles.secondaryButton} disabled={ajoutMoiEnCours} onClick={ajouterMonProfil}>
-                    {ajoutMoiEnCours ? "Ajout…" : "M’ajouter moi-même"}
-                  </button>
 
                   <div style={styles.playerCodeActions}>
                     <input
@@ -1444,6 +1564,11 @@ export default function TournoiPage() {
                     />
                     <button style={styles.secondaryButton} onClick={ajouterViaCodeTourneo}>Ajouter par code</button>
                   </div>
+
+                  <button className="tourneo-scan-player" style={styles.scanButton} onClick={ouvrirScanner}>
+                    ⌗ Scanner le QR du joueur
+                  </button>
+
                   {messageCodeJoueur && <span style={styles.statusLine}>{messageCodeJoueur}</span>}
                 </div>
 
@@ -1475,6 +1600,27 @@ export default function TournoiPage() {
           </section>
         </div>
 
+        {scannerOuvert && (
+          <div style={styles.modalBackdrop} onClick={fermerScanner}>
+            <section style={styles.scannerModal} onClick={(event) => event.stopPropagation()}>
+              <div style={styles.modalHeader}>
+                <div>
+                  <span style={styles.eyebrow}>Profil Tourneo</span>
+                  <h2 style={styles.sectionTitle}>Scanner le QR joueur</h2>
+                </div>
+                <button style={styles.modalClose} onClick={fermerScanner}>×</button>
+              </div>
+              <div style={styles.scannerViewport}>
+                <video ref={videoScannerRef} playsInline muted style={styles.scannerVideo} />
+                <div style={styles.scannerFrame} />
+              </div>
+              <p style={styles.scannerHelp}>Placez le QR personnel du joueur au centre.</p>
+              {scannerMessage && <div style={styles.inlineWarning}>{scannerMessage}</div>}
+              <button style={styles.ghostWide} onClick={fermerScanner}>Annuler</button>
+            </section>
+          </div>
+        )}
+
         <TeamModal
           ouvert={modalOuvert}
           equipeAModifier={equipeAModifier}
@@ -1491,9 +1637,26 @@ export default function TournoiPage() {
   return (
     <main style={styles.page}>
       <style jsx global>{`
+        .tourneo-mobile-match-ad {
+          display: none;
+        }
+
         @media (max-width: 760px) {
           .tourneo-creation-mobile-fix { grid-template-columns: 1fr !important; }
           input, select, button { max-width: 100%; }
+
+          main { padding-bottom: 118px !important; }
+
+          .tourneo-mobile-match-ad {
+            display: block !important;
+            margin: 12px 0 16px !important;
+          }
+
+          .tourneo-mobile-match-ad aside {
+            min-height: 76px !important;
+            border-radius: 16px !important;
+            padding: 10px 12px !important;
+          }
 
           .tourneo-create-card {
             padding: 18px !important;
@@ -1505,31 +1668,89 @@ export default function TournoiPage() {
             line-height: 1.02 !important;
           }
 
+          .tourneo-create-card .tourneo-participants-header-mobile {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+          }
+
+          .tourneo-tournament-header {
+            padding: 22px 0 16px !important;
+            gap: 14px !important;
+          }
+
+          .tourneo-tournament-header h1 {
+            font-size: 40px !important;
+            line-height: 1 !important;
+          }
+
+          .tourneo-header-actions {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+            gap: 8px !important;
+          }
+
+          .tourneo-header-actions button {
+            width: 100% !important;
+            padding: 10px 8px !important;
+            font-size: 12px !important;
+          }
+
+          .tourneo-progress-card, .tourneo-sponsor-card {
+            border-radius: 18px !important;
+          }
+
+          .tourneo-sponsor-card {
+            padding: 13px 14px !important;
+          }
+
+          .tourneo-tabs {
+            position: sticky !important;
+            top: 8px !important;
+            z-index: 30 !important;
+          }
+
           .tourneo-player-profile-box {
             padding: 14px !important;
             gap: 10px !important;
           }
 
-          .tourneo-add-player-main {
-            padding: 12px 15px !important;
-            font-size: 15px !important;
-            background: linear-gradient(135deg,#7C5CFF,#3B82F6 55%,#22D3EE) !important;
-            border-color: rgba(114,231,255,.22) !important;
+          .tourneo-create-card .tourneo-add-player-main {
+            width: 100% !important;
+            min-height: 56px !important;
+            margin-top: 14px !important;
+            padding: 14px 16px !important;
+            font-size: 16px !important;
           }
 
-          .tourneo-add-self {
-            justify-self: start !important;
+          .tourneo-create-card .tourneo-add-self {
             width: auto !important;
-            padding: 8px 10px !important;
-            font-size: 12px !important;
-            font-weight: 750 !important;
-            color: #9FB0C5 !important;
-            background: rgba(255,255,255,.035) !important;
+            min-height: 0 !important;
+            padding: 5px 8px !important;
+            font-size: 10px !important;
+            border-radius: 999px !important;
+            box-shadow: none !important;
+          }
+
+          .tourneo-create-card .tourneo-player-profile-box {
+            padding: 12px !important;
+            gap: 9px !important;
+          }
+
+          .tourneo-create-card .tourneo-scan-player {
+            width: 100% !important;
           }
 
           .tourneo-score-actions {
             justify-content: space-between !important;
             align-items: center !important;
+          }
+
+          .tourneo-score-actions button {
+            padding: 8px 10px !important;
+            font-size: 12px !important;
           }
 
           .tourneo-podium-stage {
@@ -1756,7 +1977,7 @@ export default function TournoiPage() {
           onLogout={seDeconnecter}
         />
 
-        <section style={styles.tournamentHeader}>
+        <section className="tourneo-tournament-header" style={styles.tournamentHeader}>
           <div style={{ minWidth: 0 }}>
             <div style={styles.metaRow}>
               <span style={styles.formatBadge}>{LIBELLES_FORMAT[formatTournoi]}</span>
@@ -1769,7 +1990,7 @@ export default function TournoiPage() {
             {messageCloud && <div style={styles.syncBadge}><span style={styles.syncDot} />{messageCloud}</div>}
           </div>
 
-          <div style={styles.headerActions}>
+          <div className="tourneo-header-actions" style={styles.headerActions}>
             <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>QR code</button>
             <button style={styles.secondaryButton} onClick={exporterPDF}>Exporter</button>
@@ -1780,7 +2001,7 @@ export default function TournoiPage() {
           </div>
         </section>
 
-        <section style={styles.progressCard}>
+        <section className="tourneo-progress-card" style={styles.progressCard}>
           <div style={styles.progressTop}>
             <div>
               <span style={styles.eyebrow}>Progression</span>
@@ -1793,7 +2014,7 @@ export default function TournoiPage() {
           </div>
         </section>
 
-        <section style={styles.sponsorCard}>
+        <section className="tourneo-sponsor-card" style={styles.sponsorCard}>
           <div>
             <span style={styles.eyebrow}>Espace partenaire</span>
             <strong style={styles.sponsorTitle}>{partenairePourSport(sport)}</strong>
@@ -1802,7 +2023,7 @@ export default function TournoiPage() {
           <span style={styles.sponsorBadge}>{LIBELLES_SPORT[sport] ?? sport}</span>
         </section>
 
-        <nav style={styles.nav}>
+        <nav className="tourneo-tabs" style={styles.nav}>
           {([
             ["matchs", "Matchs"],
             ["classement", "Classement"],
@@ -1912,11 +2133,13 @@ export default function TournoiPage() {
             </div>
 
             <div style={styles.playerCodeBox}>
-              <strong>Ajouter un joueur avec son identifiant Tourneo</strong>
+              <strong>Ajouter un joueur avec son profil Tourneo</strong>
+              <span style={styles.muted}>Par code joueur ou en scannant son QR personnel.</span>
               <div style={styles.playerCodeActions}>
                 <input style={{ ...styles.input, margin: 0 }} value={codeJoueur} onChange={(event) => setCodeJoueur(event.target.value)} placeholder="Code joueur" />
-                <button style={styles.secondaryButton} onClick={ajouterViaCodeTourneo}>Ajouter</button>
+                <button style={styles.secondaryButton} onClick={ajouterViaCodeTourneo}>Ajouter par code</button>
               </div>
+              <button style={styles.scanButton} onClick={ouvrirScanner}>⌗ Scanner le QR du joueur</button>
               {messageCodeJoueur && <span style={styles.statusLine}>{messageCodeJoueur}</span>}
             </div>
 
@@ -1991,11 +2214,12 @@ export default function TournoiPage() {
           </section>
         )}
 
-        {onglet === "matchs" && journees.map((journee) => {
+        {onglet === "matchs" && journees.map((journee, journeeIndex) => {
           const matchsJournee = matchs.filter((match) => match.journee === journee);
 
           return (
-            <section key={journee} style={styles.card}>
+            <div key={journee}>
+              <section style={styles.card}>
               <div style={styles.roundHeader}>
                 <div>
                   <span style={styles.eyebrow}>{formatTournoi === "complet" ? "Calendrier" : "Tournoi"}</span>
@@ -2075,6 +2299,13 @@ export default function TournoiPage() {
                 })}
               </div>
             </section>
+
+              {journeeIndex === 0 && (
+                <div className="tourneo-mobile-match-ad">
+                  <AdSlot label="Publicité" compact />
+                </div>
+              )}
+            </div>
           );
         })}
 
@@ -2145,7 +2376,7 @@ export default function TournoiPage() {
                     </div>
                     <span style={styles.pill}>{equipes.length} participants</span>
                   </div>
-                  <div style={styles.tableWrap}>
+                  <div className="tourneo-ranking-table" style={styles.tableWrap}>
                     <table style={styles.table}>
                       <thead>
                         <tr>
@@ -2379,6 +2610,31 @@ export default function TournoiPage() {
         </div>
       )}
 
+      {scannerOuvert && (
+        <div style={styles.modalBackdrop} onClick={fermerScanner}>
+          <section style={styles.scannerModal} onClick={(event) => event.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <div>
+                <span style={styles.eyebrow}>Profil Tourneo</span>
+                <h2 style={styles.sectionTitle}>Scanner le QR joueur</h2>
+              </div>
+              <button style={styles.modalClose} onClick={fermerScanner}>×</button>
+            </div>
+
+            <div style={styles.scannerViewport}>
+              <video ref={videoScannerRef} playsInline muted style={styles.scannerVideo} />
+              <div style={styles.scannerFrame} />
+            </div>
+
+            <p style={styles.scannerHelp}>
+              Placez le QR personnel du joueur au centre. Son profil sera ajouté automatiquement.
+            </p>
+            {scannerMessage && <div style={styles.inlineWarning}>{scannerMessage}</div>}
+            <button style={styles.ghostWide} onClick={fermerScanner}>Annuler</button>
+          </section>
+        </div>
+      )}
+
       <TeamModal
         ouvert={modalOuvert}
         equipeAModifier={equipeAModifier}
@@ -2553,6 +2809,15 @@ const styles: Record<string, CSSProperties> = {
   qrModal: { width: "100%", maxWidth: 420, padding: 26, borderRadius: 24, background: "#12151E", border: "1px solid #2A3040", boxShadow: "0 28px 90px rgba(0,0,0,.45)" },
   qrBox: { width: "fit-content", margin: "20px auto 0", padding: 14, borderRadius: 16, background: "white" },
   playerCodeBox: { padding: 16, margin: "14px 0", borderRadius: 18, display: "grid", gap: 12, background: "rgba(59,130,246,.07)", border: "1px solid rgba(96,165,250,.16)" },
+  selfAddLine: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 7, margin: "8px 2px 2px" },
+  selfAddHint: { color: "#6F8097", fontSize: 10 },
+  selfAddButton: { padding: "5px 9px", borderRadius: 999, border: "1px solid rgba(148,163,184,.12)", background: "rgba(255,255,255,.025)", color: "#91A2B8", fontSize: 10, fontWeight: 750, cursor: "pointer" },
+  scanButton: { width: "100%", padding: "11px 13px", borderRadius: 13, border: "1px solid rgba(34,211,238,.20)", background: "rgba(34,211,238,.07)", color: "#A5F3FC", fontWeight: 850, cursor: "pointer" },
+  scannerModal: { width: "min(440px,100%)", padding: 20, borderRadius: 24, background: "#0B1323", border: "1px solid rgba(148,163,184,.18)", color: "white", boxShadow: "0 24px 70px rgba(0,0,0,.48)" },
+  scannerViewport: { position: "relative", width: "100%", aspectRatio: "1 / 1", marginTop: 14, overflow: "hidden", borderRadius: 20, background: "#030712" },
+  scannerVideo: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  scannerFrame: { position: "absolute", inset: "18%", border: "2px solid #67E8F9", borderRadius: 18, boxShadow: "0 0 0 999px rgba(0,0,0,.26),0 0 24px rgba(34,211,238,.28)" },
+  scannerHelp: { margin: "12px 0 0", color: "#91A4BC", lineHeight: 1.5, textAlign: "center", fontSize: 13 },
   playerCodeActions: { display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center" },
   sponsorCard: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap", padding: "16px 18px", marginBottom: 16, borderRadius: 20, background: "linear-gradient(135deg,rgba(124,92,255,.10),rgba(34,211,238,.05))", border: "1px solid rgba(148,163,184,.11)" },
   sponsorTitle: { display: "block", margin: "4px 0", fontSize: 20 },
