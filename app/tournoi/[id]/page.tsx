@@ -21,6 +21,26 @@ import TourneoNav from "@/components/TourneoNav";
 const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
 
+/**
+ * URL publique canonique de Tourneo.
+ *
+ * IMPORTANT :
+ * On ne doit pas utiliser window.location.origin pour fabriquer les QR codes.
+ * Dans l'application Android Capacitor, l'origine peut devenir localhost / capacitor://...
+ * et le QR serait alors inutilisable pour les autres joueurs.
+ *
+ * Tu peux surcharger cette valeur plus tard avec NEXT_PUBLIC_APP_URL
+ * sans avoir à retoucher ce fichier.
+ */
+const URL_PUBLIQUE_TOURNEO = (
+  process.env.NEXT_PUBLIC_APP_URL || "https://tourneo-app.vercel.app"
+).replace(/\/$/, "");
+
+function construireLienPublicTournoi(id: string) {
+  if (!id || id === "nouveau") return "";
+  return `${URL_PUBLIQUE_TOURNEO}/partage/${encodeURIComponent(id)}`;
+}
+
 type FormatTournoi = "complet" | "poules" | "elimination" | "poulesFinale";
 type ModePoules = "nombrePoules" | "taillePoules";
 type Onglet = "matchs" | "classement" | "statistiques" | "participants";
@@ -173,9 +193,8 @@ export default function TournoiPage() {
   const scannerStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setLienPartage(`${window.location.origin}/partage/${params.id}`);
-    }
+    // Le QR doit toujours pointer vers le site public, même depuis l'app Android.
+    setLienPartage(construireLienPublicTournoi(params.id));
 
     async function initialiser() {
       if (params.id === "nouveau") {
@@ -313,7 +332,7 @@ export default function TournoiPage() {
           setPoules(donnees.poules ?? []);
           setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
           setMatchsValides(donnees.matchsValides ?? []);
-          setLienPartage(`${window.location.origin}/partage/${tournoiCloud.id}`);
+          setLienPartage(construireLienPublicTournoi(tournoiCloud.id));
           setMessageCloud("Synchronisé");
         } else if (!localCharge) {
           setMessageCloud("");
@@ -692,7 +711,7 @@ export default function TournoiPage() {
     setTournoiId(data.id);
     setCree(true);
     setOnglet("matchs");
-    setLienPartage(`${window.location.origin}/partage/${data.id}`);
+    setLienPartage(construireLienPublicTournoi(data.id));
     window.history.replaceState({}, "", `/tournoi/${data.id}`);
     setMessageCloud("Synchronisé");
   }
@@ -928,25 +947,35 @@ export default function TournoiPage() {
     const brut = valeur.trim();
     if (!brut) return "";
 
+    // 1) QR JSON : {"player_code":"TRN-..."}
     try {
       const objet = JSON.parse(brut);
       const possible = objet?.player_code ?? objet?.playerCode ?? objet?.code;
       if (typeof possible === "string") return possible.trim().toUpperCase();
     } catch {
-      // Le QR peut être un code simple ou une URL.
+      // Le QR peut aussi être une URL ou un simple code.
     }
 
+    // 2) QR URL : accepte ?code=, ?player_code=, un code dans le chemin ou dans le hash.
     try {
       const url = new URL(brut);
       const possible =
         url.searchParams.get("player_code") ||
         url.searchParams.get("playerCode") ||
         url.searchParams.get("code");
+
       if (possible) return possible.trim().toUpperCase();
+
+      const dansUrl = `${url.pathname} ${url.hash}`
+        .toUpperCase()
+        .match(/TRN-[A-Z0-9-]{4,}/);
+
+      if (dansUrl?.[0]) return dansUrl[0];
     } catch {
       // Ce n'est pas une URL, on continue.
     }
 
+    // 3) QR contenant directement le code joueur.
     const correspondance = brut.toUpperCase().match(/TRN-[A-Z0-9-]{4,}/);
     return correspondance?.[0] ?? brut.toUpperCase();
   }
@@ -1031,11 +1060,16 @@ export default function TournoiPage() {
   }
 
   async function copierLien() {
+    if (!lienPartage) {
+      setMessageCloud("Lien public indisponible");
+      return;
+    }
+
     try {
       await navigator.clipboard.writeText(lienPartage);
-      setMessageCloud("Lien copié");
+      setMessageCloud("Lien public copié");
     } catch {
-      prompt("Copie ce lien :", lienPartage);
+      prompt("Copie ce lien public :", lienPartage);
     }
   }
 
@@ -1057,13 +1091,23 @@ export default function TournoiPage() {
   }
 
   async function partagerTournoi() {
-    if (navigator.share) {
-      await navigator.share({
-        title: nomTournoi,
-        text: `Suis le tournoi ${nomTournoi} sur Tourneo`,
-        url: lienPartage,
-      });
+    if (!lienPartage) {
+      setMessageCloud("Lien public indisponible");
       return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: nomTournoi || "Tourneo",
+          text: `Suis le tournoi ${nomTournoi || "Tourneo"} en direct`,
+          url: lienPartage,
+        });
+        return;
+      } catch (error) {
+        // Si l'utilisateur ferme la feuille de partage, on ne force rien.
+        if ((error as Error)?.name === "AbortError") return;
+      }
     }
 
     await copierLien();
@@ -2504,7 +2548,19 @@ export default function TournoiPage() {
                 <span style={styles.eyebrow}>Partager</span>
                 <h2 style={styles.sectionTitle}>QR code du tournoi</h2>
               </div>
-              <div style={styles.qrBox}><QRCodeSVG value={lienPartage} size={220} /></div>
+              <div style={styles.qrBox}>
+                {lienPartage ? (
+                  <QRCodeSVG
+                    value={lienPartage}
+                    size={220}
+                    level="M"
+                    includeMargin
+                    title={`Suivre ${nomTournoi || "ce tournoi"} en direct`}
+                  />
+                ) : (
+                  <span style={{ color: "#111827", fontWeight: 800 }}>QR indisponible</span>
+                )}
+              </div>
               <p style={styles.shareLink}>{lienPartage}</p>
               <button style={styles.primaryButton} onClick={copierLien}>Copier le lien</button>
               <button style={styles.ghostWide} onClick={() => setQrOuvert(false)}>Fermer</button>
@@ -2592,7 +2648,15 @@ export default function TournoiPage() {
 
                 <div className="tourneo-souvenir-footer" style={styles.souvenirFooter}>
                   <div style={styles.qrSouvenirBox}>
-                    {lienPartage && <QRCodeSVG value={lienPartage} size={92} />}
+                    {lienPartage && (
+                      <QRCodeSVG
+                        value={lienPartage}
+                        size={92}
+                        level="M"
+                        includeMargin
+                        title={`Classement de ${nomTournoi || "Tourneo"}`}
+                      />
+                    )}
                   </div>
                   <div style={styles.qrSouvenirText}>
                     <strong>Voir le classement complet</strong>

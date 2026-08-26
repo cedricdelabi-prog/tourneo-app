@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cedricdelabi.tourneo",
+      "sha256_cert_fingerprints": [
+        "6B:A2:39:53:0B:B0:D8:29:D9:06:A5:16:F2:01:18:49:2D:E4:53:66:A7:8D:0E:17:DA:7B:4A:C1:DD:C2:5D:EB"
+      ]
+    }
+  }
+]
