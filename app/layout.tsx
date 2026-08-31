@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Tourneo",
-  description: "Créez et gérez facilement vos tournois.",
+  description:
+    "Créez, organisez et suivez facilement vos tournois sportifs avec Tourneo.",
 };
 
 export default function RootLayout({
@@ -28,14 +29,6 @@ export default function RootLayout({
       lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5430749057269196"
-          crossOrigin="anonymous"
-        />
-      </head>
-
       <body className="min-h-full flex flex-col">
         <Toaster
           position="top-center"

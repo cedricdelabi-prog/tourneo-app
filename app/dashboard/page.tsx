@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
-import AdSlot from "@/components/AdSlot";
 import TourneoNav from "@/components/TourneoNav";
 
 type Match = { score1?: string | number; score2?: string | number };
@@ -162,10 +161,6 @@ export default function DashboardPage() {
               font-size: 18px !important;
             }
 
-            .dashboard-ad {
-              margin-top: 10px !important;
-            }
-
             .dashboard-toolbar {
               display: grid !important;
               grid-template-columns: 1fr !important;
@@ -218,8 +213,6 @@ export default function DashboardPage() {
           <div><span>Terminés</span><strong>{stats.termines}</strong></div>
           <div><span>Participants</span><strong>{stats.participants}</strong></div>
         </section>
-
-        <div className="dashboard-ad"><AdSlot label="Publicité" compact /></div>
 
         <section style={s.toolbar} className="dashboard-toolbar">
           <input style={s.search} value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Rechercher un tournoi" />
