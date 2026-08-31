@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import AdSlot from "@/components/AdSlot";
 import TourneoBrand from "@/components/TourneoBrand";
 
 type Equipe = {
@@ -365,7 +364,6 @@ export default function PartagePage() {
           {message && <p style={s.message}>{message}</p>}
         </section>
 
-        <AdSlot compact />
 
         <div style={s.tabs}>
           <button
