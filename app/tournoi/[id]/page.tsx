@@ -173,7 +173,7 @@ export default function TournoiPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setLienPartage(`${window.location.origin}/partage/${params.id}`);
+      setLienPartage(`https://tourneo-app.vercel.app/partage/${params.id}`);
     }
 
     async function initialiser() {
@@ -198,6 +198,7 @@ export default function TournoiPage() {
         setMatchsValides([]);
         setAjoutMoiEnCours(false);
         setSouvenirOuvert(false);
+        setPodiumPhotoUrl("");
       }
 
       const chargerLocal = () => {
@@ -228,6 +229,7 @@ export default function TournoiPage() {
           setPoules(data.poules ?? []);
           setMatchsPhaseFinale(data.matchsPhaseFinale ?? []);
           setMatchsValides(data.matchsValides ?? []);
+          setPodiumPhotoUrl(data.podiumPhotoUrl ?? "");
           return true;
         } catch {
           localStorage.removeItem(CLE);
@@ -312,7 +314,8 @@ export default function TournoiPage() {
           setPoules(donnees.poules ?? []);
           setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
           setMatchsValides(donnees.matchsValides ?? []);
-          setLienPartage(`${window.location.origin}/partage/${tournoiCloud.id}`);
+          setPodiumPhotoUrl(donnees.podiumPhotoUrl ?? "");
+          setLienPartage(`https://tourneo-app.vercel.app/partage/${tournoiCloud.id}`);
           setMessageCloud("Synchronisé");
         } else if (!localCharge) {
           setMessageCloud("");
@@ -358,6 +361,7 @@ export default function TournoiPage() {
         poules,
         matchsPhaseFinale,
         matchsValides,
+        podiumPhotoUrl,
       })
     );
 
@@ -365,6 +369,16 @@ export default function TournoiPage() {
 
     const minuterie = window.setTimeout(async () => {
       setMessageCloud("Synchronisation…");
+
+      const classementSync = calculerClassement(equipes, matchs);
+      const termineSync = matchs.length > 0 && matchs.every((match) => match.score1 !== "" && match.score2 !== "");
+      const podiumFinalSync = classementSync.slice(0, 3).map((ligne, index) => ({
+        rang: index + 1,
+        nom: ligne.equipe.nom,
+        points: ligne.pts,
+        photo: ligne.equipe.photo || "",
+        couleur: ligne.equipe.couleur || "#3B82F6",
+      }));
 
       const { error } = await supabase
         .from("tournois")
@@ -384,6 +398,9 @@ export default function TournoiPage() {
             poules,
             matchsPhaseFinale,
             matchsValides,
+            podiumPhotoUrl,
+            termine: termineSync,
+            podiumFinal: podiumFinalSync,
           },
         })
         .eq("id", tournoiId)
@@ -415,6 +432,7 @@ export default function TournoiPage() {
     poules,
     matchsPhaseFinale,
     matchsValides,
+    podiumPhotoUrl,
   ]);
 
   const matchsPoules = useMemo(
@@ -674,6 +692,9 @@ export default function TournoiPage() {
             (match) => match.id >= SEUIL_PHASE_FINALE
           ),
           matchsValides: [],
+          podiumPhotoUrl: "",
+          termine: false,
+          podiumFinal: [],
         },
       })
       .select("id")
@@ -691,7 +712,7 @@ export default function TournoiPage() {
     setTournoiId(data.id);
     setCree(true);
     setOnglet("matchs");
-    setLienPartage(`${window.location.origin}/partage/${data.id}`);
+    setLienPartage(`https://tourneo-app.vercel.app/partage/${data.id}`);
     window.history.replaceState({}, "", `/tournoi/${data.id}`);
     setMessageCloud("Synchronisé");
   }
@@ -1039,7 +1060,7 @@ export default function TournoiPage() {
   }
 
 
-  function choisirPhotoPodium(event: ChangeEvent<HTMLInputElement>) {
+  async function choisirPhotoPodium(event: ChangeEvent<HTMLInputElement>) {
     const fichier = event.target.files?.[0];
     if (!fichier) return;
 
@@ -1048,11 +1069,163 @@ export default function TournoiPage() {
       return;
     }
 
-    const lecteur = new FileReader();
-    lecteur.onload = () => {
-      if (typeof lecteur.result === "string") setPodiumPhotoUrl(lecteur.result);
-    };
-    lecteur.readAsDataURL(fichier);
+    // Aperçu immédiat, même si le réseau est lent.
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const lecteur = new FileReader();
+      lecteur.onload = () => typeof lecteur.result === "string" ? resolve(lecteur.result) : reject(new Error("Lecture impossible"));
+      lecteur.onerror = () => reject(new Error("Lecture impossible"));
+      lecteur.readAsDataURL(fichier);
+    });
+    setPodiumPhotoUrl(dataUrl);
+
+    // Si le tournoi existe dans le cloud, la photo est envoyée dans Supabase afin
+    // qu’elle soit également visible depuis le lien public après le tournoi.
+    if (tournoiId && userId) {
+      try {
+        setMessageCloud("Envoi de la photo du podium…");
+        const extension = fichier.name.split(".").pop() || "jpg";
+        const chemin = `${userId}/tournois/${tournoiId}/podium-${Date.now()}.${extension}`;
+        const { error } = await supabase.storage.from("tourneo-media").upload(chemin, fichier, { upsert: true });
+
+        if (!error) {
+          const { data } = supabase.storage.from("tourneo-media").getPublicUrl(chemin);
+          setPodiumPhotoUrl(data.publicUrl);
+          setMessageCloud("Photo du podium synchronisée");
+        } else {
+          console.error("Upload photo podium :", error);
+          setMessageCloud("Photo conservée sur cet appareil");
+        }
+      } catch (error) {
+        console.error(error);
+        setMessageCloud("Photo conservée sur cet appareil");
+      }
+    }
+  }
+
+  function chargerImage(src: string) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Image inaccessible"));
+      img.src = src;
+    });
+  }
+
+  async function genererAfficheBlob() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600;
+    canvas.height = 900;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas indisponible");
+
+    const fond = ctx.createLinearGradient(0, 0, 1600, 900);
+    fond.addColorStop(0, "#07101E");
+    fond.addColorStop(.55, "#0D1830");
+    fond.addColorStop(1, "#111B31");
+    ctx.fillStyle = fond;
+    ctx.fillRect(0, 0, 1600, 900);
+
+    ctx.fillStyle = "#72E7FF";
+    ctx.font = "700 28px Arial";
+    ctx.fillText("TOURNEO · RÉSULTATS OFFICIELS", 70, 80);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 58px Arial";
+    ctx.fillText(nomTournoi || "Tournoi", 70, 145);
+    ctx.fillStyle = "#9CB1C9";
+    ctx.font = "600 26px Arial";
+    ctx.fillText(`${LIBELLES_SPORT[sport] ?? sport} · ${LIBELLES_FORMAT[formatTournoi]}`, 70, 190);
+
+    if (podiumPhotoUrl) {
+      try {
+        const img = await chargerImage(podiumPhotoUrl);
+        const x = 70, y = 230, w = 900, h = 590;
+        const ratio = Math.max(w / img.width, h / img.height);
+        const sw = w / ratio, sh = h / ratio;
+        const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, 30);
+        ctx.clip();
+        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+        ctx.restore();
+      } catch {
+        // L’affiche reste partageable même si l’image distante n’est pas lisible.
+      }
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,.04)";
+      ctx.fillRect(70, 230, 900, 590);
+      ctx.fillStyle = "#8293A9";
+      ctx.font = "600 30px Arial";
+      ctx.fillText("Photo du podium", 365, 530);
+    }
+
+    ctx.fillStyle = "#72E7FF";
+    ctx.font = "800 24px Arial";
+    ctx.fillText("PODIUM FINAL", 1040, 250);
+
+    const ordre = [podium[0], podium[1], podium[2]].filter(Boolean);
+    ordre.forEach((ligne, index) => {
+      const y = 340 + index * 150;
+      const rang = index + 1;
+      ctx.fillStyle = rang === 1 ? "#E5BE60" : rang === 2 ? "#AEBED2" : "#C88A5C";
+      ctx.beginPath();
+      ctx.roundRect(1040, y - 48, 78, 78, 22);
+      ctx.fill();
+      ctx.fillStyle = "#08111F";
+      ctx.font = "900 34px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(String(rang), 1079, y + 3);
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "800 31px Arial";
+      ctx.fillText(ligne.equipe.nom.slice(0, 22), 1140, y - 3);
+      ctx.fillStyle = "#9CB1C9";
+      ctx.font = "600 23px Arial";
+      ctx.fillText(`${ligne.pts} pts`, 1140, y + 35);
+    });
+
+    ctx.fillStyle = "#8DA1BA";
+    ctx.font = "600 22px Arial";
+    ctx.fillText("Retrouvez le tournoi :", 1040, 775);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "600 20px Arial";
+    const lienCourt = lienPartage.replace("https://", "");
+    ctx.fillText(lienCourt.slice(0, 42), 1040, 810);
+
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Création de l’image impossible")), "image/png", .95);
+    });
+  }
+
+  async function partagerAfficheSouvenir() {
+    try {
+      const blob = await genererAfficheBlob();
+      const nomFichier = `${(nomTournoi || "tourneo").replace(/[^a-z0-9_-]+/gi, "-")}-podium.png`;
+      const fichier = new File([blob], nomFichier, { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
+
+      if (navigator.share && nav.canShare?.({ files: [fichier] })) {
+        await navigator.share({
+          title: `Podium · ${nomTournoi}`,
+          text: `Résultats de ${nomTournoi} sur Tourneo
+${lienPartage}`,
+          files: [fichier],
+        });
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nomFichier;
+      a.click();
+      URL.revokeObjectURL(url);
+      setMessageCloud("Affiche enregistrée. Vous pouvez maintenant la joindre à votre message.");
+    } catch (error) {
+      console.error(error);
+      alert("Impossible de partager l’affiche sur cet appareil. Utilisez « Imprimer / enregistrer en PDF ».");
+    }
   }
 
   async function partagerTournoi() {
@@ -2583,7 +2756,7 @@ export default function TournoiPage() {
 
             <div className="tourneo-souvenir-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
               <button style={styles.primaryButton} onClick={() => window.print()}>Imprimer / enregistrer en PDF</button>
-              <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager les résultats</button>
+              <button style={styles.secondaryButton} onClick={partagerAfficheSouvenir}>Partager l’affiche avec la photo</button>
             </div>
           </section>
         </div>

@@ -26,16 +26,37 @@ export default function ProfilPage() {
   const [couleur, setCouleur] = useState("#3B82F6");
   const [avatar, setAvatar] = useState("");
   const [message, setMessage] = useState("");
+  const [chargement, setChargement] = useState(true);
+  const [enregistrement, setEnregistrement] = useState(false);
   const inputPhoto = useRef<HTMLInputElement>(null);
 
   useEffect(() => { charger(); }, []);
 
   async function charger() {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
-    if (!user) { window.location.href = "/login"; return; }
+    setChargement(true);
+    setMessage("");
 
-    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+
+    if (sessionError || !user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Chargement profil :", error);
+      setMessage(`Impossible de charger votre profil : ${error.message}`);
+      setChargement(false);
+      return;
+    }
+
     if (data) {
       const p = data as Profil;
       setProfil(p);
@@ -45,13 +66,20 @@ export default function ProfilPage() {
       setVille(p.city || String(user.user_metadata?.city || ""));
       setCouleur(p.favorite_color || "#3B82F6");
       setAvatar(p.avatar_url || "");
+      setChargement(false);
       return;
     }
 
-    const displayName =
-      String(user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Joueur");
+    const displayName = String(
+      user.user_metadata?.display_name ||
+      user.user_metadata?.full_name ||
+      `${user.user_metadata?.first_name || ""} ${user.user_metadata?.last_name || ""}`.trim() ||
+      user.email?.split("@")[0] ||
+      "Joueur"
+    );
     const code = `TRN-${user.id.slice(0,4).toUpperCase()}-${user.id.slice(4,8).toUpperCase()}`;
-    await supabase.from("profiles").insert({
+
+    const nouveauProfil = {
       id: user.id,
       display_name: displayName,
       player_code: code,
@@ -59,8 +87,35 @@ export default function ProfilPage() {
       last_name: user.user_metadata?.last_name || null,
       city: user.user_metadata?.city || null,
       favorite_color: "#3B82F6",
-    });
-    charger();
+    };
+
+    const { data: cree, error: creationError } = await supabase
+      .from("profiles")
+      .upsert(nouveauProfil, { onConflict: "id" })
+      .select("*")
+      .single();
+
+    if (creationError || !cree) {
+      console.error("Création profil :", creationError);
+      setMessage(
+        creationError?.message
+          ? `Impossible de créer votre profil : ${creationError.message}`
+          : "Impossible de créer votre profil. Réessayez dans quelques instants."
+      );
+      setChargement(false);
+      return;
+    }
+
+    const p = cree as Profil;
+    setProfil(p);
+    setNom(p.display_name || displayName);
+    setPrenom(p.first_name || String(user.user_metadata?.first_name || ""));
+    setNomFamille(p.last_name || String(user.user_metadata?.last_name || ""));
+    setVille(p.city || String(user.user_metadata?.city || ""));
+    setCouleur(p.favorite_color || "#3B82F6");
+    setAvatar(p.avatar_url || "");
+    setMessage("Profil Tourneo créé. Vous pouvez maintenant le personnaliser.");
+    setChargement(false);
   }
 
   async function changerPhoto(file?: File) {
@@ -76,18 +131,43 @@ export default function ProfilPage() {
   }
 
   async function enregistrer() {
-    if (!profil || !nom.trim()) return;
+    if (!profil) {
+      setMessage("Votre profil n’est pas encore prêt. Réessayez dans quelques instants.");
+      return;
+    }
+    if (!nom.trim()) {
+      setMessage("Ajoutez un nom affiché ou un pseudo avant d’enregistrer.");
+      return;
+    }
+
+    setEnregistrement(true);
     setMessage("Enregistrement…");
-    const { error } = await supabase.from("profiles").update({
-      display_name: nom.trim(),
-      first_name: prenom.trim() || null,
-      last_name: nomFamille.trim() || null,
-      city: ville.trim() || null,
-      avatar_url: avatar || null,
-      favorite_color: couleur,
-      updated_at: new Date().toISOString(),
-    }).eq("id", profil.id);
-    setMessage(error ? error.message : "Profil enregistré.");
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        display_name: nom.trim(),
+        first_name: prenom.trim() || null,
+        last_name: nomFamille.trim() || null,
+        city: ville.trim() || null,
+        avatar_url: avatar || null,
+        favorite_color: couleur,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", profil.id)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      console.error("Enregistrement profil :", error);
+      setMessage(error?.message ? `Enregistrement impossible : ${error.message}` : "Enregistrement impossible. Réessayez.");
+      setEnregistrement(false);
+      return;
+    }
+
+    setProfil(data as Profil);
+    setMessage("Profil enregistré ✓");
+    setEnregistrement(false);
   }
 
   async function logout() {
@@ -119,23 +199,23 @@ export default function ProfilPage() {
           <article style={s.card}>
             <span style={s.eyebrow}>Identité</span>
             <label style={s.label}>Nom affiché / pseudo</label>
-            <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} />
+            <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Ex. JeanD" />
             <div style={s.two}>
               <div>
                 <label style={s.label}>Prénom</label>
-                <input style={s.input} value={prenom} onChange={(e) => setPrenom(e.target.value)} />
+                <input style={s.input} value={prenom} onChange={(e) => setPrenom(e.target.value)} placeholder="Ex. Jean" />
               </div>
               <div>
                 <label style={s.label}>Nom</label>
-                <input style={s.input} value={nomFamille} onChange={(e) => setNomFamille(e.target.value)} />
+                <input style={s.input} value={nomFamille} onChange={(e) => setNomFamille(e.target.value)} placeholder="Ex. Dupont" />
               </div>
             </div>
             <label style={s.label}>Ville</label>
-            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Facultatif" />
+            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} placeholder="Ex. Paris (facultatif)" />
 
             <label style={s.label}>Couleur du profil</label>
             <input style={s.colorInput} type="color" value={couleur} onChange={(e) => setCouleur(e.target.value)} />
-            <button style={s.primary} onClick={enregistrer}>Enregistrer mon profil</button>
+            <button style={{...s.primary, opacity: enregistrement || chargement ? .65 : 1}} onClick={enregistrer} disabled={enregistrement || chargement}>{enregistrement ? "Enregistrement…" : chargement ? "Chargement du profil…" : "Enregistrer mon profil"}</button>
             {message && <div style={s.feedback}>{message}</div>}
           </article>
 

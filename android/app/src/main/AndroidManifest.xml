@@ -22,16 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Ouvre les liens https://tourneo-app.vercel.app/... directement dans Tourneo. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:scheme="https"
-                    android:host="tourneo-app.vercel.app"
-                    android:pathPrefix="/partage/" />
+                    android:host="tourneo-app.vercel.app" />
             </intent-filter>
 
         </activity>
@@ -43,11 +41,9 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
+                android:resource="@xml/file_paths"></meta-data>
         </provider>
-
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
-
 </manifest>

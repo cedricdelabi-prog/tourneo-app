@@ -5,6 +5,17 @@ import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import TourneoBrand from "@/components/TourneoBrand";
 
+const URL_PRODUCTION = "https://tourneo-app.vercel.app";
+
+function messageErreurConnexion(message: string) {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login credentials")) return "E-mail ou mot de passe incorrect.";
+  if (m.includes("email not confirmed")) return "Votre adresse e-mail n’est pas encore confirmée. Ouvrez le mail Tourneo reçu lors de votre inscription.";
+  if (m.includes("too many requests")) return "Trop de tentatives. Attendez quelques minutes puis réessayez.";
+  if (m.includes("network") || m.includes("fetch")) return "Connexion internet indisponible. Vérifiez votre réseau puis réessayez.";
+  return "Impossible de vous connecter. Vérifiez votre e-mail et votre mot de passe.";
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState<"connexion" | "inscription">("connexion");
   const [email, setEmail] = useState("");
@@ -41,10 +52,10 @@ export default function LoginPage() {
 
         const displayName = pseudo.trim() || `${prenom.trim()} ${nom.trim()}`;
         const { error } = await supabase.auth.signUp({
-          email,
+          email: email.trim().toLowerCase(),
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${URL_PRODUCTION}/dashboard`,
             data: {
               first_name: prenom.trim(),
               last_name: nom.trim(),
@@ -55,18 +66,18 @@ export default function LoginPage() {
         });
 
         if (error) {
-          setMessage(error.message);
+          setMessage(error.message.includes("already") ? "Un compte existe déjà avec cette adresse e-mail." : `Impossible de créer le compte : ${error.message}`);
         } else {
           setMessage("Compte créé. Un e-mail Tourneo vous attend pour confirmer votre adresse.");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           password,
         });
         if (error) {
           console.error("Erreur connexion Supabase :", error);
-          setMessage(error.message || "Impossible de vous connecter.");
+          setMessage(messageErreurConnexion(error.message || ""));
         } else {
           window.location.href = "/dashboard";
         }
@@ -82,7 +93,7 @@ export default function LoginPage() {
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${URL_PRODUCTION}/reset-password`,
     });
     setMessage(error ? error.message : "Un e-mail de réinitialisation vient d’être envoyé.");
   }
@@ -115,24 +126,24 @@ export default function LoginPage() {
             <div style={s.two}>
               <div>
                 <label style={s.label}>Prénom</label>
-                <input style={s.input} value={prenom} onChange={(e) => setPrenom(e.target.value)} autoComplete="given-name" />
+                <input style={s.input} value={prenom} onChange={(e) => setPrenom(e.target.value)} autoComplete="given-name" placeholder="Ex. Jean" />
               </div>
               <div>
                 <label style={s.label}>Nom</label>
-                <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} autoComplete="family-name" />
+                <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} autoComplete="family-name" placeholder="Ex. Dupont" />
               </div>
             </div>
 
             <label style={s.label}>Pseudo Tourneo <span style={s.optional}>facultatif</span></label>
-            <input style={s.input} value={pseudo} onChange={(e) => setPseudo(e.target.value)} placeholder="Ex. Cedric62" />
+            <input style={s.input} value={pseudo} onChange={(e) => setPseudo(e.target.value)} placeholder="Ex. JeanD" />
 
             <label style={s.label}>Ville <span style={s.optional}>facultatif</span></label>
-            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} autoComplete="address-level2" placeholder="Ex. Calais" />
+            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} autoComplete="address-level2" placeholder="Ex. Paris" />
           </>
         )}
 
         <label style={s.label}>E-mail</label>
-        <input style={s.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="vous@email.fr" />
+        <input style={s.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="jean.dupont@example.com" />
 
         <label style={s.label}>Mot de passe</label>
         <input style={s.input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "connexion" ? "current-password" : "new-password"} placeholder="6 caractères minimum" />

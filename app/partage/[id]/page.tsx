@@ -26,10 +26,21 @@ type Match = {
   score2?: string | number | null;
 };
 
+type PodiumFinal = {
+  rang: number;
+  nom: string;
+  points?: number;
+  photo?: string;
+  couleur?: string;
+};
+
 type DonneesTournoi = {
   equipes?: Equipe[];
   matchs?: Match[];
   formatTournoi?: string;
+  podiumPhotoUrl?: string;
+  podiumFinal?: PodiumFinal[];
+  termine?: boolean;
 };
 
 type Tournoi = {
@@ -302,6 +313,21 @@ export default function PartagePage() {
     );
   }, [equipes, matchs]);
 
+  const tournoiTermine =
+    Boolean(donnees.termine) ||
+    (matchs.length > 0 && matchs.every((m) => scoreRenseigne(m.score1) && scoreRenseigne(m.score2)));
+
+  const podiumFinal: PodiumFinal[] =
+    donnees.podiumFinal?.length
+      ? donnees.podiumFinal
+      : classement.slice(0, 3).map((ligne, index) => ({
+          rang: index + 1,
+          nom: ligne.nom,
+          points: ligne.pts,
+          photo: equipes.find((e) => e.id === ligne.id)?.photo,
+          couleur: equipes.find((e) => e.id === ligne.id)?.couleur,
+        }));
+
   const matchsTries = useMemo(
     () =>
       [...matchs].sort(
@@ -345,14 +371,14 @@ export default function PartagePage() {
       <div style={s.shell}>
         <header style={s.header}>
           <TourneoBrand compact />
-          <span style={s.readonly}>LIVE · lecture seule</span>
+          <span style={s.readonly}>{tournoiTermine ? "TERMINÉ · souvenir" : "LIVE · lecture seule"}</span>
         </header>
 
         <section style={s.hero}>
-          <span style={s.eyebrow}>Tournoi en direct</span>
+          <span style={s.eyebrow}>{tournoiTermine ? "Tournoi terminé" : "Tournoi en direct"}</span>
           <h1 style={s.title}>{tournoi.nom}</h1>
           <p style={s.muted}>
-            {tournoi.sport || "Multisport"} · Actualisation automatique
+            {tournoi.sport || "Multisport"} · {tournoiTermine ? "Résultats définitifs" : "Actualisation automatique"}
           </p>
 
           {estParticipant && (
@@ -364,6 +390,45 @@ export default function PartagePage() {
           {message && <p style={s.message}>{message}</p>}
         </section>
 
+
+
+        {tournoiTermine && podiumFinal.length > 0 && (
+          <section style={s.finalPoster}>
+            <div style={s.finalPosterTop}>
+              <div>
+                <span style={s.eyebrow}>Affiche souvenir</span>
+                <h2 style={s.finalTitle}>Podium final</h2>
+                <p style={s.muted}>Ce lien reste disponible après la fin du tournoi.</p>
+              </div>
+            </div>
+
+            {donnees.podiumPhotoUrl && (
+              <img
+                src={donnees.podiumPhotoUrl}
+                alt="Photo du podium"
+                style={s.finalPhoto}
+                referrerPolicy="no-referrer"
+              />
+            )}
+
+            <div style={s.finalPodium}>
+              {[podiumFinal[1], podiumFinal[0], podiumFinal[2]].filter(Boolean).map((p) => (
+                <article key={`${p.rang}-${p.nom}`} style={{...s.finalPodiumCard, ...(p.rang === 1 ? s.finalWinner : {})}}>
+                  {p.photo ? (
+                    <img src={p.photo} alt="" style={s.finalAvatar} referrerPolicy="no-referrer" />
+                  ) : (
+                    <div style={{...s.finalAvatarFallback, background:p.couleur || "#3B82F6"}}>
+                      {p.nom.slice(0,1).toUpperCase()}
+                    </div>
+                  )}
+                  <span style={s.finalMedal}>{p.rang === 1 ? "🥇" : p.rang === 2 ? "🥈" : "🥉"}</span>
+                  <strong>{p.nom}</strong>
+                  <small style={s.muted}>{p.points !== undefined ? `${p.points} pts` : `${p.rang}e place`}</small>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div style={s.tabs}>
           <button
@@ -665,6 +730,22 @@ const s: Record<string, CSSProperties> = {
     fontWeight: 900,
     cursor: "pointer",
   },
+  finalPoster: {
+    padding: 20,
+    borderRadius: 22,
+    margin: "8px 0 18px",
+    background: "radial-gradient(circle at 18% 0%,rgba(124,92,255,.24),transparent 34%),linear-gradient(145deg,#0B1627,#101C32)",
+    border: "1px solid rgba(114,231,255,.18)",
+  },
+  finalPosterTop: { display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" },
+  finalTitle: { margin: "5px 0 4px", fontSize: 30, letterSpacing: "-.03em" },
+  finalPhoto: { width: "100%", maxHeight: 460, objectFit: "cover", borderRadius: 18, marginTop: 16, display: "block" },
+  finalPodium: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8, alignItems: "end", marginTop: 18 },
+  finalPodiumCard: { minWidth: 0, minHeight: 150, display: "grid", justifyItems: "center", alignContent: "center", gap: 7, padding: "14px 7px", borderRadius: 17, background: "rgba(255,255,255,.04)", border: "1px solid rgba(148,163,184,.12)", textAlign: "center", overflowWrap: "anywhere" },
+  finalWinner: { minHeight: 180, background: "radial-gradient(circle at 50% 0%,rgba(250,204,21,.13),transparent 55%),rgba(124,92,255,.10)", border: "1px solid rgba(250,204,21,.25)" },
+  finalAvatar: { width: 52, height: 52, borderRadius: 16, objectFit: "cover" },
+  finalAvatarFallback: { width: 52, height: 52, borderRadius: 16, display: "grid", placeItems: "center", fontWeight: 950 },
+  finalMedal: { fontSize: 24 },
   footer: {
     marginTop: 26,
     color: "#60748D",
