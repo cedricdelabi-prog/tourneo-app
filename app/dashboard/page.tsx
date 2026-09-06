@@ -35,12 +35,43 @@ export default function DashboardPage() {
   const [chargement, setChargement] = useState(true);
   const [menuOuvert, setMenuOuvert] = useState<string | null>(null);
 
-  useEffect(() => { charger(); }, []);
+  useEffect(() => {
+    const CACHE_KEY = "tourneo_dashboard_cache";
 
-  async function charger() {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached) as Tournoi[];
+        if (Array.isArray(parsed)) {
+          setTournois(parsed);
+          setChargement(false);
+        }
+      }
+    } catch {}
+
+    void charger(CACHE_KEY);
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        localStorage.removeItem(CACHE_KEY);
+        window.location.href = "/login";
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  async function charger(cacheKey = "tourneo_dashboard_cache") {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
-    if (!user) { window.location.href = "/login"; return; }
+
+    if (!user) {
+      setChargement(false);
+      window.location.href = "/login";
+      return;
+    }
 
     const { data, error } = await supabase
       .from("tournois")
@@ -48,8 +79,19 @@ export default function DashboardPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) alert(error.message);
-    else setTournois((data ?? []) as Tournoi[]);
+    if (error) {
+      console.error("Erreur chargement tournois :", error.message);
+      setChargement(false);
+      return;
+    }
+
+    const nouveauxTournois = (data ?? []) as Tournoi[];
+    setTournois(nouveauxTournois);
+
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(nouveauxTournois));
+    } catch {}
+
     setChargement(false);
   }
 
@@ -64,7 +106,11 @@ export default function DashboardPage() {
     if (!confirm("Supprimer définitivement ce tournoi ?")) return;
     const { error } = await supabase.from("tournois").delete().eq("id", id);
     if (error) { alert(error.message); return; }
-    setTournois((list) => list.filter((t) => t.id !== id));
+    setTournois((list) => {
+      const next = list.filter((t) => t.id !== id);
+      try { localStorage.setItem("tourneo_dashboard_cache", JSON.stringify(next)); } catch {}
+      return next;
+    });
     setMenuOuvert(null);
   }
 
@@ -74,11 +120,16 @@ export default function DashboardPage() {
     const nom = brut.charAt(0).toUpperCase() + brut.slice(1);
     const { error } = await supabase.from("tournois").update({ nom }).eq("id", t.id);
     if (error) { alert(error.message); return; }
-    setTournois((list) => list.map((x) => x.id === t.id ? { ...x, nom } : x));
+    setTournois((list) => {
+      const next = list.map((x) => x.id === t.id ? { ...x, nom } : x);
+      try { localStorage.setItem("tourneo_dashboard_cache", JSON.stringify(next)); } catch {}
+      return next;
+    });
     setMenuOuvert(null);
   }
 
   async function logout() {
+    try { localStorage.removeItem("tourneo_dashboard_cache"); } catch {}
     await supabase.auth.signOut();
     window.location.href = "/login";
   }
