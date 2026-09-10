@@ -41,10 +41,10 @@ export default function ContactPage() {
       return;
     }
 
-    if (email.trim() && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim())) {
-      setRetour("Vérifiez l’adresse e-mail renseignée.");
-      return;
-    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+  setRetour("Vérifiez l’adresse e-mail renseignée.");
+  return;
+}
 
     setEnvoi(true);
 
