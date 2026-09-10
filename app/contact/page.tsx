@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import TourneoNav from "@/components/TourneoNav";
@@ -19,8 +19,8 @@ export default function ContactPage() {
   const [nom, setNom] = useState("");
   const [email, setEmail] = useState("");
   const [retour, setRetour] = useState("");
-  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "";
-  const sujet = useMemo(() => `Tourneo - ${categorie}`, [categorie]);
+  const [envoi, setEnvoi] = useState(false);
+  const [succes, setSucces] = useState(false);
 
   async function preRemplirCompte() {
     const { data } = await supabase.auth.getSession();
@@ -32,10 +32,45 @@ export default function ContactPage() {
   }
 
   async function envoyer() {
-    if (!message.trim()) { setRetour("Décrivez votre demande avant d’envoyer."); return; }
-    if (!contactEmail) { setRetour("Configurez NEXT_PUBLIC_CONTACT_EMAIL dans Vercel pour activer l’envoi."); return; }
-    const corps = [`Catégorie : ${categorie}`, `Nom : ${nom || "Non renseigné"}`, `Email : ${email || "Non renseigné"}`, "", message.trim()].join("\n");
-    window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+    if (envoi) return;
+    setRetour("");
+    setSucces(false);
+
+    if (!message.trim()) {
+      setRetour("Décrivez votre demande avant d’envoyer.");
+      return;
+    }
+
+    if (email.trim() && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim())) {
+      setRetour("Vérifiez l’adresse e-mail renseignée.");
+      return;
+    }
+
+    setEnvoi(true);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categorie,
+          nom: nom.trim(),
+          email: email.trim(),
+          message: message.trim(),
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || "Impossible d’envoyer le message.");
+
+      setSucces(true);
+      setRetour("Message envoyé ! Votre demande a bien été transmise à l’équipe Tourneo.");
+      setMessage("");
+    } catch (error) {
+      setRetour(error instanceof Error ? error.message : "Une erreur est survenue pendant l’envoi.");
+    } finally {
+      setEnvoi(false);
+    }
   }
 
   return (
@@ -67,8 +102,10 @@ export default function ContactPage() {
             <input style={s.input} value={email} onChange={(e) => setEmail(e.target.value)} />
             <label style={s.label}>Message</label>
             <textarea style={s.textarea} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Expliquez-nous votre demande…" />
-            <button style={s.primary} onClick={envoyer}>Préparer l’e-mail</button>
-            {retour && <p style={s.feedback}>{retour}</p>}
+            <button style={{ ...s.primary, ...(envoi ? { opacity: 0.65, cursor: "wait" } : {}) }} onClick={envoyer} disabled={envoi}>
+              {envoi ? "Envoi en cours…" : "Envoyer la demande"}
+            </button>
+            {retour && <p style={{ ...s.feedback, color: succes ? "#86EFAC" : "#FDA4AF" }}>{retour}</p>}
           </article>
         </section>
       </div>
