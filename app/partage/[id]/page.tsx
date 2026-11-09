@@ -329,6 +329,26 @@ export default function PartagePage() {
           couleur: equipes.find((e) => e.id === ligne.id)?.couleur,
         }));
 
+  function exporterClassementCSV() {
+    const cellules = [["Rang", "Participant", "Matchs joués", "Victoires", "Nuls", "Défaites", "Différence", "Points"],
+      ...classement.map((ligne, index) => [
+        String(index + 1), ligne.nom, String(ligne.mj), String(ligne.v),
+        String(ligne.n), String(ligne.d), String(ligne.diff), String(ligne.pts),
+      ])];
+    const csv = "\uFEFF" + cellules.map((ligne) =>
+      ligne.map((valeur) => '"' + valeur.replace(/"/g, '""') + '"').join(";")
+    ).join("\r\n");
+    const fichier = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(fichier);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = "tourneo-classement-" + (tournoi?.nom || "tournoi").replace(/[^a-z0-9-]/gi, "_") + ".csv";
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   const matchsTries = useMemo(
     () =>
       [...matchs].sort(
@@ -440,7 +460,8 @@ export default function PartagePage() {
             try { if (navigator.share) await navigator.share({title:tournoi.nom,url}); else {await navigator.clipboard.writeText(url);setMessage("Lien du tournoi copié.");} }
             catch (error) { if (error instanceof Error && error.name !== "AbortError") setMessage("Partage indisponible sur cet appareil."); }
           }}>Partager le tournoi</button>
-          <button type="button" style={s.follow} onClick={() => window.print()}>Exporter / Imprimer</button>
+          <button type="button" style={s.follow} onClick={() => window.print()}>Imprimer / PDF</button>
+          <button type="button" style={s.follow} onClick={exporterClassementCSV} disabled={classement.length === 0}>Exporter classement CSV</button>
         </div>
         <style jsx global>{`@keyframes tourneo-celebrate { from { opacity:0; transform:translateY(20px) scale(.8) } to { opacity:1; transform:translateY(0) scale(1) } } @media print { button, footer {display:none !important} body {background:white !important;color:black !important} main {background:white !important;color:black !important} }`}</style>
         <div style={s.tabs}>
