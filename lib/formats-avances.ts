@@ -42,7 +42,8 @@ export function resultatSerie(
 export function prochaineRondeSuisse(
   equipes: Equipe[],
   matchsPrecedents: Match[],
-  numeroRonde: number
+  numeroRonde: number,
+  exemptionsPrecedentes: readonly string[] = []
 ): { matchs: Match[]; exemptId: string | null } {
   if (!Number.isSafeInteger(numeroRonde) || numeroRonde < 1)
     throw new Error("Numéro de ronde invalide");
@@ -53,7 +54,7 @@ export function prochaineRondeSuisse(
     throw new Error("Terminez tous les matchs précédents avant la prochaine ronde");
 
   const dejaJoues = new Set<string>();
-  const exemptions = new Map<string, number>(equipes.map((e) => [e.id, 0]));
+  const exemptions = new Set(exemptionsPrecedentes);
   const classement = calculerClassement(equipes, matchsPrecedents);
   for (const m of matchsPrecedents) {
     if (m.equipe1Id && m.equipe2Id) {
@@ -65,7 +66,7 @@ export function prochaineRondeSuisse(
   if (restants.length % 2) {
     // Favor a lower-ranked participant who has not already received a bye.
     const index = restants.length - 1;
-    const candidats = restants.filter((e) => (exemptions.get(e.id) ?? 0) === 0);
+    const candidats = restants.filter((e) => !exemptions.has(e.id));
     const exempt = candidats[candidats.length - 1] ?? restants[index];
     exemptId = exempt.id;
     restants.splice(restants.findIndex((e) => e.id === exempt.id), 1);
