@@ -22,7 +22,7 @@ export function resultatSerie(
   let victoires1 = 0;
   let victoires2 = 0;
   for (const rencontre of rencontres) {
-    if (!scoreValide(rencontre.score1) || !scoreValide(rencontre.score2)) continue;
+    if (!scoreValide(rencontre.score1) || !scoreValide(rencontre.score2)) break;
     if (victoires1 >= manchesGagnantes || victoires2 >= manchesGagnantes) break;
     if (Number(rencontre.score1) > Number(rencontre.score2)) victoires1++;
     if (Number(rencontre.score2) > Number(rencontre.score1)) victoires2++;
@@ -43,7 +43,8 @@ export function prochaineRondeSuisse(
   equipes: Equipe[],
   matchsPrecedents: Match[],
   numeroRonde: number,
-  exemptionsPrecedentes: readonly string[] = []
+  exemptionsPrecedentes: readonly string[] = [],
+  options: Parameters<typeof calculerClassement>[2] = {}
 ): { matchs: Match[]; exemptId: string | null } {
   if (!Number.isSafeInteger(numeroRonde) || numeroRonde < 1)
     throw new Error("Numéro de ronde invalide");
@@ -55,7 +56,7 @@ export function prochaineRondeSuisse(
 
   const dejaJoues = new Set<string>();
   const exemptions = new Set(exemptionsPrecedentes);
-  const classement = calculerClassement(equipes, matchsPrecedents);
+  const classement = calculerClassement(equipes, matchsPrecedents, options);
   for (const m of matchsPrecedents) {
     if (m.equipe1Id && m.equipe2Id) {
       dejaJoues.add([m.equipe1Id, m.equipe2Id].sort().join("|"));
@@ -71,30 +72,40 @@ export function prochaineRondeSuisse(
     exemptId = exempt.id;
     restants.splice(restants.findIndex((e) => e.id === exempt.id), 1);
   }
-  const matchs: Match[] = [];
-  while (restants.length > 1) {
-    const equipe1 = restants.shift()!;
-    let adversaireIndex = restants.findIndex(
-      (e) => !dejaJoues.has([equipe1.id, e.id].sort().join("|"))
-    );
-    if (adversaireIndex < 0) adversaireIndex = 0;
-    const [equipe2] = restants.splice(adversaireIndex, 1);
-    matchs.push({
-      id: 300000 + numeroRonde * 10000 + matchs.length + 1,
-      journee: numeroRonde,
-      equipe1Id: equipe1.id,
-      equipe2Id: equipe2.id,
-      score1: "",
-      score2: "",
-    });
+  // Search a complete non-repeating pairing before accepting any rematch.
+  let essais = 0;
+  const rechercher = (joueurs: Equipe[]): [Equipe, Equipe][] | null => {
+    if (!joueurs.length) return [];
+    if (++essais > 20000) return null;
+    const premier = joueurs[0];
+    for (let i=1;i<joueurs.length;i++) {
+      if (dejaJoues.has([premier.id,joueurs[i].id].sort().join("|"))) continue;
+      const suite = rechercher(joueurs.filter((_,index)=>index!==0&&index!==i));
+      if(suite)return [[premier,joueurs[i]],...suite];
+    }
+    return null;
+  };
+  let paires = rechercher(restants);
+  if (!paires) {
+    paires=[];
+    const disponibles=[...restants];
+    while(disponibles.length>1){
+      const premier=disponibles.shift()!;
+      let i=disponibles.findIndex(e=>!dejaJoues.has([premier.id,e.id].sort().join("|")));
+      if(i<0)i=0;
+      paires.push([premier,disponibles.splice(i,1)[0]]);
+    }
   }
+  const matchs: Match[] = paires.map(([equipe1,equipe2],index)=>({
+    id:numeroRonde*1000+index+1,journee:numeroRonde,equipe1Id:equipe1.id,equipe2Id:equipe2.id,score1:"",score2:"",
+  }));
   return { matchs, exemptId };
 }
 
 /** Read-only standings export, escaped for spreadsheet interoperability. */
-export function classementCSV(equipes: Equipe[], matchs: Match[]): string {
+export function classementCSV(equipes: Equipe[], matchs: Match[], options: Parameters<typeof calculerClassement>[2] = {}): string {
   const entete = ["Rang", "Participant", "MJ", "V", "N", "D", "Pour", "Contre", "Diff", "Points"];
-  const lignes = calculerClassement(equipes, matchs).map((c, i) => [
+  const lignes = calculerClassement(equipes, matchs, options).map((c, i) => [
     i + 1, c.equipe.nom, c.mj, c.v, c.n, c.d, c.pour, c.contre, c.diff, c.pts,
   ]);
   const cellule = (valeur: string | number) => {

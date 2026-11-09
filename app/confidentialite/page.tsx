@@ -168,22 +168,8 @@ export default function ConfidentialitePage() {
           <h2 style={s.heading}>8. Publicité</h2>
 
           <p style={s.text}>
-            Tourneo peut afficher des espaces publicitaires afin de contribuer
-            au financement du service.
-          </p>
-
-          <p style={s.text}>
-            Sur la version web, Tourneo peut utiliser Google AdSense. Sur les
-            versions mobiles, Tourneo pourra également utiliser des services
-            publicitaires Google adaptés aux applications mobiles, notamment
-            Google AdMob.
-          </p>
-
-          <p style={s.text}>
-            Ces services peuvent utiliser des identifiants techniques, cookies
-            ou technologies similaires conformément aux règles applicables et
-            aux choix de consentement proposés aux utilisateurs lorsque cela est
-            nécessaire.
+            La version V2 de Tourneo ne diffuse pas de publicité et ne charge
+            aucun service Google AdSense ou AdMob.
           </p>
         </section>
 

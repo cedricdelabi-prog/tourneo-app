@@ -63,9 +63,10 @@ export function genererMatchsElimination(equipes: Equipe[]): Match[] {
 }
 export function calculerClassement(
   equipes: Equipe[],
-  matchs: Match[]
+  matchs: Match[],
+  options: { pointsVictoire?: number; pointsNul?: number; pointsDefaite?: number; exemptions?: {id:string; ronde:number}[] } = {}
 ): Classement[] {
-  const tableau: Record<string, Classement> = {};
+  const tableau: Record<string, Classement> = Object.create(null);
 
   equipes.forEach((equipe) => {
     tableau[equipe.id] = {
@@ -86,35 +87,23 @@ export function calculerClassement(
     if (match.score1 === "" || match.score2 === "") return;
     if (!/^(0|[1-9]\d*)$/.test(match.score1) || !/^(0|[1-9]\d*)$/.test(match.score2)) return;
 
-    const a = tableau[match.equipe1Id];
-    const b = tableau[match.equipe2Id];
-    if (!a || !b || a === b) return;
-    const s1 = Number(match.score1);
-    const s2 = Number(match.score2);
-    if (!Number.isSafeInteger(s1) || !Number.isSafeInteger(s2)) return;
-
-    a.mj++;
-    b.mj++;
-    a.pour += s1;
-    a.contre += s2;
-    b.pour += s2;
-    b.contre += s1;
-
-    if (s1 > s2) {
-      a.v++;
-      a.pts += 3;
-      b.d++;
-    } else if (s2 > s1) {
-      b.v++;
-      b.pts += 3;
-      a.d++;
-    } else {
-      a.n++;
-      b.n++;
-      a.pts++;
-      b.pts++;
+    const ids1=match.joueurs1Ids??[match.equipe1Id],ids2=match.joueurs2Ids??[match.equipe2Id];
+    const participants=[...ids1,...ids2];
+    if(!ids1.length||!ids2.length||new Set(participants).size!==participants.length||participants.some(id=>!tableau[id]))return;
+    const s1=Number(match.score1),s2=Number(match.score2);
+    if(!Number.isSafeInteger(s1)||!Number.isSafeInteger(s2))return;
+    for(const [ids,pour,contre] of [[ids1,s1,s2],[ids2,s2,s1]] as const){
+      for(const id of ids){const ligne=tableau[id];ligne.mj++;ligne.pour+=pour;ligne.contre+=contre;
+        if(pour>contre){ligne.v++;ligne.pts+=options.pointsVictoire??3;}
+        else if(pour<contre){ligne.d++;ligne.pts+=options.pointsDefaite??0;}
+        else{ligne.n++;ligne.pts+=options.pointsNul??1;}
+      }
     }
   });
+
+  for (const exemption of options.exemptions ?? []) {
+    if (tableau[exemption.id]) tableau[exemption.id].pts += options.pointsVictoire ?? 3;
+  }
 
   return Object.values(tableau)
     .map((ligne) => ({

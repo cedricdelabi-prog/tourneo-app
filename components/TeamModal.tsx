@@ -52,6 +52,10 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
   onFermer: () => void;
   onAjouter: (equipe: Equipe) => void;
 }) {
+  const [niveau,setNiveau]=useState(1);
+  const [position,setPosition]=useState(1);
+  const [poule,setPoule]=useState(0);
+  const [joueurs,setJoueurs]=useState("");
   const [nom, setNom] = useState("");
   const [emoji, setEmoji] = useState("⚽");
   const [couleur, setCouleur] = useState("#3B82F6");
@@ -64,6 +68,7 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
   useEffect(() => {
     if (!ouvert) return;
     setNom(equipeAModifier?.nom ?? "");
+    setNiveau(equipeAModifier?.niveau??1);setPosition(equipeAModifier?.position??1);setPoule(equipeAModifier?.poule??0);setJoueurs((equipeAModifier?.joueurs??[]).join("\n"));
     setEmoji(equipeAModifier?.emoji ?? "⚽");
     setCouleur(equipeAModifier?.couleur ?? "#3B82F6");
     setPhoto(equipeAModifier?.photo ?? "");
@@ -114,7 +119,8 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
       emoji,
       couleur,
       photo: photo || undefined,
-      joueurs: equipeAModifier?.joueurs ?? [],
+      niveau,position,poule:poule||undefined,
+      joueurs: joueurs.split("\n").map(j=>j.trim()).filter(Boolean).slice(0,12),
     });
   }
 
@@ -130,8 +136,10 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
         </header>
 
         <label style={s.label}>Nom</label>
-        <input ref={inputNom} style={s.input} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Ex. Les Lions ou Cédric" onKeyDown={(e) => e.key === "Enter" && enregistrer()} />
+        <input ref={inputNom} style={s.input} maxLength={100} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Ex. Les Lions ou Cédric" onKeyDown={(e) => e.key === "Enter" && enregistrer()} />
 
+        <div style={s.two}><label style={s.label}>Niveau (1 débutant, 5 confirmé)<input style={s.input} type="number" min={1} max={5} value={niveau} onChange={e=>setNiveau(Math.max(1,Math.min(5,Number(e.target.value))))}/></label><label style={s.label}>Position dans le tirage manuel<input style={s.input} type="number" min={1} max={256} value={position} onChange={e=>setPosition(Math.max(1,Math.min(256,Number(e.target.value))))}/></label><label style={s.label}>Poule manuelle (0 = automatique)<input style={s.input} type="number" min={0} max={128} value={poule} onChange={e=>setPoule(Math.max(0,Math.min(128,Number(e.target.value))))}/></label></div>
+        <label style={s.label}>Joueurs de l’équipe (pseudos, un par ligne)<textarea style={s.input} rows={3} maxLength={1212} value={joueurs} onChange={e=>setJoueurs(e.target.value)}/></label>
         <div style={s.two}>
           <div>
             <label style={s.label}>Photo</label>

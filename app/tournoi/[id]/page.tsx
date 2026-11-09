@@ -13,8 +13,19 @@ import {
   genererMatchsAllerRetour,
   genererMatchsElimination,
 } from "@/lib/tournoi";
+import { prochainTourParcours, classementParcours, parcoursTermine } from "@/lib/parcours";
 import { lireParticipantsCSV } from "@/lib/import-participants";
-import { classementCSV } from "@/lib/formats-avances";
+import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
+import { genererPartenairesTournants,nomParticipant } from "@/lib/rotation";
+import { lireSauvegarde,telechargerSauvegarde } from "@/lib/sauvegarde";
+import { reglesPourSport,erreurScoreSport } from "@/lib/sports";
+import { repartirPoules, ordreElimination } from "@/lib/tirages";
+import ArbitresTournoi from "@/components/ArbitresTournoi";
+import PlanningTournoi from "@/components/PlanningTournoi";
+import OptionsTournoiV2 from "@/components/OptionsTournoiV2";
+import SaisieManches from "@/components/SaisieManches";
+import { OPTIONS_V2, normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
+import { classementCSV, prochaineRondeSuisse, resultatSerie } from "@/lib/formats-avances";
 import type { Equipe, Match } from "@/types";
 import { supabase } from "@/lib/supabase";
 import TourneoBrand from "@/components/TourneoBrand";
@@ -23,7 +34,7 @@ import TourneoNav from "@/components/TourneoNav";
 const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
 
-type FormatTournoi = "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
+type FormatTournoi = "rotation" | "suisse" | "doubleElimination" | "consolante" | "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
 type ModePoules = "nombrePoules" | "taillePoules";
 type Onglet = "matchs" | "classement" | "statistiques" | "participants";
 
@@ -37,6 +48,10 @@ type Poule = {
 const LIBELLES_FORMAT: Record<FormatTournoi, string> = {
   complet: "Championnat complet",
   allerRetour: "Championnat aller-retour",
+  rotation: "Partenaires tournants (doubles)",
+  suisse: "Système suisse",
+  doubleElimination: "Double élimination",
+  consolante: "Élimination avec consolante",
   poules: "Phase de poules",
   elimination: "Élimination directe",
   poulesFinale: "Poules puis phase finale",
@@ -44,6 +59,10 @@ const LIBELLES_FORMAT: Record<FormatTournoi, string> = {
 
 const EXPLICATIONS_FORMAT: Record<FormatTournoi, string> = {
   complet: "Tout le monde rencontre tout le monde. Classement général aux points.",
+  rotation: "Les partenaires changent à chaque ronde. Chaque joueur conserve ses points individuels. Les joueurs au repos tournent aussi.",
+  suisse: "Appariements à chaque ronde selon les résultats précédents. Les exemptions tournent et rapportent les points d’une victoire.",
+  doubleElimination: "Deux défaites éliminent. Un finaliste invaincu conserve son droit à une seconde chance en finale.",
+  consolante: "Les perdants du premier tour jouent un tableau séparé jusqu’à la finale de consolante.",
   allerRetour: "Chaque adversaire est rencontré deux fois, à domicile puis à l’extérieur. Classement général aux points.",
   poules: "Les participants sont répartis en groupes avec un classement par poule.",
   elimination: "Une défaite élimine. Les vainqueurs avancent jusqu’à la finale.",
@@ -124,9 +143,8 @@ function LogoTourneo({ compact = false }: { compact?: boolean }) {
 
 export default function TournoiPage() {
   const params = useParams<{ id: string }>();
-  const cacheKey = `${CLE}:${params.id}`;
-  const pendingKey = `${cacheKey}:pending`;
   const [revisionConnexion, setRevisionConnexion] = useState(0);
+  const fileSynchronisation = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     const reconnecter = () => setRevisionConnexion((revision) => revision + 1);
@@ -147,8 +165,17 @@ export default function TournoiPage() {
   const [qrOuvert, setQrOuvert] = useState(false);
   const [userId, setUserId] = useState("");
   const [tournoiId, setTournoiId] = useState("");
+  const cacheKey = `${CLE}:${tournoiId || params.id}`;
+  const pendingKey = `${cacheKey}:pending`;
+  useEffect(()=>{
+    if(!tournoiId||!userId)return;
+    const minuterie=window.setInterval(()=>{try{if(navigator.onLine&&localStorage.getItem(pendingKey))setRevisionConnexion(v=>v+1);}catch{}},15000);
+    return()=>window.clearInterval(minuterie);
+  },[tournoiId,userId,pendingKey]);
   const [messageCloud, setMessageCloud] = useState("");
+  const [optionsV2, setOptionsV2] = useState<OptionsV2>(OPTIONS_V2);
   const [formatTournoi, setFormatTournoi] = useState<FormatTournoi>("complet");
+  const formatParcours = formatTournoi === "doubleElimination" || formatTournoi === "consolante" ? formatTournoi : null;
   const [modePoules, setModePoules] = useState<ModePoules>("nombrePoules");
   const [nombrePoules, setNombrePoules] = useState(2);
   const [taillePoules, setTaillePoules] = useState(4);
@@ -179,6 +206,7 @@ export default function TournoiPage() {
         setNomTournoi("");
         setSport("multisport");
         setEquipes([]);
+        setOptionsV2(OPTIONS_V2);
         setMatchs([]);
         setCree(false);
         setTournoiId("");
@@ -218,6 +246,7 @@ export default function TournoiPage() {
           setMatchs(data.matchs ?? []);
           setCree(Boolean(data.cree));
           setTournoiId(data.tournoiId ?? "");
+          setOptionsV2(normaliserOptionsV2(data.optionsV2));
           setFormatTournoi(data.formatTournoi ?? "complet");
           setModePoules(data.modePoules ?? "nombrePoules");
           setNombrePoules(data.nombrePoules ?? 2);
@@ -303,6 +332,7 @@ export default function TournoiPage() {
           setEquipes(donnees.equipes ?? []);
           setMatchs(donnees.matchs ?? []);
           setCree(Boolean(donnees.cree));
+          setOptionsV2(normaliserOptionsV2(donnees.optionsV2));
           setFormatTournoi(donnees.formatTournoi ?? "complet");
           setModePoules(donnees.modePoules ?? "nombrePoules");
           setNombrePoules(donnees.nombrePoules ?? 2);
@@ -341,6 +371,7 @@ export default function TournoiPage() {
   useEffect(() => {
     if (!pret) return;
 
+    let copieLocale = true;
     try {
     localStorage.setItem(
       cacheKey,
@@ -360,26 +391,30 @@ export default function TournoiPage() {
         matchsPhaseFinale,
         matchsValides,
         podiumPhotoUrl,
+        optionsV2,
       })
     );
 
     } catch {
+      copieLocale = false;
       setMessageCloud("Sauvegarde locale indisponible · espace de stockage insuffisant");
     }
 
     if (!tournoiId || !userId) return;
     try { localStorage.setItem(pendingKey, "1"); } catch {}
     if (!navigator.onLine) {
-      setMessageCloud("Hors connexion · résultats conservés sur cet appareil");
+      setMessageCloud(copieLocale ? "Hors connexion · résultats conservés sur cet appareil" : "Hors connexion · sauvegarde impossible : exportez vos résultats avant de quitter.");
       return;
     }
 
     let annule = false;
-    const minuterie = window.setTimeout(async () => {
+    const minuterie = window.setTimeout(() => {
+      fileSynchronisation.current = fileSynchronisation.current.catch(()=>{}).then(async()=>{
+      if(annule)return;
       setMessageCloud("Synchronisation…");
 
-      const classementSync = calculerClassement(equipes, matchs);
-      const termineSync = matchs.length > 0 && matchs.every((match) => match.score1 !== "" && match.score2 !== "");
+      const classementSync = classementTournoi(formatTournoi,equipes,matchs,optionsV2);
+      const termineSync = tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides);
       const podiumFinalSync = classementSync.slice(0, 3).map((ligne, index) => ({
         rang: index + 1,
         nom: ligne.equipe.nom,
@@ -388,7 +423,7 @@ export default function TournoiPage() {
         couleur: ligne.equipe.couleur || "#3B82F6",
       }));
 
-      const { error } = await supabase
+      const { data: sauvegarde, error } = await supabase
         .from("tournois")
         .update({
           nom: nomTournoi.trim() || "Tournoi sans nom",
@@ -407,21 +442,23 @@ export default function TournoiPage() {
             matchsPhaseFinale,
             matchsValides,
             podiumPhotoUrl,
+            optionsV2,
             termine: termineSync,
             podiumFinal: podiumFinalSync,
           },
         })
         .eq("id", tournoiId)
-        .eq("user_id", userId);
+        .eq("user_id", userId).select("id").maybeSingle();
 
       if (annule) return;
-      if (error) {
+      if (error || !sauvegarde) {
         console.error(error);
-        setMessageCloud("Synchronisation en attente · résultats conservés sur cet appareil");
+        setMessageCloud(copieLocale ? "Synchronisation en attente · résultats conservés sur cet appareil" : "Sauvegarde impossible · exportez vos résultats avant de quitter.");
       } else {
         try { localStorage.removeItem(pendingKey); } catch {}
         setMessageCloud("Synchronisé");
       }
+      }).catch(()=>{if(!annule)setMessageCloud("Synchronisation interrompue · nouvelle tentative automatique.");});
     }, 500);
 
     return () => { annule = true; window.clearTimeout(minuterie); };
@@ -444,6 +481,7 @@ export default function TournoiPage() {
     matchsPhaseFinale,
     matchsValides,
     podiumPhotoUrl,
+    optionsV2,
   ]);
 
   const matchsPoules = useMemo(
@@ -457,8 +495,8 @@ export default function TournoiPage() {
   );
 
   const classement = useMemo(
-    () => calculerClassement(equipes, matchs),
-    [equipes, matchs]
+    () => classementTournoi(formatTournoi,equipes,matchs,optionsV2),
+    [equipes,matchs,formatTournoi,optionsV2]
   );
 
   const podium = classement.slice(0, 3);
@@ -476,7 +514,7 @@ export default function TournoiPage() {
   const nombrePoulesActuel = poules.length || Math.max(2, nombrePoules);
   const qualifiesTheoriques = nombrePoulesActuel * qualifiesParPoule;
   const totalMatchsTheorique =
-    formatTournoi === "elimination"
+    formatTournoi === "suisse" ? Math.floor(equipes.length/2)*optionsV2.rondes : formatTournoi === "elimination"
       ? Math.max(0, equipes.length - 1)
       : formatTournoi === "poulesFinale" && estPuissanceDeDeux(qualifiesTheoriques)
       ? matchsPoules.length + qualifiesTheoriques - 1
@@ -486,12 +524,12 @@ export default function TournoiPage() {
     ? Math.min(100, Math.round((joues / totalMatchsTheorique) * 100))
     : 0;
 
-  function trouverEquipe(id: string) {
-    return equipes.find((equipe) => equipe.id === id);
+  function trouverEquipe(id: string): Equipe | undefined {
+    return equipes.find((equipe) => equipe.id === id) ?? (id.startsWith("duo:") ? {id,nom:nomParticipant(id,equipes),emoji:"🤝",couleur:"#3B82F6"}:undefined);
   }
 
   function genererPoules(equipesDepart: Equipe[]) {
-    const melangees = melanger(equipesDepart);
+    const melangees = [...equipesDepart];
 
     const nbPoules =
       modePoules === "nombrePoules"
@@ -505,9 +543,7 @@ export default function TournoiPage() {
       equipes: [],
     }));
 
-    melangees.forEach((equipe, index) => {
-      poulesGenerees[index % nbPoules].equipes.push(equipe);
-    });
+    repartirPoules(melangees,nbPoules,optionsV2.tirage).forEach((participants,i)=>{poulesGenerees[i].equipes=participants;});
 
     return poulesGenerees;
   }
@@ -536,17 +572,20 @@ export default function TournoiPage() {
   }
 
   function validerConfiguration(equipesSource: Equipe[], format = formatTournoi) {
+    if(equipesSource.length>256) return "Un tournoi est limité à 256 participants.";
+    if(format === "rotation" && equipesSource.length<4)return "Prévoyez au moins quatre joueurs pour les doubles tournants.";
     if (equipesSource.length < 2) {
       return "Ajoute au moins deux participants.";
     }
 
-    if (format === "elimination" && !estPuissanceDeDeux(equipesSource.length)) {
+    if ((format === "elimination" || format === "consolante") && !estPuissanceDeDeux(equipesSource.length)) {
       return "Pour l’élimination directe, utilise 2, 4, 8, 16, 32 ou 64 participants.";
     }
 
     if (format === "poules" || format === "poulesFinale") {
       const poulesTest = genererPoules(equipesSource);
       const plusPetitePoule = Math.min(...poulesTest.map((poule) => poule.equipes.length));
+      if(plusPetitePoule<2) return "Chaque poule doit contenir au moins deux participants. Ajustez la répartition.";
 
       if (format === "poulesFinale") {
         if (qualifiesParPoule < 1 || qualifiesParPoule > plusPetitePoule) {
@@ -565,6 +604,13 @@ export default function TournoiPage() {
   }
 
   function construireStructure(equipesSource: Equipe[]) {
+    if(formatTournoi === "rotation")return {nouvellesPoules:[] as Poule[],nouveauxMatchs:genererPartenairesTournants(equipesSource,optionsV2.rondes)};
+    if (formatTournoi === "suisse") {
+      const ronde = prochaineRondeSuisse(melanger(equipesSource), [], 1, [], optionsV2);
+      setOptionsV2(o=>({...o,exemptions:ronde.exemptId ? [{ronde:1,id:ronde.exemptId}] : []}));
+      return {nouvellesPoules:[] as Poule[],nouveauxMatchs:ronde.matchs};
+    }
+    if (formatParcours) return { nouvellesPoules: [] as Poule[], nouveauxMatchs: prochainTourParcours(formatParcours, ordreElimination(equipesSource,optionsV2.tirage), []) };
     if ((formatTournoi === "complet" || formatTournoi === "allerRetour")) {
       return {
         nouvellesPoules: [] as Poule[],
@@ -573,7 +619,7 @@ export default function TournoiPage() {
     }
 
     if (formatTournoi === "elimination") {
-      const equipesMelangees = melanger(equipesSource);
+      const equipesMelangees = ordreElimination(equipesSource,optionsV2.tirage);
       return {
         nouvellesPoules: [] as Poule[],
         nouveauxMatchs: genererTourElimination(equipesMelangees, 1),
@@ -593,7 +639,7 @@ export default function TournoiPage() {
       const matchsDeLaPoule = matchsSource.filter(
         (match) => ids.has(match.equipe1Id) && ids.has(match.equipe2Id)
       );
-      const classementPoule = calculerClassement(poule.equipes, matchsDeLaPoule);
+      const classementPoule = calculerClassement(poule.equipes, matchsDeLaPoule, optionsV2);
 
       return classementPoule.slice(0, qualifiesParPoule).map((ligne, rang) => ({
         equipe: ligne.equipe,
@@ -645,6 +691,7 @@ export default function TournoiPage() {
   }
 
   function enregistrerEquipe(equipe: Equipe) {
+    if (cree && !modificationParticipantsAutorisee) return;
     const doublon = equipes.some(
       (item) =>
         item.id !== equipeAModifier?.id &&
@@ -675,72 +722,65 @@ export default function TournoiPage() {
     setEquipeAModifier(null);
   }
 
+  const [operationTournoi, setOperationTournoi] = useState(false);
+
+  async function preparerInscriptions() {
+    if (operationTournoi) return;
+    if (!nomTournoi.trim()) { alert("Ajoutez le nom du tournoi."); return; }
+    if (!userId) { window.location.href = "/login"; return; }
+    setOperationTournoi(true);
+    try {
+      let id = tournoiId;
+      if (!id) {
+        const { data, error } = await supabase.from("tournois").insert({
+          nom: nomTournoi.trim(), sport, user_id: userId,
+          donnees: { sport, equipes, matchs: [], cree: false, optionsV2, formatTournoi, modePoules, nombrePoules, taillePoules, qualifiesParPoule, poules: [], matchsValides: [] },
+        }).select("id").single();
+        if (error) throw error;
+        id = data.id;
+      }
+      window.location.href = `/tournoi/${id}/inscriptions`;
+    } catch (erreur) { alert(erreur instanceof Error ? erreur.message : "Impossible de préparer les inscriptions."); setOperationTournoi(false); }
+  }
+
   async function lancerTournoi() {
-    if (!nomTournoi.trim()) {
-      alert("Ajoute un nom au tournoi.");
-      return;
-    }
-
-    const erreurConfiguration = validerConfiguration(equipes);
-    if (erreurConfiguration) {
-      alert(erreurConfiguration);
-      return;
-    }
-
-    if (!userId) {
-      alert("Utilisateur non connecté.");
-      window.location.href = "/login";
-      return;
-    }
-
-    const { nouvellesPoules, nouveauxMatchs } = construireStructure(equipes);
-
-    setMessageCloud("Création du tournoi…");
-
-    const { data, error } = await supabase
-      .from("tournois")
-      .insert({
-        nom: nomTournoi.trim(),
-        sport,
-        user_id: userId,
-        donnees: {
-          sport,
-          equipes,
-          matchs: nouveauxMatchs,
-          cree: true,
-          formatTournoi,
-          modePoules,
-          nombrePoules,
-          taillePoules,
-          qualifiesParPoule,
-          poules: nouvellesPoules,
-          matchsPhaseFinale: nouveauxMatchs.filter(
-            (match) => match.id >= SEUIL_PHASE_FINALE
-          ),
-          matchsValides: [],
-          podiumPhotoUrl: "",
-          termine: false,
-          podiumFinal: [],
-        },
-      })
-      .select("id")
-      .single();
-
-    if (error) {
-      console.error(error);
-      setMessageCloud("Erreur lors de la création");
-      alert(error.message);
-      return;
-    }
-
-    setPoules(nouvellesPoules);
-    setMatchs(nouveauxMatchs);
-    setTournoiId(data.id);
-    setCree(true);
-    setOnglet("matchs");
-    setLienPartage(`${window.location.origin}/partage/${data.id}`);
-    window.history.replaceState({}, "", `/tournoi/${data.id}`);
-    setMessageCloud("Synchronisé");
+    if (operationTournoi) return;
+    if (!nomTournoi.trim()) { alert("Ajoute un nom au tournoi."); return; }
+    if (!userId) { window.location.href = "/login"; return; }
+    setOperationTournoi(true);
+    try {
+      let participants = equipes;
+      if (tournoiId) {
+        const { data: demandes, error } = await supabase.from("tourneo_inscriptions").select("id,nom,joueurs").eq("tournoi_id", tournoiId).eq("statut", "accepte");
+        if (error) throw error;
+        const nouveaux = (demandes ?? []).filter((r) => !participants.some((e) => e.id === `inscription:${r.id}`));
+        if (nouveaux.some((r) => participants.some((e) => e.nom.trim().toLocaleLowerCase("fr") === r.nom.trim().toLocaleLowerCase("fr"))))
+          throw new Error("Un participant manuel porte le nom d’une inscription acceptée. Renommez-le avant de démarrer.");
+        participants = [...participants, ...nouveaux.map((r) => ({ id: `inscription:${r.id}`, nom: r.nom, joueurs: r.joueurs, emoji: "🏅", couleur: "#3B82F6" }))];
+      }
+      const erreurConfiguration = validerConfiguration(participants);
+      if (erreurConfiguration) throw new Error(erreurConfiguration);
+      const { nouvellesPoules, nouveauxMatchs } = construireStructure(participants);
+      const optionsInitiales = formatTournoi === "suisse" ? { ...optionsV2, exemptions: participants.filter(e=>!nouveauxMatchs.some(m=>m.equipe1Id===e.id||m.equipe2Id===e.id)).map(e=>({ronde:1,id:e.id})) } : {...optionsV2,exemptions:[]};
+      const donnees = { sport, equipes: participants, matchs: nouveauxMatchs, cree: true, optionsV2:optionsInitiales, formatTournoi, modePoules, nombrePoules, taillePoules, qualifiesParPoule, poules: nouvellesPoules,
+        matchsPhaseFinale: nouveauxMatchs.filter((m) => m.id >= SEUIL_PHASE_FINALE), matchsValides: [], podiumPhotoUrl: "", termine: false, podiumFinal: [] };
+      setMessageCloud("Création du tournoi…");
+      let id = tournoiId;
+      if (id) {
+        const { error } = await supabase.rpc("tourneo_demarrer", { p_tournoi: id, p_donnees: donnees, p_nom: nomTournoi.trim(), p_sport: sport });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("tournois").insert({ nom: nomTournoi.trim(), sport, user_id: userId, donnees }).select("id").single();
+        if (error) throw error;
+        id = data.id;
+      }
+      setOptionsV2(optionsInitiales); setEquipes(participants); setPoules(nouvellesPoules); setMatchs(nouveauxMatchs);
+      setTournoiId(id); setCree(true); setOnglet("matchs");
+      setLienPartage(`${window.location.origin}/partage/${id}`);
+      window.history.replaceState({}, "", `/tournoi/${id}`);
+      setMessageCloud("Synchronisé");
+    } catch (erreur) { setMessageCloud("Démarrage interrompu"); alert(erreur && typeof erreur === "object" && "message" in erreur ? String(erreur.message) : "Impossible de démarrer le tournoi."); }
+    finally { setOperationTournoi(false); }
   }
 
   function recalculerTournoi() {
@@ -762,6 +802,13 @@ export default function TournoiPage() {
     setMessageCloud("Structure recalculée");
   }
 
+  function changerManches(match: Match, manches: NonNullable<Match["manches"]>) {
+    const resultat = resultatSerie(manches, optionsV2.setsGagnants);
+    const utilisables = manches.slice(0, resultat.victoires1 + resultat.victoires2);
+    const fini = resultat.vainqueur !== null && utilisables.every(m=>m.score1!==""&&m.score2!==""&&Number(m.score1)!==Number(m.score2));
+    setMatchs(actuels=>actuels.map(m=>m.id===match.id?{...m,manches,score1:fini?String(resultat.victoires1):"",score2:fini?String(resultat.victoires2):""}:m));
+  }
+
   function changerScore(
     id: number,
     champ: "score1" | "score2",
@@ -776,7 +823,18 @@ export default function TournoiPage() {
   }
 
   function avancerTournoiSiPossible(matchsSource: Match[], validesSource: number[]) {
-    if ((formatTournoi === "complet" || formatTournoi === "allerRetour") || formatTournoi === "poules") return matchsSource;
+    if (formatTournoi === "suisse") {
+      const numero = Math.max(0,...matchsSource.map(m=>m.journee))+1;
+      if(numero>optionsV2.rondes || !matchsSource.every(m=>validesSource.includes(m.id))) return matchsSource;
+      const ronde=prochaineRondeSuisse(equipes,matchsSource,numero,optionsV2.exemptions.map(e=>e.id),optionsV2);
+      if(ronde.exemptId) setOptionsV2(o=>({...o,exemptions:[...o.exemptions.filter(e=>e.ronde!==numero),{ronde:numero,id:ronde.exemptId!}]}));
+      return [...matchsSource,...ronde.matchs];
+    }
+    if (formatParcours) {
+      if (!matchsSource.every(m => validesSource.includes(m.id))) return matchsSource;
+      return [...matchsSource, ...prochainTourParcours(formatParcours, equipes, matchsSource)];
+    }
+    if (formatTournoi === "rotation" || (formatTournoi === "complet" || formatTournoi === "allerRetour") || formatTournoi === "poules") return matchsSource;
 
     if (formatTournoi === "poulesFinale") {
       const poulesSource = matchsSource.filter((match) => match.id < SEUIL_PHASE_FINALE);
@@ -842,32 +900,36 @@ export default function TournoiPage() {
     ];
   }
 
+  function changerSport(valeur:string) { setSport(valeur);setOptionsV2(o=>({...o,...reglesPourSport(valeur)})); }
+
   function validerScore(match: Match) {
-    if (match.score1 === "" || match.score2 === "") {
+    if (!/^(0|[1-9]\d*)$/.test(match.score1) || !/^(0|[1-9]\d*)$/.test(match.score2) || !Number.isSafeInteger(Number(match.score1)) || !Number.isSafeInteger(Number(match.score2))) {
       alert("Saisissez les deux scores avant de valider.");
       return;
     }
 
     if (
-      (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
+      (formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
       Number(match.score1) === Number(match.score2)
     ) {
       alert("Un vainqueur est nécessaire pour ce match.");
       return;
     }
 
+    const erreurSport=erreurScoreSport(sport,Number(match.score1),Number(match.score2),optionsV2,match.manches);
+    if(erreurSport){alert(erreurSport);return;}
     const nouveauxValides = [...new Set([...matchsValides, match.id])];
     setMatchsValides(nouveauxValides);
-    setMatchs((actuels) => avancerTournoiSiPossible(actuels, nouveauxValides));
+    setMatchs(avancerTournoiSiPossible(matchs, nouveauxValides));
   }
 
   function enregistrerScoreAutomatiquement(matchId: number) {
     const match = matchs.find((item) => item.id === matchId);
-    if (!match || matchsValides.includes(matchId)) return;
+    if (!match || matchsValides.includes(matchId) || optionsV2.score === "sets") return;
     if (match.score1 === "" || match.score2 === "") return;
 
     if (
-      (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
+      (formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
       Number(match.score1) === Number(match.score2)
     ) {
       return;
@@ -878,8 +940,9 @@ export default function TournoiPage() {
 
   function corrigerScore(match: Match) {
     const toursSuivants = matchs.some((item) => item.journee > match.journee);
-    if (toursSuivants && (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE)) {
+    if (toursSuivants && (formatTournoi === "suisse" || formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE)) {
       if (!confirm("Corriger ce résultat supprimera les tours générés après celui-ci. Continuer ?")) return;
+      setOptionsV2(o=>({...o,exemptions:o.exemptions.filter(e=>e.ronde<=match.journee)}));
       setMatchs((actuels) => actuels.filter((item) => item.journee <= match.journee));
       setMatchsValides((actuels) =>
         actuels.filter((id) => {
@@ -1271,8 +1334,22 @@ ${lienPartage}`,
     await copierLien();
   }
 
+  function sauvegarderFichier() {
+    telechargerSauvegarde({version:2,nomTournoi,sport,formatTournoi,equipes,matchs,matchsValides,optionsV2,poules});
+  }
+
+  async function restaurerFichier(event:ChangeEvent<HTMLInputElement>) {
+    const fichier=event.target.files?.[0];event.target.value="";if(!fichier)return;
+    try {
+      if(fichier.size>5_000_000)throw new Error("Fichier limité à 5 Mo.");
+      const d=lireSauvegarde(await fichier.text());
+      if(!confirm("Remplacer les résultats de ce tournoi par la sauvegarde ? Téléchargez d’abord vos résultats actuels si vous souhaitez les conserver."))return;
+      setNomTournoi(d.nomTournoi);setSport(d.sport);setEquipes(d.equipes);setMatchs(d.matchs);setMatchsValides(d.matchsValides);setOptionsV2(d.optionsV2);setFormatTournoi(d.formatTournoi as FormatTournoi);setPoules(d.poules??[]);setOnglet("matchs");setMessageCloud("Sauvegarde restaurée · synchronisation en attente");
+    }catch(erreur){alert(erreur instanceof Error?erreur.message:"Sauvegarde illisible.");}
+  }
+
   function exporterClassement() {
-    const url = URL.createObjectURL(new Blob([classementCSV(equipes, matchs)], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([classementCSV(equipes, matchs, optionsV2)], { type: "text/csv;charset=utf-8" }));
     const lien = document.createElement("a");
     lien.href = url;
     lien.download = "tourneo-classement.csv";
@@ -1281,7 +1358,7 @@ ${lienPartage}`,
   }
 
   function exporterPDF() {
-    window.print();
+    window.location.href = `/tournoi/${tournoiId}/imprimer`;
   }
 
   async function supprimerTournoi() {
@@ -1305,6 +1382,8 @@ ${lienPartage}`,
 
   function titreJournee(journee: number) {
     const matchsJournee = matchs.filter((match) => match.journee === journee);
+    if (formatTournoi === "suisse") return `Ronde ${journee} / ${optionsV2.rondes}`;
+    if (formatParcours) return `Tour ${journee}`;
     const estFinale = matchsJournee.some((match) => match.id >= SEUIL_PHASE_FINALE);
 
     if (formatTournoi === "elimination" || estFinale) {
@@ -1323,7 +1402,7 @@ ${lienPartage}`,
     const matchsDeLaPoule = matchsPoules.filter(
       (match) => ids.has(match.equipe1Id) && ids.has(match.equipe2Id)
     );
-    const lignes = calculerClassement(poule.equipes, matchsDeLaPoule);
+    const lignes = calculerClassement(poule.equipes, matchsDeLaPoule, optionsV2);
 
     return (
       <div key={poule.id} style={styles.poolCard}>
@@ -1384,6 +1463,7 @@ ${lienPartage}`,
     const finale = matchsElimination.find((match) => match.journee === derniereJournee);
 
     const finaleTerminee =
+      tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides) &&
       finale &&
       finale.score1 !== "" &&
       finale.score2 !== "" &&
@@ -1494,7 +1574,7 @@ ${lienPartage}`,
     const derniereJournee = Math.max(...source.map((match) => match.journee));
     const finale = source.find((match) => match.journee === derniereJournee);
 
-    if (!finale || finale.score1 === "" || finale.score2 === "" || Number(finale.score1) === Number(finale.score2)) {
+    if (!tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides) || !finale || finale.score1 === "" || finale.score2 === "" || Number(finale.score1) === Number(finale.score2)) {
       return (
         <section style={styles.card}>
           <span style={styles.eyebrow}>Phase finale</span>
@@ -1533,8 +1613,7 @@ ${lienPartage}`,
 
   useEffect(() => {
     if (!tournoiId || !userId || !matchs.length) return;
-    const matchsTermines = matchs.filter((match) => match.score1 !== "" && match.score2 !== "").length;
-    if (matchsTermines !== matchs.length) return;
+    if (!tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)) return;
 
     async function synchroniserPalmares() {
       const ids = equipes.map((equipe) => equipe.id).filter(Boolean);
@@ -1592,7 +1671,7 @@ ${lienPartage}`,
     }
 
     synchroniserPalmares();
-  }, [tournoiId, userId, matchs, equipes, formatTournoi, classement, nomTournoi, sport]);
+  }, [tournoiId, userId, matchs, equipes, formatTournoi, classement, nomTournoi, sport, optionsV2]);
 
   if (!pret) {
     return (
@@ -1654,7 +1733,7 @@ ${lienPartage}`,
                 <div style={styles.twoColumns}>
                   <div>
                     <label style={styles.label}>Sport</label>
-                    <select style={styles.input} value={sport} onChange={(event) => setSport(event.target.value)}>
+                    <select disabled={cree && !modificationParticipantsAutorisee} style={styles.input} value={sport} onChange={(event) => changerSport(event.target.value)}>
                       {Object.entries(LIBELLES_SPORT).map(([value, label]) => (
                         <option value={value} key={value}>{label}</option>
                       ))}
@@ -1666,6 +1745,7 @@ ${lienPartage}`,
                     <select
                       style={styles.input}
                       value={formatTournoi}
+                      disabled={cree && !modificationParticipantsAutorisee}
                       onChange={(event) => setFormatTournoi(event.target.value as FormatTournoi)}
                     >
                       {Object.entries(LIBELLES_FORMAT).map(([value, label]) => (
@@ -1724,6 +1804,7 @@ ${lienPartage}`,
                   </div>
                 )}
 
+                <OptionsTournoiV2 value={optionsV2} onChange={setOptionsV2} />
                 <button style={styles.primaryButton} onClick={() => setCreationEtape("participants")}>
                   Continuer vers les participants →
                 </button>
@@ -1809,7 +1890,8 @@ ${lienPartage}`,
                   )}
                 </div>
 
-                <button style={styles.primaryButton} onClick={lancerTournoi}>Créer le tournoi</button>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={preparerInscriptions}>{tournoiId ? "Gérer les inscriptions et le pointage" : "Préparer les inscriptions par lien / QR"}</button>
+                <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? "Enregistrement…" : "Démarrer le tournoi"}</button>
                 <button style={{ ...styles.ghostButton, width: "100%", marginTop: 8 }} onClick={() => setCreationEtape("configuration")}>
                   ← Revenir à la configuration
                 </button>
@@ -2194,9 +2276,12 @@ ${lienPartage}`,
 
           <div className="tourneo-header-actions" style={styles.headerActions}>
             <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager</button>
+            <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>Inscriptions / pointage</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>QR code</button>
             <button style={styles.secondaryButton} onClick={exporterPDF}>Imprimer / PDF</button>
             <button style={styles.secondaryButton} onClick={exporterClassement}>Classement CSV</button>
+            <button style={styles.secondaryButton} onClick={sauvegarderFichier}>Sauvegarder les résultats</button>
+            <label style={styles.secondaryButton}>Restaurer une sauvegarde<input type="file" accept=".json,application/json" onChange={restaurerFichier} style={{maxWidth:180,display:"block",fontSize:11,marginTop:6}}/></label>
             {modificationParticipantsAutorisee && (
               <button style={styles.secondaryButton} onClick={() => setOnglet("participants")}>Modifier</button>
             )}
@@ -2244,12 +2329,14 @@ ${lienPartage}`,
               <button style={styles.ghostButton} onClick={() => setOnglet("matchs")}>Fermer</button>
             </div>
 
+            <OptionsTournoiV2 value={optionsV2} onChange={setOptionsV2} disabled={!modificationParticipantsAutorisee}/>
             <div style={styles.twoColumns}>
               <div>
                 <label style={styles.label}>Format</label>
                 <select
                   style={styles.input}
                   value={formatTournoi}
+                      disabled={cree && !modificationParticipantsAutorisee}
                   onChange={(event) => {
                     setFormatTournoi(event.target.value as FormatTournoi);
                     setMatchs([]);
@@ -2264,7 +2351,7 @@ ${lienPartage}`,
 
               <div>
                 <label style={styles.label}>Sport</label>
-                <select style={styles.input} value={sport} onChange={(event) => setSport(event.target.value)}>
+                <select disabled={cree && !modificationParticipantsAutorisee} style={styles.input} value={sport} onChange={(event) => changerSport(event.target.value)}>
                   {Object.entries(LIBELLES_SPORT).map(([value, label]) => (
                     <option value={value} key={value}>{label}</option>
                   ))}
@@ -2408,6 +2495,8 @@ ${lienPartage}`,
           </section>
         )}
 
+        {onglet === "matchs" && <PlanningTournoi equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs}/>}
+
         {onglet === "matchs" && journees.map((journee, journeeIndex) => {
           const matchsJournee = matchs.filter((match) => match.journee === journee);
 
@@ -2420,6 +2509,7 @@ ${lienPartage}`,
                   <h2 style={styles.sectionTitle}>{titreJournee(journee)}</h2>
                 </div>
                 <span style={styles.pill}>{matchsJournee.length} match(s)</span>
+                {optionsV2.exemptions.filter(e=>e.ronde===journee).map(e=><p key={e.id} style={styles.muted}>Exempt : {trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire} pts)</p>)}
               </div>
 
               <div style={styles.matchList}>
@@ -2431,11 +2521,12 @@ ${lienPartage}`,
                       poule.equipes.some((equipe) => equipe.id === match.equipe1Id) &&
                       poule.equipes.some((equipe) => equipe.id === match.equipe2Id)
                   );
+                  const libelleBranche = match.branche === "repechage" ? "Repêchage" : match.branche === "consolante" ? "Consolante" : match.branche === "finale" ? "Finale" : "Tableau principal";
                   const fini = match.score1 !== "" && match.score2 !== "";
                   const nulInterdit =
                     fini &&
                     Number(match.score1) === Number(match.score2) &&
-                    (formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE);
+                    (formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE);
                   const editable = scoreModifiable(match);
 
                   return (
@@ -2458,7 +2549,7 @@ ${lienPartage}`,
                           type="number"
                           min="0"
                           value={match.score1}
-                          disabled={!editable}
+                          disabled={!editable || optionsV2.score === "sets"}
                           onChange={(event) => changerScore(match.id, "score1", event.target.value)}
                           onBlur={() => enregistrerScoreAutomatiquement(match.id)}
                         />
@@ -2470,7 +2561,7 @@ ${lienPartage}`,
                           type="number"
                           min="0"
                           value={match.score2}
-                          disabled={!editable}
+                          disabled={!editable || optionsV2.score === "sets"}
                           onChange={(event) => changerScore(match.id, "score2", event.target.value)}
                           onBlur={() => enregistrerScoreAutomatiquement(match.id)}
                         />
@@ -2481,6 +2572,8 @@ ${lienPartage}`,
                         </div>
                       </div>
 
+                      {match.branche && <div style={styles.matchMeta}>{libelleBranche}</div>}
+                      {optionsV2.score === "sets" && <SaisieManches match={match} gagnantes={optionsV2.setsGagnants} disabled={!editable} onChange={manches=>changerManches(match,manches)}/>}
                       {nulInterdit && <div style={styles.inlineWarning}>Un vainqueur est requis pour poursuivre la phase finale.</div>}
                       {matchsValides.includes(match.id) && (
                         <div className="tourneo-score-actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
@@ -2497,13 +2590,15 @@ ${lienPartage}`,
           );
         })}
 
+        {formatParcours && <section style={styles.card}><h2 style={styles.sectionTitle}>{parcoursTermine(formatParcours,equipes,matchs) ? `Vainqueur : ${classement[0]?.equipe.nom ?? ""}` : "Tournoi en cours"}</h2><p style={styles.muted}>Les tours suivants sont générés après validation de tous les matchs. Les exemptions avancent automatiquement. Le classement devient définitif à la fin du tournoi.</p></section>}
+
         {onglet === "classement" && (
           <>
-            {(formatTournoi === "complet" || formatTournoi === "allerRetour") && (
+            {(formatTournoi === "complet" || formatTournoi === "allerRetour" || formatTournoi === "suisse" || formatTournoi === "rotation" || Boolean(formatParcours)) && (
               <>
                 {podium.length >= 3 && (
                   <section style={styles.card}>
-                    <span style={styles.eyebrow}>{joues === matchs.length && matchs.length > 0 ? "Résultat" : "Classement provisoire"}</span>
+                    <span style={styles.eyebrow}>{tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides) ? "Résultat" : "Classement provisoire"}</span>
                     <h2 style={styles.sectionTitle}>Podium</h2>
                     <div className="tourneo-podium-stage" style={styles.podiumStage}>
                       {[podium[1], podium[0], podium[2]].map((ligne, index) => {
@@ -2606,6 +2701,8 @@ ${lienPartage}`,
             )}
           </>
         )}
+
+        {onglet === "statistiques" && <ArbitresTournoi id={tournoiId} equipes={equipes} matchs={matchs} valides={matchsValides} onImporter={(id,score1,score2)=>setMatchs(actuels=>actuels.map(m=>m.id===id&&!matchsValides.includes(id)?{...m,score1,score2}:m))}/>}
 
         {onglet === "statistiques" && (
           <>

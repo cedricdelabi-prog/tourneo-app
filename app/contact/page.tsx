@@ -8,7 +8,7 @@ import TourneoNav from "@/components/TourneoNav";
 const CATEGORIES = [
   "Signaler un problème",
   "Proposer une amélioration",
-  "Publicité / partenariat",
+  "Club / association",
   "Club / association",
   "Autre demande",
 ];
@@ -80,7 +80,7 @@ export default function ContactPage() {
         <header style={s.hero}>
           <span style={s.eyebrow}>Contactez-nous</span>
           <h1 style={s.title}>Une idée, un bug ou une demande ?</h1>
-          <p style={s.muted}>Vous pouvez nous écrire pour une amélioration, un problème technique, un club ou même une demande publicitaire.</p>
+          <p style={s.muted}>Vous pouvez nous écrire pour une amélioration, un problème technique ou l’organisation de vos tournois en club.</p>
         </header>
         <section style={s.grid}>
           <article style={s.card}>

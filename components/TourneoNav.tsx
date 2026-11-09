@@ -36,6 +36,8 @@ export default function TourneoNav({
 
         <nav style={s.desktopActions} className="tourneo-desktop-nav">
           <button style={button(active === "dashboard")} onClick={() => go("/dashboard")}>Mes tournois</button>
+          <button style={button(false)} onClick={() => go("/evenements")}>Événements</button>
+          <button style={button(false)} onClick={() => go("/arbitrage")}>Arbitrage</button>
           <button style={button(active === "profil")} onClick={() => go("/profil")}>Mon profil</button>
           <button style={button(active === "aide")} onClick={() => go("/aide")}>Aide</button>
           <button style={button(active === "contact")} onClick={() => go("/contact")}>Contact</button>
@@ -63,6 +65,8 @@ export default function TourneoNav({
 
       {moreOpen && (
         <div className="tourneo-mobile-more" style={s.morePanel}>
+          <button onClick={() => go("/evenements")}>Événements / Camping</button>
+          <button onClick={() => go("/arbitrage")}>Mes arbitrages</button>
           <button onClick={() => go("/aide")}>Aide & sécurité</button>
           <button onClick={() => go("/contact")}>Contactez-nous</button>
           {onLogout && <button onClick={() => onLogout()}>Déconnexion</button>}

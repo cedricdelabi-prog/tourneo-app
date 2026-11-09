@@ -1,0 +1,2 @@
+import type { MetadataRoute } from 'next';
+export default function manifest(): MetadataRoute.Manifest { return { id:'/tourneo-v2', name:'Tourneo',short_name:'Tourneo',description:'Organisation de tournois et animations',lang:'fr',start_url:'/dashboard',scope:'/',display:'standalone',background_color:'#080f20',theme_color:'#080f20',icons:[{src:'/tourneo-icon.png',sizes:'any',type:'image/png',purpose:'any'}] }; }

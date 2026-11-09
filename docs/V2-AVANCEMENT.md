@@ -1,27 +1,44 @@
-# Tourneo V2 — reprise du 9 novembre 2026
+# Tourneo V2 — état de reprise
 
-Branche exclusive : `tourneo-v2-dev`. Ne pas fusionner dans `main` et ne pas modifier la V1.
-Le contexte précédent identifie Vercel `tourneo-v2-test` et une base Supabase V2 séparée. Ne pas remplacer cette base par la base V1.
+Branche exclusive : `tourneo-v2-dev`. `main` et la V1 restent hors du périmètre. Environnement prévu : Vercel et Supabase `tourneo-v2-test`.
 
-## Lot de cette reprise
+## Fonctions intégrées au code
 
-- Format championnat aller-retour disponible dans les deux sélecteurs de configuration, génération des rencontres et classement général.
-- Import de participants CSV Excel UTF-8 (virgule ou point-virgule) ou texte : colonne Nom/Participant/Joueur/Équipe, doublons ignorés, champs cités, limites de taille et de longueur.
-- Export CSV organisateur avec protection contre les formules et échappement des guillemets ; même protection ajoutée à l'export public.
-- Mode écran géant sur la vue publique, avec plein écran lorsque le navigateur le permet.
-- Respect de la préférence système de réduction des animations.
-- Cache local distinct pour chaque tournoi ; récupération des modifications non synchronisées avant la copie cloud ; nouvelle tentative lors du retour du réseau.
-- Suppression du bloc de suggestions de marques restant et du fichier ads.txt.
-- Tests de régression du moteur, des calendriers pour 0 à 64 participants, de l'import, des classements, des séries et des exports : `npm test`.
+- Championnat simple et aller-retour, poules, poules/finale, élimination directe.
+- Double élimination avec seconde finale si nécessaire ; consolante des perdants du premier tour.
+- Système suisse : rondes configurables, appariements selon le classement, recherche de paires sans répétition, rotation des exemptions et points de victoire pour les exemptés.
+- Doubles à partenaires tournants, points individuels et rotation des joueurs au repos.
+- Tirage aléatoire, équilibrage par niveaux, positions et poules manuelles.
+- Modes Simple, Expert et Camping/Animation ; sauvegarde des règles comme modèle sur l'appareil.
+- Points/buts ou manches gagnantes ; barème de classement configurable ; préréglages modifiables par discipline et validation des manches.
+- Planning des terrains, estimation de durée, repos minimum, déplacement des matchs au sein d'une ronde et appels vocaux sur l'appareil.
+- Import CSV/texte de participants, export CSV protégé contre les formules, sauvegarde/restauration JSON validée.
+- Feuilles papier/PDF avec scores ou vierges, pointage papier, planning et QR public.
+- Vue publique avec classement commun au moteur organisateur, écran géant et actualisation ; résultat final distinct du classement provisoire.
+- Cache local par tournoi, sauvegardes cloud séquentielles, reprise automatique des envois en attente ; service worker des pages déjà visitées et écran hors connexion.
+- Suppression des publicités, suggestions de marques, fichier ads.txt et mentions publicitaires devenues inexactes dans l'interface.
 
-## Limites de vérification
+## Modules codés, activation Supabase V2 requise
 
-TypeScript et compilation Next.js peuvent fonctionner avec une URL Supabase factice pour le build. Cela ne vérifie ni la base réelle, ni ses politiques RLS, ni les parcours connectés, ni la synchronisation sur plusieurs appareils. Le cache local ne rend pas encore toute l'application installable/utilisable sans premier chargement réseau. Les modifications locales en attente sont prioritaires sur la copie cloud au rechargement ; la résolution collaborative de conflits reste à construire.
+- Brouillon avant lancement ; inscriptions par lien/QR, individuelle/équipe, noms/pseudos, consentement de publication.
+- Quota, échéance, validation manuelle/automatique, liste d'attente, annulation depuis l'appareil invité, pointage.
+- Intégration des demandes acceptées et fermeture atomique au démarrage.
+- Événements regroupant plusieurs tournois et classement cumulé des profils identifiés.
+- Arbitres avec compte, attribution par code joueur, propositions de scores et validation finale par l'organisateur.
+- Projection publique explicite des données de jeu.
 
-## Périmètre retrouvé, pas une liste exhaustive validée
+Migrations prêtes dans `supabase/migrations/` ; voir `supabase/README.md`. **Non appliquées depuis cet environnement**, faute d'accès confirmé au projet Supabase V2. Ne pas annoncer ces parcours comme opérationnels ou validés en production.
 
-Les échanges précédents mentionnent **87 évolutions**, mais leur liste numérotée complète n'a pas été récupérée. Ne pas annoncer 87/87 terminées à partir de ce document et ne pas inventer les points manquants.
+## Vérifications
 
-Restent notamment à spécifier, intégrer et tester de bout en bout : inscriptions autonomes lien/QR (quotas, échéance, validation, pointage, liste d'attente, fermeture au démarrage), modes Simple/Expert, double élimination et consolantes, partenaires tournants, tirages équilibrés/manuels, scores adaptés aux disciplines, arbitres authentifiés, modèles, terrains et repos, multi-tournois/événements et classement cumulé, accompagnateurs/parents, notifications et consentements distincts, multilingue, photos (15 jours gratuit / 90 jours Expert), exports papier complets, mode Camping/Animation, fonctionnement hors connexion complet et sécurité Supabase V2.
+`npm test` couvre calendriers (0 à 64 participants), double élimination et consolante (jusqu'à 64, plusieurs scénarios de résultats), seconde chance en finale, disponibilité des terrains et repos, classements, rotation des partenaires, import CSV, sauvegardes, appariements suisses/exemptions et règles de score. Vérifier aussi TypeScript et la compilation Next.js.
 
-La gratuité de la V2 et l'absence de publicité sont confirmées ; les échanges évoquent aussi une option Expert avec paiement unique à vie. Ne pas mettre en place une facturation sans clarifier son périmètre exact.
+Les builds locaux peuvent utiliser une URL Supabase factice : ils ne prouvent pas le fonctionnement du backend. Tests navigateur connecté, inscriptions simultanées, politiques RLS, stockage réel et déploiement effectif des migrations restent à réaliser sur V2.
+
+## Limites et suite
+
+Les échanges mentionnent 87 évolutions, mais la liste numérotée complète n'a pas été récupérée. Ce document ne prétend pas les remplacer et ne permet pas d'annoncer 87/87.
+
+Restent notamment : activation et tests Supabase des modules ci-dessus ; gestion collective des clubs et accompagnateurs ; format coopératif à préciser ; traduction complète selon la langue du compte ; notifications et e-mails avec consentements distincts ; évaluations ; cycle de conservation et suppression des photos (15 jours gratuit / 90 jours Expert) ; statistiques administrateur globales ; vérification du périmètre de la future option Expert à paiement unique à vie. Aucun paiement n'est ajouté.
+
+Le mode hors connexion exige un premier chargement réseau et ne gère pas encore la résolution collaborative de modifications concurrentes sur plusieurs appareils. Les nouveaux modules d'inscriptions et d'arbitrage nécessitent le réseau. Les données locales non synchronisées restent prioritaires au rechargement.

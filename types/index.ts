@@ -1,4 +1,7 @@
 export type Equipe = {
+  niveau?: number;
+  position?: number;
+  poule?: number;
   id: string;
   nom: string;
   emoji: string;
@@ -8,6 +11,11 @@ export type Equipe = {
 };
 
 export type Match = {
+  joueurs1Ids?: string[];
+  joueurs2Ids?: string[];
+  ordre?: number;
+  manches?: { score1: string; score2: string }[];
+  branche?: "principale" | "repechage" | "consolante" | "finale";
   id: number;
   journee: number;
   equipe1Id: string;

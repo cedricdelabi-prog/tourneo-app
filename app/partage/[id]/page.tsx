@@ -4,6 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { nomParticipant } from "@/lib/rotation";
+import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
+import { calculerClassement } from "@/lib/tournoi";
+import { classementParcours, parcoursTermine } from "@/lib/parcours";
+import { normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
+import { scoreValide } from "@/lib/formats-avances";
+import type { Equipe as EquipeMoteur, Match as MatchMoteur } from "@/types";
 import TourneoBrand from "@/components/TourneoBrand";
 
 type Equipe = {
@@ -18,6 +25,9 @@ type Equipe = {
 };
 
 type Match = {
+  joueurs1Ids?: string[];
+  joueurs2Ids?: string[];
+  branche?: MatchMoteur["branche"];
   id?: number | string;
   journee?: number;
   equipe1Id?: string;
@@ -38,6 +48,8 @@ type DonneesTournoi = {
   equipes?: Equipe[];
   matchs?: Match[];
   formatTournoi?: string;
+  optionsV2?: OptionsV2;
+  matchsValides?: number[];
   podiumPhotoUrl?: string;
   podiumFinal?: PodiumFinal[];
   termine?: boolean;
@@ -51,7 +63,7 @@ type Tournoi = {
 };
 
 function scoreRenseigne(score: Match["score1"]) {
-  return score !== "" && score !== undefined && score !== null;
+  return scoreValide(score);
 }
 
 function normaliserDonnees(donnees: Tournoi["donnees"]): DonneesTournoi {
@@ -109,9 +121,10 @@ export default function PartagePage() {
     async function charger(silencieux = false) {
       if (!silencieux) setChargement(true);
 
-      const { data, error } = await supabase.rpc("get_tourneo_public", {
-        p_id: tournoiId,
-      });
+      let resultatPublic = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
+      if(resultatPublic.error && /PGRST202|schema cache|could not find/i.test(resultatPublic.error.code+" "+resultatPublic.error.message))
+        resultatPublic = await supabase.rpc("get_tourneo_public", {p_id:tournoiId});
+      const {data,error}=resultatPublic;
 
       if (!actif) return;
 
@@ -242,82 +255,12 @@ export default function PartagePage() {
     setMessage("Alertes activées pendant le suivi de ce tournoi.");
   }
 
-  const classement = useMemo(() => {
-    const map: Record<
-      string,
-      {
-        id: string;
-        nom: string;
-        mj: number;
-        v: number;
-        n: number;
-        d: number;
-        diff: number;
-        pts: number;
-      }
-    > = {};
-
-    equipes.forEach((e) => {
-      if (!e.id) return;
-      map[e.id] = {
-        id: e.id,
-        nom: e.nomEquipe || e.nom || "Participant",
-        mj: 0,
-        v: 0,
-        n: 0,
-        d: 0,
-        diff: 0,
-        pts: 0,
-      };
-    });
-
-    matchs.forEach((m) => {
-      if (
-        !scoreRenseigne(m.score1) ||
-        !scoreRenseigne(m.score2) ||
-        !m.equipe1Id ||
-        !m.equipe2Id
-      ) {
-        return;
-      }
-
-      const a = map[m.equipe1Id];
-      const b = map[m.equipe2Id];
-      if (!a || !b || a === b) return;
-
-      const s1 = Number(m.score1);
-      const s2 = Number(m.score2);
-      if (!Number.isSafeInteger(s1) || !Number.isSafeInteger(s2) || s1 < 0 || s2 < 0) return;
-
-      a.mj++;
-      b.mj++;
-      a.diff += s1 - s2;
-      b.diff += s2 - s1;
-
-      if (s1 > s2) {
-        a.v++;
-        a.pts += 3;
-        b.d++;
-      } else if (s2 > s1) {
-        b.v++;
-        b.pts += 3;
-        a.d++;
-      } else {
-        a.n++;
-        b.n++;
-        a.pts++;
-        b.pts++;
-      }
-    });
-
-    return Object.values(map).sort(
-      (a, b) => b.pts - a.pts || b.diff - a.diff || a.nom.localeCompare(b.nom)
-    );
-  }, [equipes, matchs]);
-
-  const tournoiTermine =
-    Boolean(donnees.termine) ||
-    (matchs.length > 0 && matchs.every((m) => scoreRenseigne(m.score1) && scoreRenseigne(m.score2)));
+  const options = normaliserOptionsV2(donnees.optionsV2);
+  const equipesMoteur: EquipeMoteur[] = equipes.filter(e=>e.id).map(e=>({id:e.id!,nom:e.nomEquipe||e.nom||"Participant",emoji:e.emoji||"",couleur:e.couleur||"",photo:e.photo}));
+  const matchsMoteur: MatchMoteur[] = matchs.map(m=>({id:Number(m.id),journee:m.journee??1,equipe1Id:m.equipe1Id||"",equipe2Id:m.equipe2Id||"",score1:m.score1==null?"":String(m.score1),score2:m.score2==null?"":String(m.score2),branche:m.branche,joueurs1Ids:m.joueurs1Ids,joueurs2Ids:m.joueurs2Ids}));
+  const formatParcours = donnees.formatTournoi === "doubleElimination" || donnees.formatTournoi === "consolante" ? donnees.formatTournoi : null;
+  const classement = classementTournoi(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options).map(l=>({...l,id:l.equipe.id,nom:l.equipe.nom}));
+  const tournoiTermine = tournoiEstTermine(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options,donnees.matchsValides);
 
   const podiumFinal: PodiumFinal[] =
     donnees.podiumFinal?.length
@@ -504,7 +447,7 @@ export default function PartagePage() {
                 <article key={String(m.id ?? i)} style={s.match}>
                   <div style={s.teamBlock}>
                     <span style={s.teamName}>
-                      {noms[m.equipe1Id || ""] || "Participant"}
+                      {nomParticipant(m.equipe1Id || "",equipesMoteur)}
                     </span>
                   </div>
 
@@ -520,7 +463,7 @@ export default function PartagePage() {
 
                   <div style={s.teamBlock}>
                     <span style={s.teamName}>
-                      {noms[m.equipe2Id || ""] || "Participant"}
+                      {nomParticipant(m.equipe2Id || "",equipesMoteur)}
                     </span>
                   </div>
                 </article>

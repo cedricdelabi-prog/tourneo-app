@@ -14,12 +14,12 @@ type Tournoi = {
   donnees: {
     equipes?: unknown[];
     matchs?: Match[];
-    formatTournoi?: "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
+    formatTournoi?: "rotation" | "suisse" | "doubleElimination" | "consolante" | "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
     cree?: boolean;
   } | null;
 };
 
-const FORMAT: Record<string,string> = { allerRetour:"Aller-retour", complet:"Championnat", poules:"Poules", elimination:"Élimination directe", poulesFinale:"Poules + finale" };
+const FORMAT: Record<string,string> = { rotation:"Partenaires tournants", suisse:"Suisse", doubleElimination:"Double élimination", consolante:"Avec consolante", allerRetour:"Aller-retour", complet:"Championnat", poules:"Poules", elimination:"Élimination directe", poulesFinale:"Poules + finale" };
 const SPORT: Record<string,string> = {
   multisport:"Multisport", football:"Football", futsal:"Futsal", basket:"Basket-ball", handball:"Handball", volley:"Volley-ball",
   rugby7:"Rugby à 7 / Touch", hockey:"Hockey", tennis:"Tennis", padel:"Padel", badminton:"Badminton", squash:"Squash",
