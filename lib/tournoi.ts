@@ -1,6 +1,7 @@
 import type { Classement, Equipe, Match } from "@/types";
 
 export function genererMatchs(equipesInitiales: Equipe[]): Match[] {
+  if (equipesInitiales.length < 2) return [];
   const equipes = [...equipesInitiales];
   const exempt: Equipe = {
     id: "exempt",
@@ -81,12 +82,16 @@ export function calculerClassement(
   });
 
   matchs.forEach((match) => {
+    // Ignore incomplete, malformed or orphaned matches instead of corrupting standings.
     if (match.score1 === "" || match.score2 === "") return;
+    if (!/^(0|[1-9]\\d*)$/.test(match.score1) || !/^(0|[1-9]\\d*)$/.test(match.score2)) return;
 
     const a = tableau[match.equipe1Id];
     const b = tableau[match.equipe2Id];
+    if (!a || !b || a === b) return;
     const s1 = Number(match.score1);
     const s2 = Number(match.score2);
+    if (!Number.isSafeInteger(s1) || !Number.isSafeInteger(s2)) return;
 
     a.mj++;
     b.mj++;
@@ -123,4 +128,20 @@ export function calculerClassement(
         b.pour - a.pour ||
         a.equipe.nom.localeCompare(b.equipe.nom)
     );
+}
+
+/** Return fixtures for home/away leagues without changing existing single-leg behavior. */
+export function genererMatchsAllerRetour(equipes: Equipe[]): Match[] {
+  const aller = genererMatchs(equipes);
+  if (aller.length === 0) return [];
+  const dernierTour = Math.max(...aller.map((match) => match.journee));
+  const retour = aller.map((match, index): Match => ({
+    id: aller.length + index + 1,
+    journee: match.journee + dernierTour,
+    equipe1Id: match.equipe2Id,
+    equipe2Id: match.equipe1Id,
+    score1: "",
+    score2: "",
+  }));
+  return [...aller, ...retour];
 }
