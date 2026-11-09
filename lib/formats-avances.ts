@@ -5,7 +5,7 @@ import { calculerClassement } from "@/lib/tournoi";
 export function scoreValide(score: string | number | null | undefined): boolean {
   if (score === null || score === undefined) return false;
   const valeur = String(score);
-  return /^(0|[1-9]\\d*)$/.test(valeur) && Number.isSafeInteger(Number(valeur));
+  return /^(0|[1-9]\d*)$/.test(valeur) && Number.isSafeInteger(Number(valeur));
 }
 
 export function matchTermine(match: Match): boolean {
@@ -100,8 +100,8 @@ export function classementCSV(equipes: Equipe[], matchs: Match[]): string {
   const cellule = (valeur: string | number) => {
     const texte = String(valeur);
     // Prevent formula injection when exported CSV is opened in Excel.
-    const protege = /^[\\s]*[=+@-]/.test(texte) ? "'" + texte : texte;
+    const protege = /^[\s]*[=+@-]/.test(texte) ? "'" + texte : texte;
     return '"' + protege.replace(/"/g, '""') + '"';
   };
-  return "\\uFEFF" + [entete, ...lignes].map((l) => l.map(cellule).join(";")).join("\\r\\n");
+  return "﻿" + [entete, ...lignes].map((l) => l.map(cellule).join(";")).join("\r\n");
 }
