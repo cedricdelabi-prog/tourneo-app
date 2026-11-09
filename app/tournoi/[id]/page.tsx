@@ -173,7 +173,7 @@ export default function TournoiPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setLienPartage(`https://tourneo-app.vercel.app/partage/${params.id}`);
+      setLienPartage(`${window.location.origin}/partage/${params.id}`);
     }
 
     async function initialiser() {
@@ -315,7 +315,7 @@ export default function TournoiPage() {
           setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
           setMatchsValides(donnees.matchsValides ?? []);
           setPodiumPhotoUrl(donnees.podiumPhotoUrl ?? "");
-          setLienPartage(`https://tourneo-app.vercel.app/partage/${tournoiCloud.id}`);
+          setLienPartage(`${window.location.origin}/partage/${tournoiCloud.id}`);
           setMessageCloud("Synchronisé");
         } else if (!localCharge) {
           setMessageCloud("");
@@ -712,7 +712,7 @@ export default function TournoiPage() {
     setTournoiId(data.id);
     setCree(true);
     setOnglet("matchs");
-    setLienPartage(`https://tourneo-app.vercel.app/partage/${data.id}`);
+    setLienPartage(`${window.location.origin}/partage/${data.id}`);
     window.history.replaceState({}, "", `/tournoi/${data.id}`);
     setMessageCloud("Synchronisé");
   }
@@ -1051,6 +1051,10 @@ export default function TournoiPage() {
   }
 
   async function copierLien() {
+    if (!tournoiId || !lienPartage || lienPartage.endsWith("/nouveau")) {
+      setMessageCloud("Enregistrez d’abord le tournoi pour obtenir son lien public.");
+      return;
+    }
     try {
       await navigator.clipboard.writeText(lienPartage);
       setMessageCloud("Lien copié");
@@ -2176,7 +2180,7 @@ ${lienPartage}`,
           <div>
             <span style={styles.eyebrow}>Espace partenaire</span>
             <strong style={styles.sponsorTitle}>{partenairePourSport(sport)}</strong>
-            <span style={styles.muted}>Emplacement publicitaire contextuel prévu pour la monétisation. Aucun partenariat n’est actuellement revendiqué.</span>
+            <span style={styles.muted}>Suggestion de marque liée à ce sport, à titre indicatif. Aucun partenariat commercial ni publicité payante.</span>
           </div>
           <span style={styles.sponsorBadge}>{LIBELLES_SPORT[sport] ?? sport}</span>
         </section>
