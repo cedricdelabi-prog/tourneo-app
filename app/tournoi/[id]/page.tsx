@@ -147,7 +147,10 @@ export default function TournoiPage() {
   const fileSynchronisation = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
-    const reconnecter = () => setRevisionConnexion((revision) => revision + 1);
+    const reconnecter = () => {
+      setRevisionConnexion((revision) => revision + 1);
+      void supabase.auth.getSession().then(({data})=>{if(data.session?.user)setUserId(data.session.user.id);});
+    };
     window.addEventListener("online", reconnecter);
     return () => window.removeEventListener("online", reconnecter);
   }, []);

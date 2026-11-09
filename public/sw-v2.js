@@ -12,3 +12,9 @@ self.addEventListener('fetch',event=>{
     event.respondWith(caches.match(request).then(cache=>cache||fetch(request).then(response=>{if(response.ok){const copie=response.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put(request,copie)));}return response;})));
   }
 });
+
+self.addEventListener('message',event=>{
+  if(event.data?.type!=='CACHE_VISITED_PAGE'||!Array.isArray(event.data.urls))return;
+  const urls=event.data.urls.slice(0,200).filter(value=>{try{const u=new URL(value);return u.origin===self.location.origin&&!u.pathname.startsWith('/api/')&&!u.pathname.startsWith('/auth/');}catch{return false;}});
+  event.waitUntil(caches.open(CACHE).then(cache=>Promise.allSettled(urls.map(url=>fetch(url,{credentials:'same-origin'}).then(response=>{if(response.ok)return cache.put(url,response);})))));
+});
