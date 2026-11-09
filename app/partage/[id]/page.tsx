@@ -79,6 +79,7 @@ export default function PartagePage() {
   const [moiId, setMoiId] = useState("");
   const [suivi, setSuivi] = useState(false);
   const [message, setMessage] = useState("");
+  const [podiumAnime, setPodiumAnime] = useState(false);
   const derniereNotif = useRef("");
 
   useEffect(() => {
@@ -281,11 +282,11 @@ export default function PartagePage() {
 
       const a = map[m.equipe1Id];
       const b = map[m.equipe2Id];
-      if (!a || !b) return;
+      if (!a || !b || a === b) return;
 
       const s1 = Number(m.score1);
       const s2 = Number(m.score2);
-      if (!Number.isFinite(s1) || !Number.isFinite(s2)) return;
+      if (!Number.isSafeInteger(s1) || !Number.isSafeInteger(s2) || s1 < 0 || s2 < 0) return;
 
       a.mj++;
       b.mj++;
@@ -399,6 +400,8 @@ export default function PartagePage() {
                 <span style={s.eyebrow}>Affiche souvenir</span>
                 <h2 style={s.finalTitle}>Podium final</h2>
                 <p style={s.muted}>Ce lien reste disponible après la fin du tournoi.</p>
+                <button type="button" style={s.follow} onClick={() => setPodiumAnime(true)}>🏆 Célébrer le podium</button>
+                <button type="button" style={{...s.follow, marginLeft:8}} onClick={() => window.print()}>Imprimer les résultats</button>
               </div>
             </div>
 
@@ -411,6 +414,7 @@ export default function PartagePage() {
               />
             )}
 
+            {podiumAnime && <div role="status" aria-live="polite" style={{textAlign:"center",fontSize:"clamp(26px,6vw,55px)",padding:12,animation:"tourneo-celebrate 1.1s ease-out"}}>🎉 🏆 🎊 🎉 🥇 🎊</div>}
             <div style={s.finalPodium}>
               {[podiumFinal[1], podiumFinal[0], podiumFinal[2]].filter(Boolean).map((p) => (
                 <article key={`${p.rang}-${p.nom}`} style={{...s.finalPodiumCard, ...(p.rang === 1 ? s.finalWinner : {})}}>
@@ -430,6 +434,15 @@ export default function PartagePage() {
           </section>
         )}
 
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",margin:"12px 0"}}>
+          <button type="button" style={s.follow} onClick={async () => {
+            const url = window.location.href;
+            try { if (navigator.share) await navigator.share({title:tournoi.nom,url}); else {await navigator.clipboard.writeText(url);setMessage("Lien du tournoi copié.");} }
+            catch (error) { if (error instanceof Error && error.name !== "AbortError") setMessage("Partage indisponible sur cet appareil."); }
+          }}>Partager le tournoi</button>
+          <button type="button" style={s.follow} onClick={() => window.print()}>Exporter / Imprimer</button>
+        </div>
+        <style jsx global>{`@keyframes tourneo-celebrate { from { opacity:0; transform:translateY(20px) scale(.8) } to { opacity:1; transform:translateY(0) scale(1) } } @media print { button, footer {display:none !important} body {background:white !important;color:black !important} main {background:white !important;color:black !important} }`}</style>
         <div style={s.tabs}>
           <button
             style={onglet === "matchs" ? s.tabActive : s.tab}
