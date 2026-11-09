@@ -84,7 +84,7 @@ export function calculerClassement(
   matchs.forEach((match) => {
     // Ignore incomplete, malformed or orphaned matches instead of corrupting standings.
     if (match.score1 === "" || match.score2 === "") return;
-    if (!/^(0|[1-9]\\d*)$/.test(match.score1) || !/^(0|[1-9]\\d*)$/.test(match.score2)) return;
+    if (!/^(0|[1-9]\d*)$/.test(match.score1) || !/^(0|[1-9]\d*)$/.test(match.score2)) return;
 
     const a = tableau[match.equipe1Id];
     const b = tableau[match.equipe2Id];
