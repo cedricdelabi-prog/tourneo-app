@@ -2,7 +2,9 @@
 
 Cible exclusive : projet Supabase nommé **tourneo-v2-test**. Vérifier son identifiant réel, sa disponibilité, le schéma `tournois` (`id uuid`, `user_id uuid`, `donnees jsonb`) et `profiles` avant toute application. Ne jamais exécuter ces migrations sur la base V1.
 
-Appliquer dans l'ordre les migrations du dossier `migrations/`, puis vérifier les parcours avec des comptes de test distincts : organisateur, arbitre et visiteur.
+Sans connexion à ChatGPT, ouvrir le projet **tourneo-v2-test** dans le tableau de bord Supabase, puis **SQL Editor → New query**, copier le contenu de `supabase/ACTIVER_V2.sql` et l’exécuter. Ce fichier combine les migrations dans une seule transaction et vérifie le schéma attendu avant tout changement. Le nom du projet doit être vérifié visuellement avant exécution.
+
+Autre possibilité : appliquer dans l'ordre les migrations du dossier `migrations/`, puis vérifier les parcours avec des comptes de test distincts : organisateur, arbitre et visiteur.
 
 1. Inscriptions : ouverture/fermeture, échéance, quota concurrent, doublons, annulation par jeton, demandes en attente, acceptation, pointage et démarrage atomique.
 2. Événements : création et attribution limitées aux tournois du propriétaire ; classement cumulé après clôture des résultats.
