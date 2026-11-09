@@ -28,6 +28,7 @@ export default function ProfilPage() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(true);
   const [enregistrement, setEnregistrement] = useState(false);
+  const [photoEnCours, setPhotoEnCours] = useState(false);
   const inputPhoto = useRef<HTMLInputElement>(null);
 
   useEffect(() => { charger(); }, []);
@@ -119,15 +120,37 @@ export default function ProfilPage() {
   }
 
   async function changerPhoto(file?: File) {
-    if (!file || !profil) return;
+    if (!file || !profil || photoEnCours) return;
+    if (!file.type.startsWith("image/")) {
+      setMessage("Choisissez une image valide.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("La photo doit peser moins de 5 Mo.");
+      return;
+    }
+    setPhotoEnCours(true);
     setMessage("Envoi de la photo…");
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${profil.id}/profil-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("tourneo-media").upload(path, file, { upsert: true });
-    if (error) { setMessage(error.message); return; }
-    const { data } = supabase.storage.from("tourneo-media").getPublicUrl(path);
-    setAvatar(data.publicUrl);
-    setMessage("Photo prête. Enregistrez votre profil.");
+    try {
+      const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : file.type === "image/gif" ? "gif" : "jpg";
+      const path = `${profil.id}/profil-${crypto.randomUUID()}.${extension}`;
+      const bucket = supabase.storage.from("tourneo-media");
+      const { error: uploadError } = await bucket.upload(path, file, { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+      const { data: url } = bucket.getPublicUrl(path);
+      const { data: updated, error: saveError } = await supabase.from("profiles")
+        .update({ avatar_url: url.publicUrl, updated_at: new Date().toISOString() })
+        .eq("id", profil.id).select("*").single();
+      if (saveError || !updated) throw saveError || new Error("Photo non enregistrée.");
+      setProfil(updated as Profil);
+      setAvatar(url.publicUrl);
+      setMessage("Photo de profil enregistrée ✓");
+    } catch (error) {
+      setMessage(error instanceof Error ? `Photo impossible : ${error.message}` : "Impossible d'enregistrer la photo.");
+    } finally {
+      setPhotoEnCours(false);
+      if (inputPhoto.current) inputPhoto.current.value = "";
+    }
   }
 
   async function enregistrer() {
@@ -186,7 +209,7 @@ export default function ProfilPage() {
               {avatar ? <img src={avatar} alt="" style={s.avatarImg} /> : <span>{(nom || "T").slice(0,1).toUpperCase()}</span>}
             </div>
             <input ref={inputPhoto} hidden type="file" accept="image/*,image/gif" onChange={(e) => changerPhoto(e.target.files?.[0])} />
-            <button style={s.secondary} onClick={() => inputPhoto.current?.click()}>Photo / GIF</button>
+            <button style={s.secondary} disabled={photoEnCours || chargement} onClick={() => inputPhoto.current?.click()}>{photoEnCours ? "Envoi…" : "Photo / GIF"}</button>
           </div>
           <div style={s.heroCopy}>
             <span style={s.eyebrow}>Profil joueur</span>
