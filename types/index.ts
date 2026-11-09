@@ -1,4 +1,5 @@
 export type Equipe = {
+  profilId?: string;
   niveau?: number;
   position?: number;
   poule?: number;

@@ -754,12 +754,14 @@ export default function TournoiPage() {
     try {
       let participants = equipes;
       if (tournoiId) {
-        const { data: demandes, error } = await supabase.from("tourneo_inscriptions").select("id,nom,joueurs").eq("tournoi_id", tournoiId).eq("statut", "accepte");
+        const { data: demandes, error } = await supabase.from("tourneo_inscriptions").select("id,nom,joueurs,user_id,type_participant").eq("tournoi_id", tournoiId).eq("statut", "accepte");
         if (error) throw error;
         const nouveaux = (demandes ?? []).filter((r) => !participants.some((e) => e.id === `inscription:${r.id}`));
+        const profilsInscrits=new Set(nouveaux.filter(r=>r.type_participant==="individuel"&&r.user_id).map(r=>r.user_id));
+        participants=participants.filter(e=>!profilsInscrits.has(e.profilId??e.id));
         if (nouveaux.some((r) => participants.some((e) => e.nom.trim().toLocaleLowerCase("fr") === r.nom.trim().toLocaleLowerCase("fr"))))
           throw new Error("Un participant manuel porte le nom d’une inscription acceptée. Renommez-le avant de démarrer.");
-        participants = [...participants, ...nouveaux.map((r) => ({ id: `inscription:${r.id}`, nom: r.nom, joueurs: r.joueurs, emoji: "🏅", couleur: "#3B82F6" }))];
+        participants = [...participants, ...nouveaux.map((r) => ({ id: `inscription:${r.id}`, nom: r.nom, joueurs: r.joueurs, profilId: r.type_participant==="individuel" ? r.user_id??undefined : undefined, emoji: "🏅", couleur: "#3B82F6" }))];
       }
       const erreurConfiguration = validerConfiguration(participants);
       if (erreurConfiguration) throw new Error(erreurConfiguration);
@@ -1619,7 +1621,7 @@ ${lienPartage}`,
     if (!tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)) return;
 
     async function synchroniserPalmares() {
-      const ids = equipes.map((equipe) => equipe.id).filter(Boolean);
+      const ids = equipes.map((equipe) => equipe.profilId??equipe.id).filter(Boolean);
       if (!ids.length) return;
 
       const { data: profils } = await supabase.from("profiles").select("id").in("id", ids);
@@ -1653,12 +1655,12 @@ ${lienPartage}`,
       };
 
       const lignes = equipes
-        .filter((equipe) => profilsIds.has(equipe.id))
+        .filter((equipe) => profilsIds.has(equipe.profilId??equipe.id))
         .map((equipe) => {
           const placement = rangElimination(equipe.id);
           return {
             tournament_id: tournoiId,
-            profile_id: equipe.id,
+            profile_id: equipe.profilId??equipe.id,
             tournament_name: nomTournoi,
             sport,
             placement,

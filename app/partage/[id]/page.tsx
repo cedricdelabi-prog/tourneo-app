@@ -256,7 +256,7 @@ export default function PartagePage() {
   }
 
   const options = normaliserOptionsV2(donnees.optionsV2);
-  const equipesMoteur: EquipeMoteur[] = equipes.filter(e=>e.id).map(e=>({id:e.id!,nom:e.nomEquipe||e.nom||"Participant",emoji:e.emoji||"",couleur:e.couleur||"",photo:e.photo}));
+  const equipesMoteur: EquipeMoteur[] = equipes.filter(e=>e.id).map(e=>({id:e.id!,nom:e.nomEquipe||e.nom||"Participant",emoji:e.emoji||"",couleur:e.couleur||"",photo:e.photo,profilId:e.profilId}));
   const matchsMoteur: MatchMoteur[] = matchs.map(m=>({id:Number(m.id),journee:m.journee??1,equipe1Id:m.equipe1Id||"",equipe2Id:m.equipe2Id||"",score1:m.score1==null?"":String(m.score1),score2:m.score2==null?"":String(m.score2),branche:m.branche,joueurs1Ids:m.joueurs1Ids,joueurs2Ids:m.joueurs2Ids}));
   const formatParcours = donnees.formatTournoi === "doubleElimination" || donnees.formatTournoi === "consolante" ? donnees.formatTournoi : null;
   const classement = classementTournoi(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options).map(l=>({...l,id:l.equipe.id,nom:l.equipe.nom}));

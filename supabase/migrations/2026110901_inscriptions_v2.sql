@@ -22,6 +22,7 @@ create table if not exists public.tourneo_inscriptions (
   check (cardinality(joueurs) <= 12)
 );
 create unique index if not exists tournoi_inscriptions_nom_actif on public.tourneo_inscriptions(tournoi_id, lower(trim(nom))) where statut not in ('refuse','annule');
+create unique index if not exists tournoi_inscriptions_compte_actif on public.tourneo_inscriptions(tournoi_id,user_id) where user_id is not null and statut not in ('refuse','annule');
 create index if not exists tournoi_inscriptions_file on public.tourneo_inscriptions(tournoi_id, created_at);
 alter table public.tourneo_inscriptions_config enable row level security;
 alter table public.tourneo_inscriptions enable row level security;
