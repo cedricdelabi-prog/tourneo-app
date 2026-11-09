@@ -10,8 +10,11 @@ import TeamModal from "@/components/TeamModal";
 import {
   calculerClassement,
   genererMatchs,
+  genererMatchsAllerRetour,
   genererMatchsElimination,
 } from "@/lib/tournoi";
+import { lireParticipantsCSV } from "@/lib/import-participants";
+import { classementCSV } from "@/lib/formats-avances";
 import type { Equipe, Match } from "@/types";
 import { supabase } from "@/lib/supabase";
 import TourneoBrand from "@/components/TourneoBrand";
@@ -20,7 +23,7 @@ import TourneoNav from "@/components/TourneoNav";
 const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
 
-type FormatTournoi = "complet" | "poules" | "elimination" | "poulesFinale";
+type FormatTournoi = "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
 type ModePoules = "nombrePoules" | "taillePoules";
 type Onglet = "matchs" | "classement" | "statistiques" | "participants";
 
@@ -33,6 +36,7 @@ type Poule = {
 
 const LIBELLES_FORMAT: Record<FormatTournoi, string> = {
   complet: "Championnat complet",
+  allerRetour: "Championnat aller-retour",
   poules: "Phase de poules",
   elimination: "Élimination directe",
   poulesFinale: "Poules puis phase finale",
@@ -40,6 +44,7 @@ const LIBELLES_FORMAT: Record<FormatTournoi, string> = {
 
 const EXPLICATIONS_FORMAT: Record<FormatTournoi, string> = {
   complet: "Tout le monde rencontre tout le monde. Classement général aux points.",
+  allerRetour: "Chaque adversaire est rencontré deux fois, à domicile puis à l’extérieur. Classement général aux points.",
   poules: "Les participants sont répartis en groupes avec un classement par poule.",
   elimination: "Une défaite élimine. Les vainqueurs avancent jusqu’à la finale.",
   poulesFinale: "Phase de poules puis qualification automatique vers une phase finale.",
@@ -75,23 +80,6 @@ const LIBELLES_SPORT: Record<string, string> = {
   jeuxsociete: "Jeux de société compétitifs",
   autre: "Autre sport / jeu",
 };
-
-const PARTENAIRES_SUGGERES: Record<string, string> = {
-  petanque: "OBUT",
-  football: "Nike",
-  futsal: "Nike",
-  basket: "Nike",
-  tennis: "Wilson",
-  padel: "HEAD",
-  badminton: "Yonex",
-  "ping-pong": "Cornilleau",
-  flechettes: "Winmau",
-  multisport: "Decathlon",
-};
-
-function partenairePourSport(sport: string) {
-  return PARTENAIRES_SUGGERES[sport] ?? "Decathlon";
-}
 
 function capitaliserNom(valeur: string) {
   return valeur.replace(/(^|\s|[-’'])\p{L}/gu, (lettre) => lettre.toUpperCase());
@@ -136,6 +124,15 @@ function LogoTourneo({ compact = false }: { compact?: boolean }) {
 
 export default function TournoiPage() {
   const params = useParams<{ id: string }>();
+  const cacheKey = `${CLE}:${params.id}`;
+  const pendingKey = `${cacheKey}:pending`;
+  const [revisionConnexion, setRevisionConnexion] = useState(0);
+
+  useEffect(() => {
+    const reconnecter = () => setRevisionConnexion((revision) => revision + 1);
+    window.addEventListener("online", reconnecter);
+    return () => window.removeEventListener("online", reconnecter);
+  }, []);
 
   const [nomTournoi, setNomTournoi] = useState("");
   const [sport, setSport] = useState("multisport");
@@ -202,7 +199,7 @@ export default function TournoiPage() {
       }
 
       const chargerLocal = () => {
-        const brut = localStorage.getItem(CLE);
+        const brut = localStorage.getItem(cacheKey) ?? localStorage.getItem(CLE);
 
         if (!brut) return false;
 
@@ -240,9 +237,7 @@ export default function TournoiPage() {
       // On charge d'abord la copie locale pour que l'écran ne reste jamais bloqué.
       const localCharge = chargerLocal();
 
-      // Si une copie locale correspond au tournoi, on l'affiche tout de suite.
-      // La synchronisation cloud continue ensuite sans provoquer de flash de page.
-      if (localCharge) setPret(true);
+      // Ne pas activer la sauvegarde avant la fin du chargement initial.
 
       try {
         const sessionResult = await Promise.race([
@@ -297,7 +292,9 @@ export default function TournoiPage() {
           return;
         }
 
-        if (tournoiCloud) {
+        if (localCharge && localStorage.getItem(pendingKey)) {
+          setMessageCloud("Modifications locales · synchronisation en attente");
+        } else if (tournoiCloud) {
           const donnees = tournoiCloud.donnees ?? {};
 
           setTournoiId(tournoiCloud.id);
@@ -344,8 +341,9 @@ export default function TournoiPage() {
   useEffect(() => {
     if (!pret) return;
 
+    try {
     localStorage.setItem(
-      CLE,
+      cacheKey,
       JSON.stringify({
         nomTournoi,
         sport,
@@ -365,8 +363,18 @@ export default function TournoiPage() {
       })
     );
 
-    if (!tournoiId || !userId) return;
+    } catch {
+      setMessageCloud("Sauvegarde locale indisponible · espace de stockage insuffisant");
+    }
 
+    if (!tournoiId || !userId) return;
+    try { localStorage.setItem(pendingKey, "1"); } catch {}
+    if (!navigator.onLine) {
+      setMessageCloud("Hors connexion · résultats conservés sur cet appareil");
+      return;
+    }
+
+    let annule = false;
     const minuterie = window.setTimeout(async () => {
       setMessageCloud("Synchronisation…");
 
@@ -406,16 +414,19 @@ export default function TournoiPage() {
         .eq("id", tournoiId)
         .eq("user_id", userId);
 
+      if (annule) return;
       if (error) {
         console.error(error);
-        setMessageCloud("Erreur de synchronisation");
+        setMessageCloud("Synchronisation en attente · résultats conservés sur cet appareil");
       } else {
+        try { localStorage.removeItem(pendingKey); } catch {}
         setMessageCloud("Synchronisé");
       }
     }, 500);
 
-    return () => window.clearTimeout(minuterie);
+    return () => { annule = true; window.clearTimeout(minuterie); };
   }, [
+    revisionConnexion,
     nomTournoi,
     sport,
     equipes,
@@ -554,10 +565,10 @@ export default function TournoiPage() {
   }
 
   function construireStructure(equipesSource: Equipe[]) {
-    if (formatTournoi === "complet") {
+    if ((formatTournoi === "complet" || formatTournoi === "allerRetour")) {
       return {
         nouvellesPoules: [] as Poule[],
-        nouveauxMatchs: genererMatchs(equipesSource),
+        nouveauxMatchs: formatTournoi === "allerRetour" ? genererMatchsAllerRetour(equipesSource) : genererMatchs(equipesSource),
       };
     }
 
@@ -616,6 +627,21 @@ export default function TournoiPage() {
     }
 
     return ordre;
+  }
+
+  async function importerParticipants(event: ChangeEvent<HTMLInputElement>) {
+    const fichier = event.target.files?.[0];
+    event.target.value = "";
+    if (!fichier || !modificationParticipantsAutorisee) return;
+    try {
+      if (fichier.size > 500_000) throw new Error("Fichier trop volumineux (500 Ko maximum).");
+      const noms = lireParticipantsCSV(await fichier.text());
+      setEquipes((actuelles) => {
+        const existants = new Set(actuelles.map((e) => e.nom.trim().toLocaleLowerCase("fr")));
+        const ajouts = noms.filter((nom) => !existants.has(nom.toLocaleLowerCase("fr"))).map((nom) => ({ id: crypto.randomUUID(), nom, emoji: "🏅", couleur: "#3B82F6" }));
+        return [...actuelles, ...ajouts];
+      });
+    } catch (erreur) { alert(erreur instanceof Error ? erreur.message : "Import impossible."); }
   }
 
   function enregistrerEquipe(equipe: Equipe) {
@@ -750,7 +776,7 @@ export default function TournoiPage() {
   }
 
   function avancerTournoiSiPossible(matchsSource: Match[], validesSource: number[]) {
-    if (formatTournoi === "complet" || formatTournoi === "poules") return matchsSource;
+    if ((formatTournoi === "complet" || formatTournoi === "allerRetour") || formatTournoi === "poules") return matchsSource;
 
     if (formatTournoi === "poulesFinale") {
       const poulesSource = matchsSource.filter((match) => match.id < SEUIL_PHASE_FINALE);
@@ -1245,6 +1271,15 @@ ${lienPartage}`,
     await copierLien();
   }
 
+  function exporterClassement() {
+    const url = URL.createObjectURL(new Blob([classementCSV(equipes, matchs)], { type: "text/csv;charset=utf-8" }));
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = "tourneo-classement.csv";
+    lien.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function exporterPDF() {
     window.print();
   }
@@ -1262,6 +1297,8 @@ ${lienPartage}`,
       }
     }
 
+    localStorage.removeItem(cacheKey);
+    localStorage.removeItem(pendingKey);
     localStorage.removeItem(CLE);
     window.location.href = "/dashboard";
   }
@@ -1711,6 +1748,12 @@ ${lienPartage}`,
                   + Ajouter un joueur sans profil
                 </button>
 
+                <label style={{ ...styles.secondaryButton, display: "block", cursor: "pointer" }}>
+                  Importer des participants (CSV / texte)
+                  <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={importerParticipants} style={{ display: "block", marginTop: 8 }} />
+                  <small>Une colonne Nom ou un nom par ligne. Doublons ignorés.</small>
+                </label>
+
                 <div style={styles.selfAddLine}>
                   <span style={styles.selfAddHint}>Votre propre profil ?</span>
                   <button
@@ -1860,13 +1903,10 @@ ${lienPartage}`,
             font-size: 12px !important;
           }
 
-          .tourneo-progress-card, .tourneo-sponsor-card {
+          .tourneo-progress-card {
             border-radius: 18px !important;
           }
 
-          .tourneo-sponsor-card {
-            padding: 13px 14px !important;
-          }
 
           .tourneo-tabs {
             position: sticky !important;
@@ -2155,7 +2195,8 @@ ${lienPartage}`,
           <div className="tourneo-header-actions" style={styles.headerActions}>
             <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>QR code</button>
-            <button style={styles.secondaryButton} onClick={exporterPDF}>Exporter</button>
+            <button style={styles.secondaryButton} onClick={exporterPDF}>Imprimer / PDF</button>
+            <button style={styles.secondaryButton} onClick={exporterClassement}>Classement CSV</button>
             {modificationParticipantsAutorisee && (
               <button style={styles.secondaryButton} onClick={() => setOnglet("participants")}>Modifier</button>
             )}
@@ -2174,15 +2215,6 @@ ${lienPartage}`,
           <div style={styles.progressTrack}>
             <div style={{ ...styles.progressBar, width: `${progression}%` }} />
           </div>
-        </section>
-
-        <section className="tourneo-sponsor-card" style={styles.sponsorCard}>
-          <div>
-            <span style={styles.eyebrow}>Espace partenaire</span>
-            <strong style={styles.sponsorTitle}>{partenairePourSport(sport)}</strong>
-            <span style={styles.muted}>Suggestion de marque liée à ce sport, à titre indicatif. Aucun partenariat commercial ni publicité payante.</span>
-          </div>
-          <span style={styles.sponsorBadge}>{LIBELLES_SPORT[sport] ?? sport}</span>
         </section>
 
         <nav className="tourneo-tabs" style={styles.nav}>
@@ -2384,7 +2416,7 @@ ${lienPartage}`,
               <section style={styles.card}>
               <div style={styles.roundHeader}>
                 <div>
-                  <span style={styles.eyebrow}>{formatTournoi === "complet" ? "Calendrier" : "Tournoi"}</span>
+                  <span style={styles.eyebrow}>{(formatTournoi === "complet" || formatTournoi === "allerRetour") ? "Calendrier" : "Tournoi"}</span>
                   <h2 style={styles.sectionTitle}>{titreJournee(journee)}</h2>
                 </div>
                 <span style={styles.pill}>{matchsJournee.length} match(s)</span>
@@ -2467,7 +2499,7 @@ ${lienPartage}`,
 
         {onglet === "classement" && (
           <>
-            {formatTournoi === "complet" && (
+            {(formatTournoi === "complet" || formatTournoi === "allerRetour") && (
               <>
                 {podium.length >= 3 && (
                   <section style={styles.card}>
@@ -2975,9 +3007,6 @@ const styles: Record<string, CSSProperties> = {
   scannerFrame: { position: "absolute", inset: "18%", border: "2px solid #67E8F9", borderRadius: 18, boxShadow: "0 0 0 999px rgba(0,0,0,.26),0 0 24px rgba(34,211,238,.28)" },
   scannerHelp: { margin: "12px 0 0", color: "#91A4BC", lineHeight: 1.5, textAlign: "center", fontSize: 13 },
   playerCodeActions: { display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center" },
-  sponsorCard: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap", padding: "16px 18px", marginBottom: 16, borderRadius: 20, background: "linear-gradient(135deg,rgba(124,92,255,.10),rgba(34,211,238,.05))", border: "1px solid rgba(148,163,184,.11)" },
-  sponsorTitle: { display: "block", margin: "4px 0", fontSize: 20 },
-  sponsorBadge: { padding: "7px 10px", borderRadius: 999, color: "#9eeeff", background: "rgba(34,211,238,.08)", border: "1px solid rgba(34,211,238,.16)", fontSize: 11, fontWeight: 900 },
   helpModal: { width: "min(760px,100%)", maxHeight: "88vh", overflowY: "auto", padding: 24, borderRadius: 28, background: "linear-gradient(145deg,#11192a,#0a1220)", border: "1px solid rgba(148,163,184,.16)", boxShadow: "0 35px 90px rgba(0,0,0,.55)" },
   helpGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, margin: "18px 0" },
   helpItem: { display: "grid", gap: 6, padding: 15, borderRadius: 16, background: "rgba(255,255,255,.035)", border: "1px solid rgba(148,163,184,.10)", color: "#9fb1c8" },

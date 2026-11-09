@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "browserslist": [
-  "Chrome >= 80",
-  "Android >= 10"
-],
+    "Chrome >= 80",
+    "Android >= 10"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node tests/moteur.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

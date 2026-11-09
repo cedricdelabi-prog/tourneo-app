@@ -70,6 +70,7 @@ export default function PartagePage() {
   const params = useParams<{ id: string }>();
   const tournoiId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
+  const [ecranGeant, setEcranGeant] = useState(false);
   const [tournoi, setTournoi] = useState<Tournoi | null>(null);
   const [erreur, setErreur] = useState("");
   const [chargement, setChargement] = useState(true);
@@ -336,7 +337,7 @@ export default function PartagePage() {
         String(ligne.n), String(ligne.d), String(ligne.diff), String(ligne.pts),
       ])];
     const csv = "\uFEFF" + cellules.map((ligne) =>
-      ligne.map((valeur) => '"' + valeur.replace(/"/g, '""') + '"').join(";")
+      ligne.map((valeur) => '"' + (/^[\s]*[=+@-]/.test(valeur) ? "'" + valeur : valeur).replace(/"/g, '""') + '"').join(";")
     ).join("\r\n");
     const fichier = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(fichier);
@@ -361,7 +362,7 @@ export default function PartagePage() {
 
   if (erreur) {
     return (
-      <main style={s.page}>
+      <main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
         <div style={s.shell}>
           <TourneoBrand />
           <section style={s.errorCard}>
@@ -378,7 +379,7 @@ export default function PartagePage() {
 
   if (chargement || !tournoi) {
     return (
-      <main style={s.page}>
+      <main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
         <div style={s.shell}>
           <TourneoBrand />
           <p style={s.muted}>Chargement du tournoi…</p>
@@ -388,7 +389,7 @@ export default function PartagePage() {
   }
 
   return (
-    <main style={s.page}>
+    <main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
       <div style={s.shell}>
         <header style={s.header}>
           <TourneoBrand compact />
@@ -462,6 +463,15 @@ export default function PartagePage() {
           }}>Partager le tournoi</button>
           <button type="button" style={s.follow} onClick={() => window.print()}>Imprimer / PDF</button>
           <button type="button" style={s.follow} onClick={exporterClassementCSV} disabled={classement.length === 0}>Exporter classement CSV</button>
+          <button type="button" style={s.follow} onClick={async () => {
+            if (ecranGeant) {
+              setEcranGeant(false);
+              if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+            } else {
+              setEcranGeant(true);
+              await document.documentElement.requestFullscreen?.().catch(() => {});
+            }
+          }}>{ecranGeant ? "Quitter l’écran géant" : "Écran géant"}</button>
         </div>
         <style jsx global>{`@keyframes tourneo-celebrate { from { opacity:0; transform:translateY(20px) scale(.8) } to { opacity:1; transform:translateY(0) scale(1) } } @media print { button, footer {display:none !important} body {background:white !important;color:black !important} main {background:white !important;color:black !important} }`}</style>
         <div style={s.tabs}>
