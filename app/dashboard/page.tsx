@@ -4,16 +4,20 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import TourneoNav from "@/components/TourneoNav";
+import { tournoiEstTermine } from "@/lib/resultats";
+import { normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
+import type { Equipe, Match as MatchTournoi } from "@/types";
 
-type Match = { score1?: string | number; score2?: string | number };
 type Tournoi = {
   id: string;
   nom: string;
   sport?: string;
   created_at: string;
   donnees: {
-    equipes?: unknown[];
-    matchs?: Match[];
+    equipes?: Equipe[];
+    matchs?: MatchTournoi[];
+    matchsValides?: number[];
+    optionsV2?: Partial<OptionsV2>;
     formatTournoi?: "rotation" | "suisse" | "doubleElimination" | "consolante" | "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
     cree?: boolean;
   } | null;
@@ -34,22 +38,14 @@ export default function DashboardPage() {
   const [filtre, setFiltre] = useState<"tous"|"encours"|"termines">("tous");
   const [chargement, setChargement] = useState(true);
   const [menuOuvert, setMenuOuvert] = useState<string | null>(null);
+  const [cacheCompte, setCacheCompte] = useState("");
 
   useEffect(() => {
     const CACHE_KEY = "tourneo_dashboard_cache";
 
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached) as Tournoi[];
-        if (Array.isArray(parsed)) {
-          setTournois(parsed);
-          setChargement(false);
-        }
-      }
-    } catch {}
-
-    void charger(CACHE_KEY);
+    // Read cached tournaments only after identifying the current account.
+    try { localStorage.removeItem(CACHE_KEY); } catch {}
+    void charger();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT" || !session) {
@@ -63,7 +59,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  async function charger(cacheKey = "tourneo_dashboard_cache") {
+  async function charger() {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
 
@@ -72,6 +68,13 @@ export default function DashboardPage() {
       window.location.href = "/login";
       return;
     }
+
+    const cacheKey = `tourneo_dashboard_cache:${user.id}`;
+    setCacheCompte(cacheKey);
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      if (Array.isArray(cached)) { setTournois(cached); setChargement(false); }
+    } catch {}
 
     const { data, error } = await supabase
       .from("tournois")
@@ -98,7 +101,7 @@ export default function DashboardPage() {
   function etat(t: Tournoi) {
     const matchs = t.donnees?.matchs ?? [];
     const joues = matchs.filter((m) => m.score1 !== "" && m.score1 !== undefined && m.score2 !== "" && m.score2 !== undefined).length;
-    const termine = matchs.length > 0 && joues === matchs.length;
+    const termine = tournoiEstTermine(t.donnees?.formatTournoi || "complet", t.donnees?.equipes || [], matchs, normaliserOptionsV2(t.donnees?.optionsV2), t.donnees?.matchsValides);
     return { matchs, joues, termine, progression: matchs.length ? Math.round((joues / matchs.length) * 100) : 0 };
   }
 
@@ -108,7 +111,7 @@ export default function DashboardPage() {
     if (error) { alert(error.message); return; }
     setTournois((list) => {
       const next = list.filter((t) => t.id !== id);
-      try { localStorage.setItem("tourneo_dashboard_cache", JSON.stringify(next)); } catch {}
+      try { cacheCompte && localStorage.setItem(cacheCompte, JSON.stringify(next)); } catch {}
       return next;
     });
     setMenuOuvert(null);
@@ -122,14 +125,14 @@ export default function DashboardPage() {
     if (error) { alert(error.message); return; }
     setTournois((list) => {
       const next = list.map((x) => x.id === t.id ? { ...x, nom } : x);
-      try { localStorage.setItem("tourneo_dashboard_cache", JSON.stringify(next)); } catch {}
+      try { cacheCompte && localStorage.setItem(cacheCompte, JSON.stringify(next)); } catch {}
       return next;
     });
     setMenuOuvert(null);
   }
 
   async function logout() {
-    try { localStorage.removeItem("tourneo_dashboard_cache"); } catch {}
+    try { localStorage.removeItem("tourneo_dashboard_cache"); if (cacheCompte) localStorage.removeItem(cacheCompte); } catch {}
     await supabase.auth.signOut();
     window.location.href = "/login";
   }

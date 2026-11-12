@@ -104,3 +104,18 @@ const badminton={...OPTIONS_V2,...reglesPourSport('badminton')};
 assert.equal(erreurScoreSport('badminton',2,0,badminton,[{score1:'21',score2:'15'},{score1:'30',score2:'29'}]),'');
 assert.ok(erreurScoreSport('badminton',2,0,badminton,[{score1:'21',score2:'20'},{score1:'21',score2:'15'}]));
 console.log('Tests scores par discipline et manches gagnantes : OK');
+
+const {statistiquesTournois}=charger('lib/statistiques');
+const joueursStats=[{id:'a',profilId:'p1',nom:'A',emoji:'',couleur:''},{id:'b',profilId:'p2',nom:'B',emoji:'',couleur:''}];
+const matchStats={id:1,journee:1,equipe1Id:'a',equipe2Id:'b',score1:'3',score2:'1'};
+const bilanStats=statistiquesTournois([
+ {id:'t1',sport:'football',donnees:{equipes:joueursStats,matchs:[matchStats],matchsValides:[],cree:true}},
+ {id:'t2',sport:'football',donnees:{equipes:joueursStats,matchs:[matchStats],matchsValides:[1],cree:true}},
+ {id:'t3',sport:'petanque',donnees:null}
+]);
+assert.equal(bilanStats.tournois,3);assert.equal(bilanStats.termines,1);assert.equal(bilanStats.brouillons,1);
+assert.equal(bilanStats.participations,4);assert.equal(bilanStats.joueursIdentifies,2);
+assert.equal(bilanStats.valides,1);assert.equal(bilanStats.tauxValidation,50);
+assert.equal(statistiquesTournois([]).tauxValidation,0);
+assert.equal(statistiquesTournois([{id:'t',sport:'suisse',donnees:{equipes:joueursStats,matchs:[matchStats],cree:true,formatTournoi:'suisse',optionsV2:{rondes:4}}}]).termines,0);
+console.log('Tests statistiques : participations distinctes, validation et tournoi suisse incomplet : OK');

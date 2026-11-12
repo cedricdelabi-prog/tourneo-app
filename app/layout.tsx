@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import AccessibiliteCompte from "@/components/AccessibiliteCompte";
 import OfflineV2 from "@/components/OfflineV2";
 import { Toaster } from "react-hot-toast";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
           }}
         />
 
+        <AccessibiliteCompte />
         <OfflineV2 />
         {children}
       </body>

@@ -34,5 +34,43 @@ begin
  if has_function_privilege('anon','public.tourneo_public_v2(uuid)','execute') then raise exception 'Public sharing should be blocked';end if;
 end $$;
 reset role;
-select 'RLS, organizer denial, referee score, quota, idempotency, cancellation, private sharing: OK' as result;
+update public.tournois set donnees=donnees||'{"termine":true,"equipes":[{"profilId":"10000000-0000-4000-8000-000000000002"}]}'::jsonb where id='20000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',true);
+insert into public.tourneo_evaluations(tournoi_id,user_id,note,commentaire) values('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002',4,'Test temporaire');
+update public.tourneo_evaluations set note=5 where tournoi_id='20000000-0000-4000-8000-000000000001';
+do $$
+begin
+ if (select count(*) from public.tourneo_notifications)<>1 then raise exception 'Notification isolation failed';end if;
+ begin
+ update public.tourneo_notifications set message='forged';
+ raise exception 'Notification message writable';
+ exception when insufficient_privilege then null;end;
+end $$;
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+do $$
+begin
+ if (select count(*) from public.tourneo_evaluations where note=5)<>1 then raise exception 'Organizer feedback unavailable';end if;
+ if (select count(*) from public.tourneo_notifications)<>4 then raise exception 'Organizer notifications incorrect';end if;
+ begin
+ insert into public.tourneo_evaluations(tournoi_id,user_id,note)values('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001',5);
+ raise exception 'Self-review accepted';
+ exception when insufficient_privilege then null;end;
+end $$;
+insert into public.tourneo_preferences(user_id,communications_tourneo) values('10000000-0000-4000-8000-000000000001',true);
+do $$
+begin
+ if not exists(select 1 from public.tourneo_preferences where consentement_promotion_at is not null) then raise exception 'Consent timestamp missing';end if;
+end $$;
+update public.tourneo_preferences set communications_tourneo=false,notifications_sportives=false;
+do $$
+begin
+ if exists(select 1 from public.tourneo_preferences where consentement_promotion_at is not null) then raise exception 'Consent withdrawal failed';end if;
+end $$;
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',true);
+select public.tourneo_proposer_score('20000000-0000-4000-8000-000000000001',1,5,2);
+select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+do $$begin if (select count(*) from public.tourneo_notifications)<>4 then raise exception 'Sports opt-out ignored';end if;end $$;
+reset role;
+select 'Feedback, notifications isolation, self-review denial, consent/withdrawal, sports opt-out; RLS, organizer denial, referee score, quota, idempotency, cancellation, private sharing: OK' as result;
 rollback;

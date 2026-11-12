@@ -1,6 +1,6 @@
 # Base Tourneo V2
 
-Cible exclusive : `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Les trois migrations de `migrations/` sont déjà appliquées le 12 novembre 2026. Ne pas les relancer sur ce projet. Les anciennes sources des modules sont dans `modules/`, hors du chemin des migrations.
+Cible exclusive : `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Les cinq migrations de `migrations/` sont déjà appliquées le 12 novembre 2026. Ne pas les relancer sur ce projet. Les anciennes sources des modules sont dans `modules/`, hors du chemin des migrations.
 
 `ACTIVER_V2.sql` regroupe le socle et les modules pour une base V2 entièrement vierge, en une transaction. Il ne supprime aucune table ni donnée existante. Vérifier le nom et l'identifiant du projet avant toute exécution ; ne jamais utiliser la V1.
 

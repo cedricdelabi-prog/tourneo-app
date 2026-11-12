@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/lib/supabase";
 import PhotoPrivee from "@/components/PhotoPrivee";
 import { referencePhoto } from "@/lib/media-prive";
+import PreferencesCompte from "@/components/PreferencesCompte";
 import TourneoNav from "@/components/TourneoNav";
 
 type Profil = {
@@ -220,6 +221,7 @@ export default function ProfilPage() {
           </div>
         </section>
 
+        <PreferencesCompte/>
         <section style={s.grid}>
           <article style={s.card}>
             <span style={s.eyebrow}>Identité</span>

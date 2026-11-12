@@ -1,0 +1,13 @@
+create index tourneo_arbitres_user on public.tourneo_arbitres(user_id);
+create index tourneo_evenement_tournoi on public.tourneo_evenement_tournois(tournoi_id);
+create index tourneo_evenements_user on public.tourneo_evenements(user_id);
+create index tourneo_inscriptions_user on public.tourneo_inscriptions(user_id);
+create index tourneo_scores_user on public.tourneo_scores_proposes(user_id);
+alter policy inscriptions_config_owner on public.tourneo_inscriptions_config using(exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
+alter policy inscriptions_owner on public.tourneo_inscriptions using(exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
+alter policy evenements_owner on public.tourneo_evenements using(user_id=(select auth.uid())) with check(user_id=(select auth.uid()));
+alter policy evenement_tournois_owner on public.tourneo_evenement_tournois using(exists(select 1 from public.tourneo_evenements e where e.id=evenement_id and e.user_id=(select auth.uid()))) with check(exists(select 1 from public.tourneo_evenements e where e.id=evenement_id and e.user_id=(select auth.uid())) and exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
+alter policy arbitres_lecture on public.tourneo_arbitres using(user_id=(select auth.uid()) or exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
+alter policy arbitres_retrait on public.tourneo_arbitres using(exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
+alter policy propositions_lecture on public.tourneo_scores_proposes using(user_id=(select auth.uid()) or exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
+alter policy propositions_traitement on public.tourneo_scores_proposes using(exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid()))) with check(exists(select 1 from public.tournois t where t.id=tournoi_id and t.user_id=(select auth.uid())));
