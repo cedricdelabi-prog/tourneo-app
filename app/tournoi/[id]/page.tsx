@@ -295,6 +295,13 @@ export default function TournoiPage() {
         setUserId(user.id);
 
         if (params.id === "nouveau") {
+          const groupe = new URLSearchParams(window.location.search).get("groupe");
+          if (groupe && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupe)) {
+            const r = await supabase.from("tourneo_groupe_participants").select("id,nom").eq("groupe_id", groupe).order("created_at").order("id").limit(256);
+            if (r.error) setMessageCloud("Impossible de charger le groupe. Vérifiez votre accès.");
+            else if (!r.data.length) setMessageCloud("Ce groupe est vide ou vous n’y avez plus accès.");
+            else { setEquipes(r.data.map(p => ({ id: `groupe:${p.id}`, nom: p.nom, emoji: "👤", couleur: "#3B82F6" }))); setMessageCloud("Liste du groupe copiée dans ce nouveau tournoi."); }
+          }
           setPret(true);
           return;
         }

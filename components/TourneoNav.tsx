@@ -37,6 +37,7 @@ export default function TourneoNav({
         <nav style={s.desktopActions} className="tourneo-desktop-nav">
           <button style={button(active === "dashboard")} onClick={() => go("/dashboard")}>Mes tournois</button>
           <button style={button(false)} onClick={() => go("/evenements")}>Événements</button>
+          <button style={button(false)} onClick={() => go("/groupes")}>Groupes</button>
           <button style={button(false)} onClick={() => go("/activite")}>Activité</button>
           <button style={button(false)} onClick={() => go("/arbitrage")}>Arbitrage</button>
           <button style={button(false)} onClick={() => go("/statistiques")}>Statistiques</button>
@@ -68,6 +69,7 @@ export default function TourneoNav({
       {moreOpen && (
         <div className="tourneo-mobile-more" style={s.morePanel}>
           <button onClick={() => go("/evenements")}>Événements / Camping</button>
+          <button onClick={() => go("/groupes")}>Clubs / accompagnateurs</button>
           <button onClick={() => go("/arbitrage")}>Mes arbitrages</button>
           <button onClick={() => go("/activite")}>Mon activité / avis</button>
           <button onClick={() => go("/statistiques")}>Mes statistiques</button>

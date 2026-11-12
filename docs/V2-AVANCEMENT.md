@@ -27,7 +27,7 @@ Branche exclusive : `tourneo-v2-dev`. `main` et la V1 restent hors du périmètr
 - Arbitres avec compte, attribution par code joueur, propositions de scores et validation finale par l'organisateur.
 - Projection publique explicite des données de jeu.
 
-Sept migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
+Neuf migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
 
 ## Vérifications
 
@@ -39,30 +39,35 @@ Les builds locaux peuvent utiliser une URL Supabase factice : ils ne prouvent pa
 
 Les échanges mentionnent 87 évolutions, mais la liste numérotée complète n'a pas été récupérée. Ce document ne prétend pas les remplacer et ne permet pas d'annoncer 87/87.
 
-Restent notamment : tests navigateur et simultanéité des modules ci-dessus ; gestion collective des clubs et accompagnateurs ; format coopératif à préciser ; traduction complète selon la langue du compte ; e-mails et notifications push (les notifications internes et les consentements séparés sont installés) ; cycle de conservation et suppression des photos (15 jours gratuit / 90 jours Expert) ; statistiques administrateur globales (les statistiques organisateur sont installées) ; vérification du périmètre de la future option Expert à paiement unique à vie. Aucun paiement n'est ajouté.
+Restent notamment : tests navigateur et simultanéité des modules ci-dessus ; format coopératif à préciser ; traduction complète selon la langue du compte ; e-mails et notifications push (les notifications internes et les consentements séparés sont installés) ; cycle de conservation et suppression des photos (15 jours gratuit / 90 jours Expert) ; statistiques administrateur globales (les statistiques organisateur sont installées) ; vérification du périmètre de la future option Expert à paiement unique à vie. Aucun paiement n'est ajouté.
 
 Le mode hors connexion exige un premier chargement réseau et ne gère pas encore la résolution collaborative de modifications concurrentes sur plusieurs appareils. Les nouveaux modules d'inscriptions et d'arbitrage nécessitent le réseau. Les données locales non synchronisées restent prioritaires au rechargement.
 
-## Sécurité et partage au 12 novembre 2026
+## Évolutions complémentaires intégrées
 
-Photos privées : références stables en base et URL signées à l'affichage, sans URL publique sauvegardée. Données privées du profil accessibles uniquement au propriétaire ; recherche de pseudo/code réservée aux comptes connectés. Le partage du tournoi sans connexion est temporairement désactivé suite au refus du contrôle automatique sur la divulgation publique. Une proposition limitée aux noms/pseudos et données de jeu, sans photos ni profilId, se trouve dans `supabase/proposals/PARTAGE_PUBLIC_A_VALIDER.sql` ; elle n'est pas appliquée. Les RPC d'inscription invité restent ouvertes par lien/jeton. Les alertes advisors sur les fonctions SECURITY DEFINER correspondent aux API protégées par contrôles de propriétaire, attribution arbitre ou jeton ; elles ne remplacent pas les tests.
+- Activité : notifications internes des inscriptions, changements de statut identifiés, attributions arbitres et propositions de score ; marquage lu. E-mails et push téléphone non activés.
+- Préférences privées : informations sportives séparées du consentement promotionnel Tourneo, horodatage serveur du consentement et retrait ; texte agrandi et animations réduites.
+- Avis privés après clôture, réservés aux participants identifiés : une évaluation par compte/tournoi, modification/retrait ; refus de l'autoévaluation organisateur.
+- Statistiques organisateur : période/sport, participations, matchs validés, état terminé selon le moteur commun, avis, export CSV protégé et impression. Pagination des lectures.
+- Groupes privés club/accompagnement : liste de pseudos sans smartphone, partage par code joueur en lecture seule ou rôle accompagnateur, retrait d'accès, limite de 256 participants ; copie de la liste dans un nouveau tournoi sans modifier les tournois existants.
+- Cache du tableau de bord isolé par compte, statut terminé corrigé pour les résultats non validés et le format suisse. Appels joueurs visuels uniquement.
 
-La configuration du client bloque tout projet Supabase autre que la base V2 afin d'éviter des écritures accidentelles vers V1. La compilation avec clé factice ne vérifie pas les variables du déploiement Vercel.
+## Accès et partage
 
-## Modules ajoutés le 12 novembre 2026
+Photos dans un bucket privé, limité à 5 Mo, avec accès propriétaire ; références stables sauvegardées et URL signées temporaires à l'affichage. Les données privées du profil restent accessibles uniquement au propriétaire. Recherche de pseudo/code et palmarès individuel avec identifiants de compte réservés aux comptes connectés.
 
-- Activité : notifications internes pour attribution arbitre, proposition de score, nouvelle inscription et changement de statut d'une inscription identifiée. Marquage lu ; pas d'e-mail ou de push téléphone annoncé.
-- Évaluations : une note par participant identifié après clôture ; avis accessibles seulement à leur auteur et à l'organisateur ; autoévaluation organisateur refusée ; modification/retrait possibles.
-- Statistiques organisateur : filtre période/sport, participations (équipes comptées comme une place), matchs validés, fin de tournoi calculée avec le même moteur, avis, export CSV protégé contre les formules et impression. Pagination des requêtes.
-- Préférences : consentement promotionnel Tourneo séparé, horodaté par le serveur, retrait pris en compte ; informations sportives internes ; texte agrandi et animations réduites.
-- Protection du cache du tableau de bord par compte ; statut terminé corrigé pour les matchs non validés et le format suisse. Appel des joueurs visuel uniquement, conformément au refus des appels vocaux retrouvé dans les décisions utilisateur.
+L'utilisateur a explicitement approuvé le partage public des pseudos, matchs, scores et classement, sans photos ni coordonnées. La projection du tournoi utilise une liste de champs autorisés et des alias propres à chaque tournoi ; la cohérence des alias est conservée pour les doubles tournants et les exemptions. Aucun profilId, photo, jeton d'inscription ou champ supplémentaire n'est envoyé par cette projection. Les inscriptions invitées restent accessibles par lien et jeton.
 
-Tests moteur/statistiques, TypeScript et compilation réussis. Tests SQL transactionnels des évaluations, refus d'autoévaluation, notifications isolées, consentement/retrait et désactivation des informations sportives réussis. Le déploiement Vercel du commit 59584dd a échoué, cause non vérifiée : accès aux journaux Vercel requis. Ne pas annoncer la V2 déployée ni les 87 points terminés. La liste intégrale 1–75 n'a toujours pas été retrouvée ; les exigences complémentaires connues restent dans la section Limites et suite.
+Les fonctions SECURITY DEFINER exposées correspondent aux API autorisées (inscription par lien/jeton, projection publique approuvée, opérations avec contrôle de propriétaire ou attribution arbitre). Les alertes advisors sur ces fonctions sont suivies ; elles ne remplacent pas les tests. Les index manquants et les avertissements de coût des appels auth.uid() dans RLS ont été corrigés.
 
-Cinquième migration : index des clés étrangères et optimisation des politiques RLS. Advisors performance : aucun avertissement restant, seulement les index neufs encore inutilisés. Le dernier nouveau passage du test transactionnel a expiré à la confirmation ; le passage précédent avait réussi avant cette optimisation équivalente des politiques.
+## Validation et limites
 
-## Partage public approuvé le 12 novembre 2026
+Tests moteur et statistiques, TypeScript et compilation locale réussis. Les tests SQL inscriptions/arbitrage/évaluations/consentements et projection publique ont réussi sur Supabase V2 avant l'ajout des groupes. Pour les groupes, la dernière confirmation Supabase a expiré ; aucune donnée de test n'a été ajoutée.
 
-L'utilisateur a explicitement autorisé pseudos, matchs, scores et classement, sans photos ni coordonnées. La sixième migration remplace la désactivation temporaire décrite plus haut. Les données de jeu sont projetées par liste de champs autorisés et les identifiants des joueurs sont remplacés par des alias propres au tournoi, y compris pour les doubles tournants et exemptions. Les identifiants de compte, photos et champs supplémentaires ne sont pas envoyés. Test SQL transactionnel de la projection anonyme réussi. Ce test ne prouve pas le succès du déploiement Vercel, toujours à diagnostiquer après connexion.
+`npm run test:db` exécute neuf migrations et les tests SQL sur un PostgreSQL local WASM avec schémas Auth/Storage minimaux de test : accès, refus d'autoévaluation, notifications isolées, consentement/retrait, partage sans champs privés, rôles des groupes, quota et retrait d'accès. Le script vérifie aussi que l'activation consolidée donne les mêmes colonnes et politiques que les migrations ordonnées et que les jeux de test sont annulés. Ces tests passent ; ils ne valident pas Supabase Auth/Storage/REST réels ni les courses entre plusieurs connexions.
 
-Septième migration : le palmarès individuel contenant les UUID de compte exige une connexion ; le classement public reste fourni par la projection du tournoi avec alias. Vérification des droits : accès anonyme au classement tournoi oui, lecture brute du palmarès non, photos publiques non.
+Le navigateur local n'a pas pu démarrer à cause d'une restriction système sur les sockets ; aucun parcours UI avec compte réel n'est donc annoncé comme testé. Le build local utilise une clé Supabase factice et ne prouve pas la configuration du déploiement.
+
+Le déploiement Vercel de 59584dd a échoué. La connexion Vercel est installée, mais l'accès à l'équipe Tourneo est refusé (403) tant que l'utilisateur n'autorise pas cette équipe. Lien d'autorisation dédié généré ; ni reconnexion générale ni changement de compte requis. Ne pas annoncer la V2 publiée ou 87/87.
+
+Le client bloque tout projet Supabase autre que `tourneo-v2-test`, y compris en cas de mauvais paramétrage du déploiement, pour éviter une écriture accidentelle en V1.
