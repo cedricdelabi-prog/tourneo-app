@@ -34,6 +34,8 @@ export default function ProfilPage() {
   const [photoEnCours, setPhotoEnCours] = useState(false);
   const inputPhoto = useRef<HTMLInputElement>(null);
   const inputCamera = useRef<HTMLInputElement>(null);
+  // State updates render later: reserve the operation synchronously, before any await.
+  const actionProfil = useRef(false);
 
   useEffect(() => { charger(); }, []);
 
@@ -123,19 +125,16 @@ export default function ProfilPage() {
     setChargement(false);
   }
 
-  async function changerPhoto(file?: File) {
-    if (!file || !profil || photoEnCours || enregistrement) return;
-    if (!file.type.startsWith("image/")) {
-      setMessage("Choisissez une image valide.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage("La photo doit peser moins de 5 Mo.");
-      return;
-    }
+  async function changerPhoto(source?: File | (() => Promise<File>)) {
+    if (!source || !profil || chargement || actionProfil.current) return;
+    actionProfil.current = true;
     setPhotoEnCours(true);
-    setMessage("Envoi de la photo…");
+    setMessage("Préparation de l’avatar…");
     try {
+      const file = typeof source === "function" ? await source() : source;
+      if (!file.type.startsWith("image/")) throw new Error("Choisissez une image valide.");
+      if (file.size > 5 * 1024 * 1024) throw new Error("La photo doit peser moins de 5 Mo.");
+      setMessage("Envoi de l’avatar…");
       const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : file.type === "image/gif" ? "gif" : "jpg";
       const path = `${profil.id}/profil-${crypto.randomUUID()}.${extension}`;
       const bucket = supabase.storage.from("tourneo-media");
@@ -152,6 +151,7 @@ export default function ProfilPage() {
     } catch (error) {
       setMessage(error instanceof Error ? `Photo impossible : ${error.message}` : "Impossible d'enregistrer la photo.");
     } finally {
+      actionProfil.current = false;
       setPhotoEnCours(false);
       if (inputPhoto.current) inputPhoto.current.value = "";
       if (inputCamera.current) inputCamera.current.value = "";
@@ -159,24 +159,24 @@ export default function ProfilPage() {
   }
 
   async function choisirEmoji(emoji: string) {
-    if (photoEnCours || enregistrement || chargement) return;
-    // Use the same private image upload as photos, so the avatar works everywhere.
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 256;
-    const context = canvas.getContext("2d");
-    if (!context) { setMessage("Impossible de préparer cet emoji. Réessayez."); return; }
-    context.font = '168px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(emoji, 128, 140);
-    canvas.toBlob(blob => {
-      if (!blob) { setMessage("Impossible de préparer cet emoji. Réessayez."); return; }
-      void changerPhoto(new File([blob], "avatar-emoji.png", { type: "image/png" }));
-    }, "image/png");
+    await changerPhoto(async () => {
+      // Use the same private image upload as photos, so the avatar works everywhere.
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 256;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Impossible de préparer cet emoji. Réessayez.");
+      context.font = '168px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(emoji, 128, 140);
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("Impossible de préparer cet emoji. Réessayez.");
+      return new File([blob], "avatar-emoji.png", { type: "image/png" });
+    });
   }
 
   async function enregistrer() {
-    if (photoEnCours || enregistrement) return;
+    if (chargement || actionProfil.current) return;
     if (!profil) {
       setMessage("Votre profil n’est pas encore prêt. Réessayez dans quelques instants.");
       return;
@@ -186,34 +186,35 @@ export default function ProfilPage() {
       return;
     }
 
+    actionProfil.current = true;
     setEnregistrement(true);
     setMessage("Enregistrement…");
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          display_name: nom.trim(),
+          first_name: prenom.trim() || null,
+          last_name: nomFamille.trim() || null,
+          city: ville.trim() || null,
+          favorite_color: couleur,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", profil.id)
+        .select("*")
+        .single();
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .update({
-        display_name: nom.trim(),
-        first_name: prenom.trim() || null,
-        last_name: nomFamille.trim() || null,
-        city: ville.trim() || null,
-        avatar_url: avatar || null,
-        favorite_color: couleur,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", profil.id)
-      .select("*")
-      .single();
+      if (error || !data) throw error || new Error("Réessayez.");
 
-    if (error || !data) {
-      console.error("Enregistrement profil :", error);
-      setMessage(error?.message ? `Enregistrement impossible : ${error.message}` : "Enregistrement impossible. Réessayez.");
+      setProfil(data as Profil);
+      setAvatar(data.avatar_url || "");
+      setMessage("Profil enregistré ✓");
+    } catch {
+      setMessage("Enregistrement impossible. Vérifiez votre connexion puis réessayez.");
+    } finally {
+      actionProfil.current = false;
       setEnregistrement(false);
-      return;
     }
-
-    setProfil(data as Profil);
-    setMessage("Profil enregistré ✓");
-    setEnregistrement(false);
   }
 
   async function logout() {
@@ -286,7 +287,14 @@ export default function ProfilPage() {
                   <QRCodeSVG value={`${window.location.origin}/joueur/${profil.player_code}`} size={190} />
                 </div>
                 <strong style={s.code}>{profil.player_code}</strong>
-                <button style={s.secondary} onClick={() => navigator.clipboard.writeText(profil.player_code)}>Copier mon code</button>
+                <button type="button" style={s.secondary} onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(profil.player_code);
+                    setMessage("Code joueur copié ✓");
+                  } catch {
+                    setMessage("Copie indisponible. Sélectionnez votre code joueur pour le copier.");
+                  }
+                }}>Copier mon code</button>
               </>
             )}
           </article>
