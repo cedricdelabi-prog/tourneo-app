@@ -32,7 +32,7 @@ async function verifier(consolide) {
     else for (const file of fs.readdirSync(path.join(root,'migrations')).filter(f=>f.endsWith('.sql')).sort()) {
       await db.exec(stripExternalExtensions(fs.readFileSync(path.join(root,'migrations',file),'utf8')));
     }
-    for (const file of ['integration_v2.sql','partage_public_v2.sql','groupes_v2.sql','conservation_photos_v2.sql']) {
+    for (const file of ['integration_v2.sql','partage_public_v2.sql','groupes_v2.sql','conservation_photos_v2.sql','appels_v2.sql']) {
       await db.exec(fs.readFileSync(path.join(root,'tests',file),'utf8'));
       assert.equal((await db.query('select count(*)::integer as n from auth.users')).rows[0].n,0,'Test data was not rolled back');
       console.log(`${consolide?'Activation consolidée':'Migrations ordonnées'} · ${file} : OK`);

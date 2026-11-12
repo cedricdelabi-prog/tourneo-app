@@ -10,3 +10,5 @@ Utiliser uniquement l'aperçu de la branche `tourneo-v2-dev`. Actualiser la page
 Pour signaler un problème : indiquer l'étape, l'action, le résultat obtenu et le résultat attendu ; joindre une capture sans mot de passe visible.
 
 Les délais de conservation des photos sont testés automatiquement : ne pas attendre 15 ou 90 jours pour ce premier parcours. Les essais avec de vrais comptes, les mails de confirmation et les parcours multi-appareils complètent les vérifications du code.
+
+Appels dans Tourneo : ajouter son propre profil et un joueur sans profil à un tournoi de test, puis ouvrir « Annonce sur place ». Le panneau distingue l’annonce orale de l’envoi dans Tourneo. Vérifier les états par joueur ; un joueur sans profil reste à prévenir sur place. Pour un appel vers son propre profil, l’état doit passer à « Déposé » après le clic explicite, apparaître dans Activité, puis devenir « Marqué comme lu » après cette action côté destinataire et une actualisation côté organisateur. Une actualisation de l’état ne doit jamais envoyer un appel. Ne pas attendre un SMS, un e-mail ou un push application fermée.

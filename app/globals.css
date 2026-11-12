@@ -193,3 +193,9 @@ body {
 .tourneo-announcement { border:1px solid #6084ad; border-radius:12px; background:#142a44; padding:18px; outline-offset:4px; }
 .tourneo-announcement-warning { color:#f4d6a2; }
 @media print { .tourneo-call-info { background:white; color:#222; border-color:#aaa; }.tourneo-call-info button {display:none;}.tourneo-player-marker { color:#222!important; border-color:#aaa!important; background:white!important; }.tourneo-receipt-note {color:#444;} }
+
+.tourneo-digital-call { border-top:1px solid #567093; margin-top:20px; padding-top:18px; }
+.tourneo-digital-call h3 { font-weight:750; font-size:16px; }.tourneo-digital-call p,.tourneo-digital-call small { color:#b6c8df; }
+.tourneo-digital-call ul { display:grid; gap:8px; list-style:none; padding:0; margin:16px 0; }
+.tourneo-digital-call li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; background:#0b192c; padding:12px 14px; border-radius:10px; }
+.tourneo-call-state { font-size:12px; color:#c4d4e8; }.tourneo-call-state.is-disponible,.tourneo-call-state.is-depose { color:#a5d9ff; }.tourneo-call-state.is-lu { color:#88ddca; }.tourneo-call-state.is-sans_profil,.tourneo-call-state.is-desactive { color:#eed0a1; }

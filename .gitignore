@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 tourneo-release-key.jks
 tourneo-cert.der
+
+# Supabase CLI local cache
+supabase/.temp/

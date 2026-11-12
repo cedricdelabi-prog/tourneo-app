@@ -24,6 +24,7 @@ function load(file){
     if(id==='react')return react;
     if(id==='react/jsx-runtime')return {jsx,jsxs:jsx};
     if(id==='@/lib/supabase')return {supabase};
+    if(id.startsWith('@/components/'))return {default:()=>null};
     if(id.startsWith('@/'))return load(id.slice(2)+'.ts');
     return require(id);
   },module,module.exports);return module.exports;
@@ -43,7 +44,7 @@ async function run(){
   assert.ok(marqueurs.some(n=>text(n)==='Alice · Profil lié'));
   assert.ok(marqueurs.some(n=>text(n)==='Bob · Sans profil lié'),'manual UUIDs are not assumed to be app accounts');
   bouton(tree,'Annonce sur place').props.onClick({ currentTarget: { focus() {} } });tree=render();
-  assert.match(text(tree),/Aucune notification envoyée/);
+  assert.match(text(tree),/Cette annonce et sa copie n’envoient aucune notification/);
   await bouton(tree,'Copier l’annonce').props.onClick();tree=render();
   assert.match(copied,/terrain 1 : Alice contre Bob/);
   assert.ok(rpcCalls.every(c=>c.name==='tourneo_profils_publics'),'preparing or copying an announcement must not pretend to send notifications');

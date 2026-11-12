@@ -2560,7 +2560,7 @@ ${lienPartage}`,
           </section>
         )}
 
-        {onglet === "matchs" && <PlanningTournoi equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs}/>}
+        {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs}/>}
 
         {onglet === "matchs" && journees.map((journee, journeeIndex) => {
           const matchsJournee = matchs.filter((match) => match.journee === journee);
