@@ -31,7 +31,7 @@ begin
  if r->>'statut'<>'accepte' then raise exception 'Idempotency failed';end if;
  r:=public.tourneo_mon_inscription('20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',true);
  if r->>'statut'<>'annule' then raise exception 'Cancellation failed';end if;
- if has_function_privilege('anon','public.tourneo_public_v2(uuid)','execute') then raise exception 'Public sharing should be blocked';end if;
+ if not has_function_privilege('anon','public.tourneo_public_v2(uuid)','execute') then raise exception 'Approved public sharing unavailable';end if;
 end $$;
 reset role;
 update public.tournois set donnees=donnees||'{"termine":true,"equipes":[{"profilId":"10000000-0000-4000-8000-000000000002"}]}'::jsonb where id='20000000-0000-4000-8000-000000000001';
@@ -72,5 +72,5 @@ select public.tourneo_proposer_score('20000000-0000-4000-8000-000000000001',1,5,
 select set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
 do $$begin if (select count(*) from public.tourneo_notifications)<>4 then raise exception 'Sports opt-out ignored';end if;end $$;
 reset role;
-select 'Feedback, notifications isolation, self-review denial, consent/withdrawal, sports opt-out; RLS, organizer denial, referee score, quota, idempotency, cancellation, private sharing: OK' as result;
+select 'Feedback, notifications isolation, self-review denial, consent/withdrawal, sports opt-out; RLS, organizer denial, referee score, quota, idempotency, cancellation, approved public sharing: OK' as result;
 rollback;

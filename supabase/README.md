@@ -1,6 +1,6 @@
 # Base Tourneo V2
 
-Cible exclusive : `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Les cinq migrations de `migrations/` sont déjà appliquées le 12 novembre 2026. Ne pas les relancer sur ce projet. Les anciennes sources des modules sont dans `modules/`, hors du chemin des migrations.
+Cible exclusive : `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Les sept migrations de `migrations/` sont déjà appliquées le 12 novembre 2026. Ne pas les relancer sur ce projet. Les anciennes sources des modules sont dans `modules/`, hors du chemin des migrations.
 
 `ACTIVER_V2.sql` regroupe le socle et les modules pour une base V2 entièrement vierge, en une transaction. Il ne supprime aucune table ni donnée existante. Vérifier le nom et l'identifiant du projet avant toute exécution ; ne jamais utiliser la V1.
 
@@ -15,3 +15,5 @@ Le bucket `tourneo-media` est privé, limité aux images de 5 Mo et aux objets d
 ## Reprise sur PC
 
 Sauvegarder les modifications locales avant synchronisation. Récupérer la branche `tourneo-v2-dev`, ouvrir le dossier dans VS Code puis lancer `npm ci`. Dans `.env.local`, renseigner `NEXT_PUBLIC_SUPABASE_URL=https://kmjfmjhdnokkaiolxiin.supabase.co` et `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` avec la clé publiable du projet V2 (jamais service_role). Lancer `npm run dev`. Les mêmes variables doivent être vérifiées dans le déploiement Vercel V2.
+
+Le partage public a été approuvé et réactivé par la sixième migration. Elle remplace la restriction temporaire ci-dessus. Test dédié : `tests/partage_public_v2.sql` (transaction annulée).

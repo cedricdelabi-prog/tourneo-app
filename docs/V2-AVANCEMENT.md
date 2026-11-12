@@ -27,7 +27,7 @@ Branche exclusive : `tourneo-v2-dev`. `main` et la V1 restent hors du périmètr
 - Arbitres avec compte, attribution par code joueur, propositions de scores et validation finale par l'organisateur.
 - Projection publique explicite des données de jeu.
 
-Cinq migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
+Sept migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
 
 ## Vérifications
 
@@ -60,3 +60,9 @@ La configuration du client bloque tout projet Supabase autre que la base V2 afin
 Tests moteur/statistiques, TypeScript et compilation réussis. Tests SQL transactionnels des évaluations, refus d'autoévaluation, notifications isolées, consentement/retrait et désactivation des informations sportives réussis. Le déploiement Vercel du commit 59584dd a échoué, cause non vérifiée : accès aux journaux Vercel requis. Ne pas annoncer la V2 déployée ni les 87 points terminés. La liste intégrale 1–75 n'a toujours pas été retrouvée ; les exigences complémentaires connues restent dans la section Limites et suite.
 
 Cinquième migration : index des clés étrangères et optimisation des politiques RLS. Advisors performance : aucun avertissement restant, seulement les index neufs encore inutilisés. Le dernier nouveau passage du test transactionnel a expiré à la confirmation ; le passage précédent avait réussi avant cette optimisation équivalente des politiques.
+
+## Partage public approuvé le 12 novembre 2026
+
+L'utilisateur a explicitement autorisé pseudos, matchs, scores et classement, sans photos ni coordonnées. La sixième migration remplace la désactivation temporaire décrite plus haut. Les données de jeu sont projetées par liste de champs autorisés et les identifiants des joueurs sont remplacés par des alias propres au tournoi, y compris pour les doubles tournants et exemptions. Les identifiants de compte, photos et champs supplémentaires ne sont pas envoyés. Test SQL transactionnel de la projection anonyme réussi. Ce test ne prouve pas le succès du déploiement Vercel, toujours à diagnostiquer après connexion.
+
+Septième migration : le palmarès individuel contenant les UUID de compte exige une connexion ; le classement public reste fourni par la projection du tournoi avec alias. Vérification des droits : accès anonyme au classement tournoi oui, lecture brute du palmarès non, photos publiques non.
