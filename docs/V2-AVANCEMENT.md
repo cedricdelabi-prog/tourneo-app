@@ -68,7 +68,7 @@ Tests moteur et statistiques, TypeScript et compilation locale réussis. Les tes
 
 Le navigateur local n'a pas pu démarrer à cause d'une restriction système sur les sockets ; aucun parcours UI avec compte réel n'est donc annoncé comme testé. Le build local utilise une clé Supabase factice et ne prouve pas la configuration du déploiement.
 
-Le déploiement Vercel de 59584dd a échoué. La connexion Vercel est installée, mais l'accès à l'équipe Tourneo est refusé (403) tant que l'utilisateur n'autorise pas cette équipe. Lien d'autorisation dédié généré ; ni reconnexion générale ni changement de compte requis. Ne pas annoncer la V2 publiée ou 87/87.
+L'accès à l'équipe Vercel Tourneo a été autorisé. Le problème de build provenait des variables Supabase du projet Vercel V2 : elles ne ciblaient pas la base V2. Les deux variables publiques (URL et clé publiable) ont été corrigées uniquement sur `tourneo-v2-test`, pour Preview et Production. L'aperçu du commit 07bdfdb est READY ; les pages login/groupes/nouveau tournoi ont répondu HTTP 200 via l'accès Vercel autorisé, et le RPC public a répondu HTTP 200 avec la clé publiable V2. Aucun parcours complet avec compte réel n'est encore validé ; ne pas annoncer 87/87.
 
 Le client bloque tout projet Supabase autre que `tourneo-v2-test`, y compris en cas de mauvais paramétrage du déploiement, pour éviter une écriture accidentelle en V1.
 
@@ -84,4 +84,8 @@ Vérification réelle sur V2 : appel avec un jeton du planificateur → HTTP 200
 
 Les tests locaux PostgreSQL ajoutent les limites 15/90 jours, protection des tournois actifs et avatars, interdiction de prolongation, refus de lecture après échéance, refus de restauration par un cache ancien et authentification à usage unique. Cron et HTTP sont remplacés localement par des substituts. `npm run test:purge` vérifie le refus des requêtes non autorisées, la suppression ciblée et la reprise possible après un échec Storage. Tests locaux, TypeScript et compilation réussis.
 
-La traduction complète, les e-mails/push, le format coopératif et les autres points non retrouvés dans la liste initiale restent à traiter. La V2 n'est toujours pas annoncée 87/87 ni publiée : l'accès à l'équipe Vercel reste refusé tant que l'autorisation dédiée n'est pas validée.
+La traduction complète, les e-mails/push, le format coopératif et les autres points non retrouvés dans la liste initiale restent à traiter. La V2 n'est toujours pas annoncée 87/87. L'aperçu Vercel a démarré après correction des variables V2 ; la liste complète des parcours utilisateur reste à tester.
+
+## Connexion des utilisateurs V2
+
+La configuration publique Auth de Supabase V2 a été vérifiée : inscription e-mail active, confirmation d'e-mail demandée, connexion Google désactivée. L'écran consulte les réglages publics et affiche Google uniquement lorsqu'il est disponible ; le formulaire e-mail reste utilisable même si cette lecture échoue. Si un environnement autorise une session immédiate après inscription, le client ouvre le tableau de bord au lieu d'annoncer un e-mail de confirmation inexistant. Les comptes V2 sont indépendants de la base V1. Les redirections des e-mails de confirmation et de réinitialisation doivent encore être vérifiées avec un compte réel.

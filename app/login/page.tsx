@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import TourneoBrand from "@/components/TourneoBrand";
@@ -15,6 +15,21 @@ export default function LoginPage() {
   const [ville, setVille] = useState("");
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
+  const [googleDisponible, setGoogleDisponible] = useState(false);
+
+  useEffect(() => {
+    const controleur = new AbortController();
+    const delai = setTimeout(() => controleur.abort(), 5000);
+    void fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
+      signal: controleur.signal,
+    }).then(async r => {
+      if (!r.ok) return;
+      const settings = await r.json();
+      if (!controleur.signal.aborted) setGoogleDisponible(settings.external?.google === true);
+    }).catch(() => {}).finally(() => clearTimeout(delai));
+    return () => { clearTimeout(delai); controleur.abort(); };
+  }, []);
 
   async function connexionGoogle() {
     setMessage("");
@@ -60,8 +75,8 @@ export default function LoginPage() {
         }
 
         const displayName = pseudo.trim() || `${prenom.trim()} ${nom.trim()}`;
-        const { error } = await supabase.auth.signUp({
-          email,
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
@@ -76,6 +91,8 @@ export default function LoginPage() {
 
         if (error) {
           setMessage(error.message);
+        } else if (data.session) {
+          window.location.href = "/dashboard";
         } else {
           setMessage("Compte créé. Un e-mail Tourneo vous attend pour confirmer votre adresse.");
         }
@@ -141,7 +158,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <button
+        {googleDisponible && <><button
           style={{
             ...s.google,
             ...(chargement ? { opacity: 0.65, cursor: "wait" } : {}),
@@ -155,7 +172,7 @@ export default function LoginPage() {
 
         <div style={s.separator}>
           <span>ou</span>
-        </div>
+        </div></>}
 
         {mode === "inscription" && (
           <>
