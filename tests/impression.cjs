@@ -31,7 +31,7 @@ const matchs = genererMatchs(participants).map(m => ({ ...m, score1: '2', score2
 global.window = { location: { origin: 'https://example.test' } };
 global.localStorage = { getItem(key) {
   assert.equal(key, 'tourneo-v04:offline-test');
-  return JSON.stringify({ tournoiId: 'offline-test', nomTournoi: 'Camping', equipes: participants, matchs, formatTournoi: 'complet' });
+  return JSON.stringify({ tournoiId: 'offline-test', nomTournoi: 'Camping', equipes: participants, matchs, formatTournoi: 'complet', poules: [{ id: 'a', nom: 'Poule A', equipes: participants.slice(0,2) }, { id: 'b', nom: 'Poule B', equipes: participants.slice(2) }] });
 } };
 const Page = load('app/tournoi/[id]/imprimer/page.tsx').default;
 function render() { cursor = 0; const tree = Page(); const pending = effects; effects = []; started = true; pending.forEach(fn => fn()); return tree; }
@@ -55,7 +55,19 @@ selects[1].props.onChange({ target: { value: 'landscape' } });
 tree = render();
 assert.match(text(all(tree).find(n => n.type === 'style')), /size: A3 landscape/);
 assert.ok(!JSON.stringify(tree).includes('private-photo'), 'paper never includes participant photos');
+check(tree, 'Poules et classements par poule', true);
+check(tree, 'Tableaux par tour et branche', true);
+check(tree, 'QR par match (128 rencontres maximum par impression)', true);
+tree = render();
+assert.match(text(tree), /Poule A/); assert.match(text(tree), /Poule B/);
+assert.ok(all(tree).some(n => n.type === 'qr' && n.props.value.endsWith('#match-1')), 'match QR opens its public anchor');
+all(tree).filter(n => n.type === 'select')[2].props.onChange({ target: { value: '1' } });
+tree = render();
+assert.equal(all(tree).filter(n => n.type === 'tbody')[0].props.children.length, 4, 'participant list remains complete');
+assert.equal(all(tree).filter(n => n.type === 'tbody')[1].props.children.length, 2, 'round filter limits printed matches');
+check(tree, 'Poules et classements par poule', false);
+check(tree, 'Tableaux par tour et branche', false);
 for (const label of ['Participants et pointage', 'Planning et feuilles de scores', 'Classement']) check(tree, label, false);
 tree = render();
 assert.equal(all(tree).find(n => n.type === 'button').props.disabled, true, 'cannot print without a selected section');
-console.log('Impression : cache hors connexion, six rencontres, rubriques, scores vierges, A3 paysage et absence de photos : OK');
+console.log('Impression : cache local, six rencontres, poules, tableaux, QR match, filtre par tour, A3 et absence de photos : OK');

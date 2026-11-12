@@ -1,5 +1,9 @@
 import type { Match } from '@/types';
 export type Creneau = { matchId:number; terrain:number; debut:number; fin:number; journee:number };
+export function joueursDuMatch(match: Match): string[] {
+  const cote = (id: string, joueurs?: string[]) => joueurs?.length ? joueurs : id.startsWith('duo:') ? id.slice(4).split('|') : [id];
+  return [...new Set([...cote(match.equipe1Id, match.joueurs1Ids), ...cote(match.equipe2Id, match.joueurs2Ids)])];
+}
 export function planifierMatchs(matchs: Match[], options: { terrains:number;duree:number;repos:number }): Creneau[] {
   const { terrains,duree,repos }=options;
   if(!Number.isInteger(terrains)||terrains<1||terrains>32||!Number.isFinite(duree)||duree<=0||!Number.isFinite(repos)||repos<0) throw new Error('Paramètres de planning invalides');
@@ -9,11 +13,12 @@ export function planifierMatchs(matchs: Match[], options: { terrains:number;dure
   for(const journee of jours){
     const tour=matchs.filter(m=>m.journee===journee).sort((a,b)=>(a.ordre??a.id)-(b.ordre??b.id));
     for(const m of tour){
-      const candidats=dispos.map((dispo,i)=>({terrain:i+1,debut:Math.max(debutRonde,dispo,...([...m.joueurs1Ids??[m.equipe1Id],...m.joueurs2Ids??[m.equipe2Id]].map(id=>joueurs.get(id)??0)))}));
+      const participants = joueursDuMatch(m);
+      const candidats=dispos.map((dispo,i)=>({terrain:i+1,debut:Math.max(debutRonde,dispo,...participants.map(id=>joueurs.get(id)??0))}));
       const libre=candidats.sort((a,b)=>a.debut-b.debut||a.terrain-b.terrain)[0];
       const fin=libre.debut+duree;
       dispos[libre.terrain-1]=fin;
-      for(const id of [...m.joueurs1Ids??[m.equipe1Id],...m.joueurs2Ids??[m.equipe2Id]])joueurs.set(id,fin+repos);
+      for(const id of participants)joueurs.set(id,fin+repos);
       resultat.push({matchId:m.id,terrain:libre.terrain,debut:libre.debut,fin,journee});
     }
     debutRonde=Math.max(debutRonde,...resultat.filter(c=>c.journee===journee).map(c=>c.fin));

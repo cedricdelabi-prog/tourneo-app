@@ -6,10 +6,10 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { nomParticipant } from "@/lib/rotation";
 import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
-import { calculerClassement } from "@/lib/tournoi";
-import { classementParcours, parcoursTermine } from "@/lib/parcours";
 import { normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
 import { scoreValide } from "@/lib/formats-avances";
+import { passagesJoueur, notifierPassage } from "@/lib/suivi-matchs";
+import { heureCreneau } from "@/lib/planning";
 import type { Equipe as EquipeMoteur, Match as MatchMoteur } from "@/types";
 import TourneoBrand from "@/components/TourneoBrand";
 
@@ -25,6 +25,7 @@ type Equipe = {
 };
 
 type Match = {
+  ordre?: number;
   joueurs1Ids?: string[];
   joueurs2Ids?: string[];
   branche?: MatchMoteur["branche"];
@@ -89,7 +90,10 @@ export default function PartagePage() {
   const [onglet, setOnglet] =
     useState<"matchs" | "classement" | "participants">("matchs");
 
-  const [moiId, setMoiId] = useState("");
+  const [monEquipeId, setMonEquipeId] = useState("");
+  const [permissionEnCours, setPermissionEnCours] = useState(false);
+  const demandePermission = useRef(false);
+  const ancreOuverte = useRef("");
   const [suivi, setSuivi] = useState(false);
   const [message, setMessage] = useState("");
   const [podiumAnime, setPodiumAnime] = useState(false);
@@ -98,15 +102,13 @@ export default function PartagePage() {
   useEffect(() => {
     if (!tournoiId) return;
 
-    supabase.auth.getSession().then(({ data }) => {
-      setMoiId(data.session?.user?.id || "");
-    });
-
+    setMonEquipeId(""); setSuivi(false); setMessage(""); derniereNotif.current = "";
     try {
-      setSuivi(localStorage.getItem(`tourneo-follow-${tournoiId}`) === "1");
-    } catch {
-      setSuivi(false);
-    }
+      const choix = JSON.parse(localStorage.getItem(`tourneo-suivi-v2:${tournoiId}`) || "null");
+      if (choix && typeof choix.participant === "string") {
+        setMonEquipeId(choix.participant); setSuivi(choix.actif === true);
+      }
+    } catch { /* The public tournament still works without local storage. */ }
   }, [tournoiId]);
 
   useEffect(() => {
@@ -118,149 +120,89 @@ export default function PartagePage() {
 
     let actif = true;
 
-    async function charger(silencieux = false) {
-      if (!silencieux) setChargement(true);
-
-      let resultatPublic = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
-      if(resultatPublic.error && /PGRST202|schema cache|could not find/i.test(resultatPublic.error.code+" "+resultatPublic.error.message))
-        resultatPublic = await supabase.rpc("get_tourneo_public", {p_id:tournoiId});
-      const {data,error}=resultatPublic;
-
-      if (!actif) return;
-
-      const ligne = Array.isArray(data) ? data[0] : data;
-
-      if (error || !ligne) {
-        setErreur(
-          "Tournoi introuvable ou partage public indisponible. Vérifiez le lien ou réessayez dans quelques instants."
-        );
-        if (!silencieux) setChargement(false);
-        return;
+    let minuterie: ReturnType<typeof setTimeout>;
+    let enCours = false;
+    async function charger() {
+      if (!actif || enCours) return;
+      enCours = true;
+      try {
+        let resultat = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
+        if (resultat.error && /PGRST202|schema cache|could not find/i.test(resultat.error.code + " " + resultat.error.message))
+          resultat = await supabase.rpc("get_tourneo_public", { p_id: tournoiId });
+        if (!actif) return;
+        const ligne = Array.isArray(resultat.data) ? resultat.data[0] : resultat.data;
+        if (resultat.error || !ligne) throw new Error("Tournoi introuvable ou partage public indisponible.");
+        setTournoi({ ...ligne, donnees: normaliserDonnees(ligne.donnees) });
+        setErreur("");
+      } catch {
+        if (actif) setErreur("Actualisation indisponible. Les dernières données reçues restent affichées. Vérifiez votre connexion.");
+      } finally {
+        enCours = false;
+        if (actif) {
+          setChargement(false);
+          minuterie = setTimeout(() => void charger(), 4000);
+        }
       }
-
-      const resultat = ligne as Tournoi;
-      setTournoi({
-        ...resultat,
-        donnees: normaliserDonnees(resultat.donnees),
-      });
-      setErreur("");
-      setChargement(false);
     }
-
-    charger();
-
-    // Mise à jour de secours : fonctionne même si Realtime n'est pas activé côté Supabase.
-    const interval = window.setInterval(() => charger(true), 4000);
-
-    return () => {
-      actif = false;
-      window.clearInterval(interval);
-    };
+    const reconnecter = () => { clearTimeout(minuterie); void charger(); };
+    setTournoi(null); setChargement(true); setErreur("");
+    void charger();
+    window.addEventListener("online", reconnecter);
+    return () => { actif = false; clearTimeout(minuterie); window.removeEventListener("online", reconnecter); };
   }, [tournoiId]);
 
   const donnees = normaliserDonnees(tournoi?.donnees);
   const equipes = donnees.equipes ?? [];
   const matchs = donnees.matchs ?? [];
 
-  const noms = useMemo(
-    () =>
-      Object.fromEntries(
-        equipes
-          .filter((e) => e.id)
-          .map((e) => [e.id as string, e.nomEquipe || e.nom || "Participant"])
-      ),
-    [equipes]
-  );
-
-  // On accepte plusieurs structures de données pour reconnaître un profil joueur.
-  const estParticipant = useMemo(() => {
-    if (!moiId) return false;
-    return equipes.some(
-      (e) => e.id === moiId || e.userId === moiId || e.profilId === moiId
-    );
-  }, [equipes, moiId]);
-
-  const monEquipeId = useMemo(() => {
-    if (!moiId) return "";
-    const equipe = equipes.find(
-      (e) => e.id === moiId || e.userId === moiId || e.profilId === moiId
-    );
-    return equipe?.id || "";
-  }, [equipes, moiId]);
-
-  useEffect(() => {
-    if (!suivi || !estParticipant || !monEquipeId) return;
-
-    const prochain = matchs.find(
-      (m) =>
-        (m.equipe1Id === monEquipeId || m.equipe2Id === monEquipeId) &&
-        (!scoreRenseigne(m.score1) || !scoreRenseigne(m.score2))
-    );
-
-    if (!prochain) return;
-
-    const key = `${prochain.id ?? ""}-${prochain.equipe1Id ?? ""}-${
-      prochain.equipe2Id ?? ""
-    }`;
-
-    if (derniereNotif.current === key) return;
-    derniereNotif.current = key;
-
-    const adversaire =
-      prochain.equipe1Id === monEquipeId
-        ? noms[prochain.equipe2Id || ""]
-        : noms[prochain.equipe1Id || ""];
-
-    if (
-      typeof window !== "undefined" &&
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      new Notification("Tourneo · À vous de jouer", {
-        body: `Votre prochain match contre ${
-          adversaire || "votre adversaire"
-        } est prêt.`,
-      });
-    }
-  }, [matchs, suivi, estParticipant, monEquipeId, noms]);
-
+  function enregistrerSuivi(participant: string, actif: boolean) {
+    setMonEquipeId(participant); setSuivi(actif); derniereNotif.current = "";
+    try { localStorage.setItem(`tourneo-suivi-v2:${tournoiId}`, JSON.stringify({ participant, actif })); } catch {}
+  }
   async function activerSuivi() {
-    if (!tournoiId) return;
-
-    if (!moiId) {
-      setMessage(
-        "Le tournoi reste consultable sans compte. Connectez-vous seulement si vous voulez recevoir les alertes joueur."
-      );
-      return;
-    }
-
-    if (!estParticipant) {
-      setMessage("Votre profil connecté n’est pas rattaché à ce tournoi.");
-      return;
-    }
-
-    if (typeof window !== "undefined" && "Notification" in window) {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setMessage("Notifications non autorisées sur cet appareil.");
-        return;
-      }
-    }
-
+    if (demandePermission.current || !monEquipeId) return;
+    if (suivi) { enregistrerSuivi(monEquipeId, false); setMessage("Alertes arrêtées sur cet appareil."); return; }
+    demandePermission.current = true; setPermissionEnCours(true);
     try {
-      localStorage.setItem(`tourneo-follow-${tournoiId}`, "1");
-    } catch {}
-
-    setSuivi(true);
-    setMessage("Alertes activées pendant le suivi de ce tournoi.");
+      const permission = "Notification" in window ? await Notification.requestPermission() : "denied";
+      try { sessionStorage.removeItem(`tourneo-derniere-alerte:${tournoiId}:${monEquipeId}`); } catch {}
+      enregistrerSuivi(monEquipeId, true);
+      setMessage(permission === "granted" ? "Alertes locales activées. Gardez cette page ouverte ; aucun envoi lorsque l’application est fermée." : "Le suivi visuel reste actif. Les notifications système sont indisponibles ou refusées sur cet appareil.");
+    } catch { setMessage("Impossible d’activer les notifications. Le suivi visuel reste disponible."); }
+    finally { demandePermission.current = false; setPermissionEnCours(false); }
   }
 
   const options = normaliserOptionsV2(donnees.optionsV2);
   const equipesMoteur: EquipeMoteur[] = equipes.filter(e=>e.id).map(e=>({id:e.id!,nom:e.nomEquipe||e.nom||"Participant",emoji:e.emoji||"",couleur:e.couleur||"",photo:e.photo,profilId:e.profilId}));
-  const matchsMoteur: MatchMoteur[] = matchs.map(m=>({id:Number(m.id),journee:m.journee??1,equipe1Id:m.equipe1Id||"",equipe2Id:m.equipe2Id||"",score1:m.score1==null?"":String(m.score1),score2:m.score2==null?"":String(m.score2),branche:m.branche,joueurs1Ids:m.joueurs1Ids,joueurs2Ids:m.joueurs2Ids}));
+  const matchsMoteur: MatchMoteur[] = matchs.map(m=>({id:Number(m.id),journee:m.journee??1,equipe1Id:m.equipe1Id||"",equipe2Id:m.equipe2Id||"",score1:m.score1==null?"":String(m.score1),score2:m.score2==null?"":String(m.score2),branche:m.branche,ordre:m.ordre,joueurs1Ids:m.joueurs1Ids,joueurs2Ids:m.joueurs2Ids}));
   const formatParcours = donnees.formatTournoi === "doubleElimination" || donnees.formatTournoi === "consolante" ? donnees.formatTournoi : null;
   const classement = classementTournoi(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options).map(l=>({...l,id:l.equipe.id,nom:l.equipe.nom}));
   const tournoiTermine = tournoiEstTermine(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options,donnees.matchsValides);
+
+  const passages = passagesJoueur(monEquipeId, matchsMoteur, options, donnees.matchsValides);
+  const prochain = passages.find(p => p.statut !== "validation");
+  const clePassage = prochain?.statut === "prochain" ? `${tournoiId}:${monEquipeId}:${prochain.match.id}` : "";
+  const prochainId = prochain?.match.id;
+  const textePassage = prochain ? `${nomParticipant(prochain.match.equipe1Id, equipesMoteur)} / ${nomParticipant(prochain.match.equipe2Id, equipesMoteur)} · terrain ${prochain.creneau.terrain}. Vérifiez l’appel de l’organisateur.` : "";
+  useEffect(() => {
+    if (!suivi || !clePassage || prochainId === undefined || derniereNotif.current === clePassage) return;
+    derniereNotif.current = clePassage;
+    try {
+      const cle = `tourneo-derniere-alerte:${tournoiId}:${monEquipeId}`;
+      if (sessionStorage.getItem(cle) === clePassage) return;
+      sessionStorage.setItem(cle, clePassage);
+    } catch {}
+    setMessage(`Prochain match : ${textePassage}`);
+    void notifierPassage(tournoiId, prochainId, textePassage);
+  }, [suivi, clePassage, prochainId, textePassage, tournoiId, monEquipeId]);
+  useEffect(() => {
+    if (!tournoi || ancreOuverte.current === tournoiId) return;
+    const ancre = window.location.hash.slice(1);
+    if (!/^match-\d+$/.test(ancre)) return;
+    ancreOuverte.current = tournoiId;
+    setOnglet("matchs");
+    requestAnimationFrame(() => document.getElementById(ancre)?.scrollIntoView({ block: "center" }));
+  }, [tournoi, tournoiId]);
 
   const podiumFinal: PodiumFinal[] =
     donnees.podiumFinal?.length
@@ -303,7 +245,7 @@ export default function PartagePage() {
     [matchs]
   );
 
-  if (erreur) {
+  if (erreur && !tournoi) {
     return (
       <main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
         <div style={s.shell}>
@@ -346,12 +288,20 @@ export default function PartagePage() {
             {tournoi.sport || "Multisport"} · {tournoiTermine ? "Résultats définitifs" : "Actualisation automatique"}
           </p>
 
-          {estParticipant && (
-            <button style={s.follow} onClick={activerSuivi}>
-              {suivi ? "Alertes joueur activées" : "M’alerter quand c’est à moi"}
-            </button>
-          )}
-
+          <div style={{ marginTop: 18, display: "grid", gap: 8, maxWidth: 560 }}>
+            <label htmlFor="tourneo-joueur-suivi">Voir les prochains matchs d’un participant</label>
+            <select id="tourneo-joueur-suivi" value={monEquipeId} disabled={permissionEnCours} style={{ padding: 12, color: "white", background: "#101c32", border: "1px solid #475579", borderRadius: 12 }} onChange={e => { enregistrerSuivi(e.target.value, false); setMessage(""); }}>
+              <option value="">Choisir un pseudo…</option>
+              {equipes.filter(e => e.id).map((e, i) => <option key={e.id} value={e.id}>{e.nomEquipe || e.nom || "Participant"} · #{i + 1}</option>)}
+            </select>
+            <small style={s.muted}>Choix sur cet appareil uniquement. Aucun accès à la modification des scores.</small>
+            {monEquipeId && <button type="button" style={s.follow} disabled={permissionEnCours} onClick={() => void activerSuivi()}>{permissionEnCours ? "Activation…" : suivi ? "Arrêter les alertes locales" : "Activer les alertes locales"}</button>}
+            {monEquipeId && <div aria-live="polite">
+              {passages.slice(0, 3).map(p => <p key={p.match.id} style={{ lineHeight: 1.6 }}><a href={`#match-${p.match.id}`} onClick={() => setOnglet("matchs")} style={{ color: "#8deaff" }}>Match {p.match.id}</a> · {nomParticipant(p.match.equipe1Id, equipesMoteur)} / {nomParticipant(p.match.equipe2Id, equipesMoteur)} · terrain {p.creneau.terrain} · {heureCreneau(p.creneau.debut, options.depart)} (estimé)<br/><small>{p.statut === "validation" ? "Score saisi · validation organisateur en attente" : p.avant ? `${p.avant} rencontre(s) à terminer avant ce passage` : "Prochain passage prévu · attendre l’appel de l’organisateur"}</small></p>)}
+              {!passages.length && <p>Aucun passage prévu pour ce participant dans les rencontres actuellement générées.</p>}
+            </div>}
+          </div>
+          {erreur && <p role="status" style={s.message}>{erreur}</p>}
           {message && <p style={s.message}>{message}</p>}
         </section>
 
@@ -416,7 +366,7 @@ export default function PartagePage() {
             }
           }}>{ecranGeant ? "Quitter l’écran géant" : "Écran géant"}</button>
         </div>
-        <style jsx global>{`@keyframes tourneo-celebrate { from { opacity:0; transform:translateY(20px) scale(.8) } to { opacity:1; transform:translateY(0) scale(1) } } @media print { button, footer {display:none !important} body {background:white !important;color:black !important} main {background:white !important;color:black !important} }`}</style>
+        <style jsx global>{`article[id^="match-"]:target { outline: 3px solid #72e7ff; } @keyframes tourneo-celebrate { from { opacity:0; transform:translateY(20px) scale(.8) } to { opacity:1; transform:translateY(0) scale(1) } } @media print { button, footer {display:none !important} body {background:white !important;color:black !important} main {background:white !important;color:black !important} }`}</style>
         <div style={s.tabs}>
           <button
             style={onglet === "matchs" ? s.tabActive : s.tab}
@@ -444,7 +394,7 @@ export default function PartagePage() {
               <p style={s.empty}>Aucun match n’est encore disponible.</p>
             ) : (
               matchsTries.map((m, i) => (
-                <article key={String(m.id ?? i)} style={s.match}>
+                <article id={`match-${m.id ?? i}`} key={String(m.id ?? i)} style={{ ...s.match, scrollMarginTop: 24 }}>
                   <div style={s.teamBlock}>
                     <span style={s.teamName}>
                       {nomParticipant(m.equipe1Id || "",equipesMoteur)}

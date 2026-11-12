@@ -1,6 +1,6 @@
 /* V2 only: cache app resources and visited page shells, never API/auth responses. */
 const CACHE='tourneo-v2-shell-20261109-1';
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(['/offline-v2.html','/tourneo-icon.png'])));});
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(['/offline-v2.html','/tourneo-icon.png','/tourneo-officiel.png'])));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('tourneo-v2-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{
   const request=event.request,url=new URL(request.url);
@@ -8,9 +8,23 @@ self.addEventListener('fetch',event=>{
   if(request.mode==='navigate'){
     event.respondWith(fetch(request).then(response=>{if(response.ok){const copie=response.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put(request,copie)));}return response;}).catch(async()=>await caches.match(request)||await caches.match('/offline-v2.html')));return;
   }
-  if(url.pathname.startsWith('/_next/static/')||['/tourneo-icon.png','/tourneo-logo.png'].includes(url.pathname)){
+  if(url.pathname.startsWith('/_next/static/')||['/tourneo-icon.png','/tourneo-logo.png','/tourneo-officiel.png'].includes(url.pathname)){
     event.respondWith(caches.match(request).then(cache=>cache||fetch(request).then(response=>{if(response.ok){const copie=response.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put(request,copie)));}return response;})));
   }
+});
+
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  let url;
+  try {
+    url=new URL(event.notification.data?.url,self.location.origin);
+    if(url.origin!==self.location.origin||!/^\/partage\/[^/]+$/.test(url.pathname)||!/^#match-\d+$/.test(url.hash))return;
+  } catch { return; }
+  event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async windows=>{
+    const ouvert=windows.find(client=>new URL(client.url).pathname===url.pathname);
+    if(ouvert){await ouvert.navigate(url.href);return ouvert.focus();}
+    return self.clients.openWindow(url.href);
+  }));
 });
 
 self.addEventListener('message',event=>{
