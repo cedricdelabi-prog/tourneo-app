@@ -13,7 +13,8 @@
     "lint": "eslint",
     "test": "node tests/moteur.cjs",
     "test:db": "node tests/database.cjs",
-    "test:purge": "node tests/purge-photos.cjs"
+    "test:purge": "node tests/purge-photos.cjs",
+    "test:parcours": "node tests/profil.cjs && node tests/impression.cjs && node tests/suivi.cjs && node tests/evenements.cjs && node tests/import-excel.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -25,7 +26,8 @@
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-hot-toast": "^2.6.0"
+    "react-hot-toast": "^2.6.0",
+    "read-excel-file": "9.3.15"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.16",

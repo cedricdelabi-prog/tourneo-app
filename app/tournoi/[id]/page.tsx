@@ -16,7 +16,7 @@ import {
   genererMatchsElimination,
 } from "@/lib/tournoi";
 import { prochainTourParcours, classementParcours, parcoursTermine } from "@/lib/parcours";
-import { lireParticipantsCSV } from "@/lib/import-participants";
+import { lireFichierParticipants, nomsAAjouter } from "@/lib/import-participants";
 import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
 import { genererPartenairesTournants,nomParticipant } from "@/lib/rotation";
 import { lireSauvegarde,telechargerSauvegarde } from "@/lib/sauvegarde";
@@ -145,6 +145,17 @@ function LogoTourneo({ compact = false }: { compact?: boolean }) {
 
 export default function TournoiPage() {
   const params = useParams<{ id: string }>();
+  const [importEnCours, setImportEnCours] = useState(false);
+  const [nomsImportes, setNomsImportes] = useState<string[]>([]);
+  const [messageImport, setMessageImport] = useState("");
+  const verrouImport = useRef(false);
+  const generationImport = useRef(0);
+  useEffect(() => {
+    generationImport.current++;
+    verrouImport.current = false;
+    setNomsImportes([]); setImportEnCours(false); setMessageImport("");
+    return () => { generationImport.current++; };
+  }, [params.id]);
   const [revisionConnexion, setRevisionConnexion] = useState(0);
   const fileSynchronisation = useRef<Promise<void>>(Promise.resolve());
 
@@ -709,16 +720,27 @@ export default function TournoiPage() {
   async function importerParticipants(event: ChangeEvent<HTMLInputElement>) {
     const fichier = event.target.files?.[0];
     event.target.value = "";
-    if (!fichier || !modificationParticipantsAutorisee) return;
+    if (!fichier || !modificationParticipantsAutorisee || verrouImport.current) return;
+    verrouImport.current = true; setImportEnCours(true); setNomsImportes([]); setMessageImport("Lecture de la liste…");
+    const generation = ++generationImport.current;
     try {
-      if (fichier.size > 500_000) throw new Error("Fichier trop volumineux (500 Ko maximum).");
-      const noms = lireParticipantsCSV(await fichier.text());
-      setEquipes((actuelles) => {
-        const existants = new Set(actuelles.map((e) => e.nom.trim().toLocaleLowerCase("fr")));
-        const ajouts = noms.filter((nom) => !existants.has(nom.toLocaleLowerCase("fr"))).map((nom) => ({ id: crypto.randomUUID(), nom, emoji: "🏅", couleur: "#3B82F6" }));
-        return [...actuelles, ...ajouts];
-      });
-    } catch (erreur) { alert(erreur instanceof Error ? erreur.message : "Import impossible."); }
+      const noms = await lireFichierParticipants(fichier);
+      if (generation !== generationImport.current) return;
+      setNomsImportes(noms);
+      setMessageImport(noms.length ? `${noms.length} nom(s) détecté(s). Vérifiez l’aperçu avant de les ajouter.` : "Aucun nom trouvé dans la première feuille ou colonne Nom.");
+    } catch (erreur) { if (generation === generationImport.current) setMessageImport(erreur instanceof Error ? erreur.message : "Import impossible."); }
+    finally { if (generation === generationImport.current) { verrouImport.current = false; setImportEnCours(false); } }
+  }
+  function ajouterImport() {
+    if (!modificationParticipantsAutorisee || verrouImport.current || !nomsImportes.length) return;
+    verrouImport.current = true;
+    try {
+      const ajouts = nomsAAjouter(equipes.map(e => e.nom), nomsImportes);
+      setEquipes([...equipes, ...ajouts.map(nom => ({ id: crypto.randomUUID(), nom, emoji: "🏅", couleur: "#3B82F6" }))]);
+      setMessageImport(`${ajouts.length} participant(s) ajouté(s) · ${nomsImportes.length - ajouts.length} déjà présent(s).`);
+      setNomsImportes([]);
+    } catch (erreur) { setMessageImport(erreur instanceof Error ? erreur.message : "Import impossible."); }
+    finally { verrouImport.current = false; }
   }
 
   function enregistrerEquipe(equipe: Equipe) {
@@ -1864,10 +1886,17 @@ ${lienPartage}`,
                 </button>
 
                 <label style={{ ...styles.secondaryButton, display: "block", cursor: "pointer" }}>
-                  Importer des participants (CSV / texte)
-                  <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={importerParticipants} style={{ display: "block", marginTop: 8 }} />
-                  <small>Une colonne Nom ou un nom par ligne. Doublons ignorés.</small>
+                  Importer des participants (Excel / CSV / texte)
+                  <input type="file" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" disabled={importEnCours} onChange={importerParticipants} style={{ display: "block", marginTop: 8 }} />
+                  <small>Excel .xlsx : première feuille, colonne Nom ou première colonne. CSV/texte : un nom par ligne. 500 Ko et 256 participants maximum. Doublons ignorés.</small>
                 </label>
+
+                {messageImport && <p role="status" style={styles.selfAddHint}>{messageImport}</p>}
+                {nomsImportes.length > 0 && <div style={{ padding: 14, border: "1px solid #475579", borderRadius: 14 }}>
+                  <p>Aperçu : {nomsImportes.slice(0, 8).join(" · ")}{nomsImportes.length > 8 ? "…" : ""}</p>
+                  <button type="button" style={styles.secondaryButton} disabled={importEnCours || !modificationParticipantsAutorisee} onClick={ajouterImport}>Ajouter cette liste au tournoi</button>
+                  <button type="button" style={styles.secondaryButton} onClick={() => { setNomsImportes([]); setMessageImport("Import annulé."); }}>Annuler l’import</button>
+                </div>}
 
                 <div style={styles.selfAddLine}>
                   <span style={styles.selfAddHint}>Votre propre profil ?</span>
