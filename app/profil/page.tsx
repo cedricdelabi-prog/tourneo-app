@@ -226,7 +226,7 @@ export default function ProfilPage() {
       <div style={s.shell}>
         <TourneoNav active="profil" showBack backHref="/dashboard" onLogout={logout} primaryLabel="Créer un tournoi" primaryHref="/tournoi/nouveau" />
 
-        <section style={s.hero}>
+        <section className="tourneo-profile-hero" style={s.hero}>
           <div className="tourneo-avatar-picker" style={s.avatarWrap}>
             <div style={{ ...s.avatar, background: couleur }}>
               {avatar ? <PhotoPrivee src={avatar} alt="" style={s.avatarImg} /> : <span>{(nom || "T").slice(0,1).toUpperCase()}</span>}
@@ -307,7 +307,7 @@ const s: Record<string, CSSProperties> = {
   eyebrow: { color: "#72E7FF", fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" },
   title: { margin: "7px 0", fontSize: "clamp(32px,6vw,56px)", overflowWrap: "anywhere" },
   muted: { color: "#8597AF", lineHeight: 1.55, overflowWrap: "anywhere", maxWidth: "100%" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))", gap: 16 },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,290px),1fr))", gap: 16 },
   card: { minWidth: 0, padding: 22, borderRadius: 24, background: "rgba(15,25,43,.78)", border: "1px solid rgba(148,163,184,.14)", overflow: "hidden" },
   cardTitle: { margin: "7px 0" },
   label: { display: "block", margin: "14px 0 6px", color: "#B7C2D2", fontSize: 13, fontWeight: 800 },

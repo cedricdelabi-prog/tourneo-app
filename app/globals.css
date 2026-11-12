@@ -132,3 +132,5 @@ body {
 @media (prefers-reduced-motion:reduce) { .tourneo-top-nav *,.tourneo-avatar-picker button,.v2-card button { transform:none!important; } }
 .tourneo-animations-reduites .tourneo-top-nav *,.tourneo-animations-reduites .tourneo-avatar-picker button,.tourneo-animations-reduites .v2-card button { transform:none!important; }
 @media print { .tourneo-top-nav,.tourneo-mobile-bottom-nav,.tourneo-mobile-more { display:none!important; } }
+
+@media (max-width:600px) { .tourneo-profile-hero { grid-template-columns:minmax(0,1fr)!important; justify-items:center; } .tourneo-profile-hero .tourneo-avatar-picker { width:100%; } }
