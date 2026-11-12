@@ -1,12 +1,12 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.cedricdelabi.tourneo",
-  appName: "Tourneo",
+  appId: "com.cedricdelabi.tourneo.v2",
+  appName: "Tourneo V2",
   webDir: "public",
 
   server: {
-    url: "https://tourneo-app.vercel.app",
+    url: "https://tourneo-v2-test.vercel.app",
     cleartext: false,
   },
 };

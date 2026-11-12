@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ts = require('typescript');
 let hooks = [], cursor = 0, started = false, effects = [];
-const react = {
+const react = {useSyncExternalStore: (_subscribe,read)=>read(),
   useState(initial) { const i = cursor++; if (!(i in hooks)) hooks[i] = initial; return [hooks[i], next => { hooks[i] = typeof next === 'function' ? next(hooks[i]) : next; }]; },
   useEffect(callback) { if (!started) effects.push(callback); },
 };

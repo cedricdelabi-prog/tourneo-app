@@ -7,7 +7,7 @@ const bob = '22222222-2222-4222-8222-222222222222';
 const equipes = [{ id: alice, nom: 'Alice', emoji: '', couleur: '' }, { id: bob, nom: 'Bob', emoji: '', couleur: '' }];
 const matchs = [{ id: 1, journee: 1, equipe1Id: alice, equipe2Id: bob, score1:'', score2:'' }];
 let hooks = [], cursor = 0, effects = [], rpcCalls = [], lookupError = false, copied = '';
-const react = {
+const react = {useSyncExternalStore: (_subscribe,read)=>read(),
   Fragment: 'fragment',
   useState(initial) { const i=cursor++; if (!(i in hooks)) hooks[i]=initial; return [hooks[i],v=>{ hooks[i]=typeof v==='function'?v(hooks[i]):v; }]; },
   useMemo(fn) { return fn(); },

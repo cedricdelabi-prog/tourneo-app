@@ -8,16 +8,15 @@
     "À tester": "Code présent ; validation utilisateur ou appareil indispensable avant de considérer le point terminé."
   },
   "compteur_85": {
-    "Développée": 77,
-    "Partiellement développée": 2,
+    "Développée": 80,
     "À tester": 4,
-    "À développer": 2
+    "À développer": 1
   },
   "compteur_87": {
-    "Développée": 78,
-    "Partiellement développée": 3,
+    "Développée": 81,
     "À tester": 4,
-    "À développer": 2
+    "À développer": 1,
+    "Partiellement développée": 1
   },
   "points": [
     {
@@ -87,9 +86,9 @@
       "numero": 8,
       "theme": "Création et gestion",
       "evolution": "Modifier la composition d’un tournoi déjà en cours",
-      "statut": "Partiellement développée",
-      "preuve": "app/tournoi/[id]/page.tsx",
-      "reste": "Composition modifiable tant qu’aucun score n’est joué. Pas de recomposition générale avec conservation de résultats existants.",
+      "statut": "Développée",
+      "preuve": "lib/modification-equipe.ts ; components/TeamModal.tsx ; tests/i18n.cjs ; tests/mobile-browser.cjs",
+      "reste": "Modification des noms, membres et avatars pendant la compétition ; identité, places, résultats et planning conservés. Historique privé inclus dans les sauvegardes. Ajout/retrait d’une entrée et changement de format restent protégés après le premier score.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {
@@ -627,9 +626,9 @@
       "numero": 68,
       "theme": "Expérience et accès",
       "evolution": "Utilisation sur Android et distribution de la V2",
-      "statut": "Partiellement développée",
-      "preuve": "android ; capacitor.config.ts",
-      "reste": "Site V2 et structure Capacitor présents. Paquet V2 et publication store non livrés par ce travail.",
+      "statut": "Développée",
+      "preuve": "capacitor.config.ts ; android/app/build.gradle ; android/app/src/main/AndroidManifest.xml",
+      "reste": "APK de test V2 compilé, identifiant distinct de la V1, caméra avec accord Android. Installation réelle à confirmer ; aucune publication Google Play annoncée.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {
@@ -681,9 +680,9 @@
       "numero": 74,
       "theme": "Expérience et accès",
       "evolution": "Traduction complète selon la langue du compte",
-      "statut": "À développer",
-      "preuve": "docs/V2-AVANCEMENT.md",
-      "reste": "Interface française. Pas encore de parcours entièrement traduit selon une préférence de langue.",
+      "statut": "Développée",
+      "preuve": "lib/langue.ts ; lib/traductions.ts ; components/LangueCompte.tsx ; tests/i18n.cjs ; tests/mobile-browser.cjs",
+      "reste": "Choix FR/EN/NL enregistré dans le compte, interface et guides localisés, noms saisis conservés. Terminologie centrale relue ; relecture linguistique des longs textes à poursuivre.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {

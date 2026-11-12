@@ -1,0 +1,242 @@
+{
+  "Boîte à outils": {
+    "en": "Toolbox",
+    "nl": "Hulpmiddelen"
+  },
+  "Chrono": {
+    "en": "Timer",
+    "nl": "Timer"
+  },
+  "Points": {
+    "en": "Points",
+    "nl": "Punten"
+  },
+  "Tirage des équipes": {
+    "en": "Team draw",
+    "nl": "Teams loten"
+  },
+  "Former les équipes au hasard": {
+    "en": "Create random teams",
+    "nl": "Willekeurige teams maken"
+  },
+  "Lancer la roulette": {
+    "en": "Spin the wheel",
+    "nl": "Draai aan het rad"
+  },
+  "Créer des Olympiades": {
+    "en": "Create multi-activity games",
+    "nl": "Een meerkamp maken"
+  },
+  "Guide des outils et des Olympiades": {
+    "en": "Tools and multi-activity games guide",
+    "nl": "Handleiding voor hulpmiddelen en meerkamp"
+  },
+  "Des outils rapides pour arbitrer ou préparer vos équipes. Utilisables sans compte.": {
+    "en": "Quick tools for refereeing and preparing teams. No account required.",
+    "nl": "Snelle hulpmiddelen om wedstrijden te leiden en teams samen te stellen. Geen account nodig."
+  },
+  "Par exemple : 21 personnes, 3 équipes de 7. Si le nombre ne tombe pas juste, les tailles diffèrent d’une personne au maximum.": {
+    "en": "For example: 21 people make 3 teams of 7. If the numbers do not divide evenly, team sizes differ by at most one person.",
+    "nl": "Bijvoorbeeld: 21 personen vormen 3 teams van 7. Als het aantal niet gelijk verdeeld kan worden, verschillen de teams maximaal één persoon."
+  },
+  "Nombre d’équipes": {
+    "en": "Number of teams",
+    "nl": "Aantal teams"
+  },
+  "Une personne par ligne": {
+    "en": "One person per line",
+    "nl": "Eén persoon per regel"
+  },
+  "Équipe {0}": {
+    "en": "Team {0}",
+    "nl": "Team {0}"
+  },
+  "Manche": {
+    "en": "Set",
+    "nl": "Set"
+  },
+  "Manches": {
+    "en": "Sets",
+    "nl": "Sets"
+  },
+  "Tour": {
+    "en": "Round",
+    "nl": "Ronde"
+  },
+  "Phase de poules": {
+    "en": "Group stage",
+    "nl": "Poulefase"
+  },
+  "Poules + phase finale": {
+    "en": "Group stage and knockout stage",
+    "nl": "Poulefase en eindronde"
+  },
+  "Système suisse": {
+    "en": "Swiss system",
+    "nl": "Zwitsers systeem"
+  },
+  "Élimination directe": {
+    "en": "Single elimination",
+    "nl": "Rechtstreekse uitschakeling"
+  },
+  "Double élimination": {
+    "en": "Double elimination",
+    "nl": "Dubbele uitschakeling"
+  },
+  "Consolante": {
+    "en": "Consolation bracket",
+    "nl": "Troostronde"
+  },
+  "Championnat complet": {
+    "en": "Round-robin tournament",
+    "nl": "Volledige competitie"
+  },
+  "Championnat aller-retour": {
+    "en": "Double round-robin",
+    "nl": "Competitie met heen- en terugwedstrijden"
+  },
+  "Partenaires tournants (doubles)": {
+    "en": "Rotating partners (doubles)",
+    "nl": "Wisselende partners (dubbelspel)"
+  },
+  "Événements": {
+    "en": "Events",
+    "nl": "Evenementen"
+  },
+  "Groupes": {
+    "en": "Groups",
+    "nl": "Groepen"
+  },
+  "Mon activité": {
+    "en": "My activity",
+    "nl": "Mijn activiteit"
+  },
+  "Score": {
+    "en": "Score",
+    "nl": "Score"
+  },
+  "Résultat": {
+    "en": "Result",
+    "nl": "Uitslag"
+  },
+  "Résultats": {
+    "en": "Results",
+    "nl": "Uitslagen"
+  },
+  "Victoires": {
+    "en": "Wins",
+    "nl": "Overwinningen"
+  },
+  "Défaites": {
+    "en": "Losses",
+    "nl": "Nederlagen"
+  },
+  "Matchs nuls": {
+    "en": "Draws",
+    "nl": "Gelijkspelen"
+  },
+  "Matchs validés": {
+    "en": "Confirmed matches",
+    "nl": "Bevestigde wedstrijden"
+  },
+  "Enregistrer les modifications": {
+    "en": "Save changes",
+    "nl": "Wijzigingen opslaan"
+  },
+  "Modifier les équipes": {
+    "en": "Edit teams",
+    "nl": "Teams bewerken"
+  },
+  "Enregistrer et recalculer": {
+    "en": "Save and recalculate",
+    "nl": "Opslaan en opnieuw berekenen"
+  },
+  "Date de début": {
+    "en": "Start date",
+    "nl": "Begindatum"
+  },
+  "Début estimé": {
+    "en": "Estimated start",
+    "nl": "Geschatte start"
+  },
+  "Créés du": {
+    "en": "Created from",
+    "nl": "Aangemaakt vanaf"
+  },
+  "Mot de passe": {
+    "en": "Password",
+    "nl": "Wachtwoord"
+  },
+  "Mot de passe oublié ?": {
+    "en": "Forgot your password?",
+    "nl": "Wachtwoord vergeten?"
+  },
+  "Afficher le mot de passe": {
+    "en": "Show password",
+    "nl": "Wachtwoord tonen"
+  },
+  "Masquer le mot de passe": {
+    "en": "Hide password",
+    "nl": "Wachtwoord verbergen"
+  },
+  "Prénom": {
+    "en": "First name",
+    "nl": "Voornaam"
+  },
+  "Nom de famille": {
+    "en": "Last name",
+    "nl": "Achternaam"
+  },
+  "Ville": {
+    "en": "City",
+    "nl": "Plaats"
+  },
+  "Prendre une photo": {
+    "en": "Take a photo",
+    "nl": "Een foto maken"
+  },
+  "Choisir une photo": {
+    "en": "Choose a photo",
+    "nl": "Een foto kiezen"
+  },
+  "Copier les équipes": {
+    "en": "Copy teams",
+    "nl": "Teams kopiëren"
+  },
+  "Tirage terminé": {
+    "en": "Draw complete",
+    "nl": "Loting voltooid"
+  },
+  "Verrouillé": {
+    "en": "Locked",
+    "nl": "Vergrendeld"
+  },
+  "Réinitialiser": {
+    "en": "Reset",
+    "nl": "Opnieuw instellen"
+  },
+  "Compte à rebours": {
+    "en": "Countdown",
+    "nl": "Afteltimer"
+  },
+  "Chronomètre libre": {
+    "en": "Stopwatch",
+    "nl": "Stopwatch"
+  },
+  "Annuler le dernier point": {
+    "en": "Undo the last point",
+    "nl": "Laatste punt ongedaan maken"
+  },
+  "Remettre à zéro": {
+    "en": "Reset to zero",
+    "nl": "Op nul zetten"
+  },
+  "Proposer le résultat": {
+    "en": "Submit the result",
+    "nl": "Uitslag voorstellen"
+  },
+  "Reporter dans la proposition": {
+    "en": "Copy to the result proposal",
+    "nl": "Overnemen in het uitslagvoorstel"
+  }
+}

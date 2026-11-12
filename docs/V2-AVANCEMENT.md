@@ -168,3 +168,11 @@ Navigation : composant de retour commun avec chevron, zone cliquable et focus cl
 - Les essais sur de vrais téléphones, deux comptes connectés et les coupures réseau réelles restent à confirmer. Les avertissements Supabase antérieurs ne sont pas tous supprimés ; aucun nouveau signal ne vise les fonctions ou tables ajoutées ici.
 
 - Chargement des Olympiades : reprise locale immédiate sans réseau ; lectures du compte et de la version en ligne bornées pour éviter un écran bloqué. Régression vérifiée dans `tests/outils-ui.cjs`.
+
+## Équipes, langues et Android — 12 novembre 2026
+
+- Modification d’une équipe pendant les rencontres sans recalcul ni suppression des résultats ; historique privé des noms et membres, sauvegarde comprise.
+- Langue de compte FR/EN/NL ; traductions intégrées aux écrans et guides. Les noms et données saisis restent inchangés. Métadonnées publiques de référencement conservées en français.
+- Tests navigateur sur quatre largeurs, parcours photo/compression et conservation du score 13–6 ; essais de matériels réels encore à réaliser.
+- APK Android de test V2 compilé avec paquet séparé ; V1 inchangée. Les mots de passe de signature précédemment présents dans le fichier Gradle ont été retirés de cette branche. Les anciennes versions du dépôt peuvent toujours les contenir : renouvellement à prévoir avant une distribution de production.
+- Grille reconstituée à ce jalon : 80 développés, 4 à tester, 1 à développer. Les quatre points à tester ont déjà leur code ; ils ne sont pas des fonctionnalités encore absentes.

@@ -14,8 +14,10 @@
     "test": "node tests/moteur.cjs",
     "test:db": "node tests/database.cjs",
     "test:purge": "node tests/purge-photos.cjs",
-    "test:parcours": "node tests/profil.cjs && node tests/impression.cjs && node tests/suivi.cjs && node tests/evenements.cjs && node tests/import-excel.cjs && node tests/annonces.cjs && node tests/appels-ui.cjs && node tests/synchronisation.cjs && node tests/outils.cjs && node tests/outils-ui.cjs",
-    "test:outils": "node tests/outils.cjs && node tests/outils-ui.cjs"
+    "test:parcours": "node tests/profil.cjs && node tests/impression.cjs && node tests/suivi.cjs && node tests/evenements.cjs && node tests/import-excel.cjs && node tests/annonces.cjs && node tests/appels-ui.cjs && node tests/synchronisation.cjs && node tests/outils.cjs && node tests/outils-ui.cjs && node tests/i18n.cjs",
+    "test:outils": "node tests/outils.cjs && node tests/outils-ui.cjs",
+    "test:i18n": "node tests/i18n.cjs",
+    "test:browser": "node tests/mobile-browser.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.16",
+    "@playwright/test": "1.56.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

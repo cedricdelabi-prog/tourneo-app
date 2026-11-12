@@ -10,9 +10,9 @@ Les points 86 et 87 sont des priorités ajoutées qui recoupent plusieurs foncti
 
 | Statut | Nombre |
 |---|---:|
-| Développée | 77 |
-| Partiellement développée | 2 |
-| À développer | 2 |
+| Développée | 80 |
+| Partiellement développée | 0 |
+| À développer | 1 |
 | À tester | 4 |
 
 **Ces nombres mesurent la présente grille reconstituée. Ils ne certifient pas un nombre terminé dans une liste historique 1–75 que nous ne possédons pas intégralement.**
@@ -37,7 +37,7 @@ Source du périmètre : récapitulatif transmis par l’utilisateur dans cette c
 | 5 | Création et gestion | Ajout de joueurs sans compte ni téléphone | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 6 | Création et gestion | Équipes avec liste de membres | Développée | [components/TeamModal.tsx](../components/TeamModal.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 7 | Création et gestion | Modifier ou supprimer les participants avant les résultats | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
-| 8 | Création et gestion | Modifier la composition d’un tournoi déjà en cours | Partiellement développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Composition modifiable tant qu’aucun score n’est joué. Pas de recomposition générale avec conservation de résultats existants. |
+| 8 | Création et gestion | Modifier la composition d’un tournoi déjà en cours | Développée | [lib/modification-equipe.ts](../lib/modification-equipe.ts) ; [components/TeamModal.tsx](../components/TeamModal.tsx) ; [tests/i18n.cjs](../tests/i18n.cjs) ; [tests/mobile-browser.cjs](../tests/mobile-browser.cjs) | Modification des noms, membres et avatars pendant la compétition ; identité, places, résultats et planning conservés. Historique privé inclus dans les sauvegardes. Ajout/retrait d’une entrée et changement de format restent protégés après le premier score. |
 | 9 | Création et gestion | Configurer le nombre de terrains | Développée | [components/OptionsTournoiV2.tsx](../components/OptionsTournoiV2.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 10 | Création et gestion | Configurer le départ et la durée des rencontres | Développée | [lib/planning.ts](../lib/planning.ts) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 11 | Création et gestion | Respecter un repos minimum entre deux rencontres | Développée | [lib/planning.ts](../lib/planning.ts) ; [tests/suivi.cjs](../tests/suivi.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
@@ -97,13 +97,13 @@ Source du périmètre : récapitulatif transmis par l’utilisateur dans cette c
 | 65 | Résultats et partage | Historique des inscriptions, arbitrages et participations | Développée | [app/activite/page.tsx](../app/activite/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 66 | Expérience et accès | Affichage responsive smartphone, tablette et ordinateur | À tester | [app/globals.css](../app/globals.css) | Ordinateur validé par les essais utilisateur. Vérification complète sur petits écrans et tablette à terminer. |
 | 67 | Expérience et accès | Utilisation sur iPhone | À tester | [app/manifest.ts](../app/manifest.ts) ; [app/login/page.tsx](../app/login/page.tsx) | Parcours Safari/iPhone et installation écran d’accueil à vérifier sur appareil réel. |
-| 68 | Expérience et accès | Utilisation sur Android et distribution de la V2 | Partiellement développée | [android](../android) ; [capacitor.config.ts](../capacitor.config.ts) | Site V2 et structure Capacitor présents. Paquet V2 et publication store non livrés par ce travail. |
+| 68 | Expérience et accès | Utilisation sur Android et distribution de la V2 | Développée | [capacitor.config.ts](../capacitor.config.ts) ; [android/app/build.gradle](../android/app/build.gradle) ; [android/app/src/main/AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml) | APK de test V2 compilé, identifiant distinct de la V1, caméra avec accord Android. Installation réelle à confirmer ; aucune publication Google Play annoncée. |
 | 69 | Expérience et accès | Navigation commune et retours cohérents | Développée | [components/TourneoNav.tsx](../components/TourneoNav.tsx) ; [components/TourneoRetour.tsx](../components/TourneoRetour.tsx) | Inclut la fusion planning/scores/appels en une fiche de match, demandée pendant les essais. |
 | 70 | Expérience et accès | Application gratuite et suppression des publicités | Développée | [app](../app) ; [components](../components) | Aucun paiement ou espace publicitaire dans la V2. Tous les modes restent gratuits selon la demande actuelle. |
 | 71 | Expérience et accès | Notifications internes liées à Tourneo | Développée | [app/activite/page.tsx](../app/activite/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 72 | Expérience et accès | Préférences sportives et consentement promotionnel distincts | Développée | [components/PreferencesCompte.tsx](../components/PreferencesCompte.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 73 | Expérience et accès | E-mails sportifs et notifications téléphone application fermée | À développer | [docs/V2-AVANCEMENT.md](../docs/V2-AVANCEMENT.md) | Les messages internes et alertes locales existent. Les canaux e-mail et push fermé ne sont pas activés. |
-| 74 | Expérience et accès | Traduction complète selon la langue du compte | À développer | [docs/V2-AVANCEMENT.md](../docs/V2-AVANCEMENT.md) | Interface française. Pas encore de parcours entièrement traduit selon une préférence de langue. |
+| 74 | Expérience et accès | Traduction complète selon la langue du compte | Développée | [lib/langue.ts](../lib/langue.ts) ; [lib/traductions.ts](../lib/traductions.ts) ; [components/LangueCompte.tsx](../components/LangueCompte.tsx) ; [tests/i18n.cjs](../tests/i18n.cjs) ; [tests/mobile-browser.cjs](../tests/mobile-browser.cjs) | Choix FR/EN/NL enregistré dans le compte, interface et guides localisés, noms saisis conservés. Terminologie centrale relue ; relecture linguistique des longs textes à poursuivre. |
 | 75 | Impression | Impression personnalisable du tournoi | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | A4/A3, orientation, sections, grandes cases, couleurs, poules, tableaux et QR par match. Vérification d’une impression physique à poursuivre. |
 | 76 | Évolutions 76–85 | Écran géant | Développée | [app/partage/[id]/page.tsx](../app/partage/[id]/page.tsx) | Affichage et plein écran présents ; vérifier sur télévision ou vidéoprojecteur. |
 | 77 | Évolutions 76–85 | Liste d’attente quand le tournoi est complet | Développée | [app/inscriptions/[id]/page.tsx](../app/inscriptions/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Les nouvelles demandes vont en attente ; les places libérées sont attribuées par l’organisateur. |

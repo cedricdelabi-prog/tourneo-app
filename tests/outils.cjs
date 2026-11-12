@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
-function load(path){const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(require,m,m.exports);return m.exports;}
+function load(path){const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(id=>id.startsWith('@/')?load(id.slice(2)+'.ts'):require(id),m,m.exports);return m.exports;}
 const {nomsPourTirage,tirerEquipes,tempsChrono,afficherDuree}=load('lib/outils-arbitre.ts');
 for(const [total,nb] of [[21,3],[22,3],[2,2],[256,32],[33,8]]){const noms=Array.from({length:total},(_,i)=>`P${i}`);const eq=tirerEquipes(noms,nb);assert.equal(eq.length,nb);assert.equal(new Set(eq.flatMap(e=>e.joueurs)).size,total);assert.deepEqual(eq.flatMap(e=>e.joueurs).sort(),noms.sort());assert.ok(Math.max(...eq.map(e=>e.joueurs.length))-Math.min(...eq.map(e=>e.joueurs.length))<=1);if(total===21)assert.ok(eq.every(e=>e.joueurs.length===7));}
 assert.throws(()=>nomsPourTirage('Alice\nalice'),/identiques/);assert.throws(()=>tirerEquipes(['A','B'],3));assert.throws(()=>tirerEquipes(['A','B'],2,()=>2));

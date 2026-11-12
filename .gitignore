@@ -44,3 +44,15 @@ tourneo-cert.der
 
 # Supabase CLI local cache
 supabase/.temp/
+
+# Native generated outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/src/main/assets/
+android/capacitor-cordova-android-plugins/
+artifacts/
+
+# Browser visual QA outputs
+tests/screenshots/

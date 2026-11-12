@@ -251,3 +251,5 @@ body {
 .tourneo-header-tool-link,.tourneo-tournament-more>summary { display:inline-flex; align-items:center; padding:12px 16px; min-height:44px; border:1px solid #3c526f; border-radius:12px; background:#192b46; color:#d7eaff!important; text-decoration:none!important; font:inherit; font-size:13px; font-weight:650; cursor:pointer; }.tourneo-tournament-more>div { display:flex; flex-wrap:wrap; align-items:center; gap:9px; padding-top:14px; max-width:600px; }.tourneo-tournament-more>div a { font-size:12px; color:#9fdfff; }.tourneo-olympic-print-title{display:none;}
 @media print{.tourneo-olympic-print-title{display:block;color:#111;}.tourneo-olympic-measures input{color:#111!important;background:white!important;border-color:#aaa!important;}.tourneo-tournament-more,.tourneo-header-tool-link{display:none!important;}}
 .tourneo-drawn-teams li,.tourneo-olympic-ranking strong { overflow-wrap:anywhere; min-width:0; }.tourneo-olympic-ranking strong>span { flex-shrink:0; }
+
+@media(max-width:600px){.tourneo-team-card{flex-wrap:wrap!important}.tourneo-team-card>div{min-width:120px;overflow-wrap:anywhere}}

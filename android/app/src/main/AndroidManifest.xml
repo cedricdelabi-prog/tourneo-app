@@ -22,14 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Ouvre les liens https://tourneo-app.vercel.app/... directement dans Tourneo. -->
+            <!-- Ouvre les liens https://tourneo-v2-test.vercel.app/... directement dans Tourneo. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="tourneo-app.vercel.app" />
+                    android:host="tourneo-v2-test.vercel.app" />
             </intent-filter>
 
         </activity>
@@ -46,4 +46,6 @@
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>

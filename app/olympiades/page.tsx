@@ -1,4 +1,5 @@
 "use client";
+import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TourneoNav from '@/components/TourneoNav';
 import ClassementOlympiade from '@/components/ClassementOlympiade';
@@ -9,6 +10,7 @@ import { nomsPourTirage, type EquipeTiree } from '@/lib/outils-arbitre';
 const CLE = 'tourneo-olympiade-locale:v1';
 const vide = (): Olympiade => ({ version: 1, nom: 'Mes Olympiades', equipes: [], epreuves: [] });
 export default function Olympiades() {
+    useLangue();
     const [d, setD] = useState<Olympiade>(vide), [pret, setPret] = useState(false), [message, setMessage] = useState(''), [occupe, setOccupe] = useState(false), [id, setId] = useState(''), [revision, setRevision] = useState<number | null>(null), [partage, setPartage] = useState(false);
     const [equipe, setEquipe] = useState(''), [epreuve, setEpreuve] = useState(''), [sens, setSens] = useState<'plus' | 'moins'>('plus'), [unite, setUnite] = useState('points'), [liste, setListe] = useState<{
         id: string;
@@ -60,17 +62,27 @@ export default function Olympiades() {
                 }
                 if (identifiant && actif)
                     setId(identifiant);
-                if (navigator.onLine === false) { setMessage('Hors connexion · copie conservée sur cet appareil. Exportez une sauvegarde avant de quitter.'); return; }
-                if (!identifiant && actif) setPret(true);
-                const auth = await avecDelai(supabase.auth.getUser(),2500);
-                if (!auth) { if(actif)setMessage('Connexion au compte trop lente · travail possible sur cet appareil.'); return; }
+                if (navigator.onLine === false) {
+                    setMessage('Hors connexion · copie conservée sur cet appareil. Exportez une sauvegarde avant de quitter.');
+                    return;
+                }
+                if (!identifiant && actif)
+                    setPret(true);
+                const auth = await avecDelai(supabase.auth.getUser(), 2500);
+                if (!auth) {
+                    if (actif)
+                        setMessage('Connexion au compte trop lente · travail possible sur cet appareil.');
+                    return;
+                }
                 if (!actif)
                     return;
                 if (auth.data.user) {
-                    void Promise.resolve(supabase.from('tourneo_olympiades').select('id,nom').eq('user_id', auth.data.user.id).order('created_at', { ascending: false })).then(ls=>{if(actif&&!ls.error)setListe(ls.data||[]);}).catch(()=>{});
+                    void Promise.resolve(supabase.from('tourneo_olympiades').select('id,nom').eq('user_id', auth.data.user.id).order('created_at', { ascending: false })).then(ls => { if (actif && !ls.error)
+                        setListe(ls.data || []); }).catch(() => { });
                     if (identifiant) {
-                        const r = await avecDelai(supabase.from('tourneo_olympiades').select('donnees,revision,partage').eq('id', identifiant).eq('user_id', auth.data.user.id).maybeSingle(),4000);
-                        if (!r) throw new Error('Chargement en ligne trop lent. Votre copie locale reste disponible.');
+                        const r = await avecDelai(supabase.from('tourneo_olympiades').select('donnees,revision,partage').eq('id', identifiant).eq('user_id', auth.data.user.id).maybeSingle(), 4000);
+                        if (!r)
+                            throw new Error('Chargement en ligne trop lent. Votre copie locale reste disponible.');
                         if (r.error || !r.data)
                             throw new Error('Olympiade inaccessible. La copie locale reste conservée.');
                         if (!actif)
@@ -104,18 +116,30 @@ export default function Olympiades() {
         })();
         return () => { actif = false; };
     }, []);
-    useEffect(() => { if (!pret)
-        return; let actif = true; void (async () => { await Promise.resolve(); if (!actif)
-        return; try {
-        localStorage.setItem(id ? `${CLE}:${id}` : CLE, JSON.stringify({ donnees: d, revision, partage, signature: sauve }));
-    }
-    catch {
-        setMessage('Mémoire locale indisponible : exportez votre sauvegarde avant de quitter.');
-    } })(); return () => { actif = false; }; }, [pret, d, id, revision, partage, sauve]);
+    useEffect(() => {
+        if (!pret)
+            return;
+        let actif = true;
+        void (async () => {
+            await Promise.resolve();
+            if (!actif)
+                return;
+            try {
+                localStorage.setItem(id ? `${CLE}:${id}` : CLE, JSON.stringify({ donnees: d, revision, partage, signature: sauve }));
+            }
+            catch {
+                setMessage('Mémoire locale indisponible : exportez votre sauvegarde avant de quitter.');
+            }
+        })();
+        return () => { actif = false; };
+    }, [pret, d, id, revision, partage, sauve]);
     async function enregistrer(activerPartage = partage) {
         if (verrou.current || !pret || conflit)
             return;
-        if(navigator.onLine===false){setMessage('Hors connexion · exportez votre sauvegarde ou enregistrez dans votre compte après le retour du réseau.');return;}
+        if (navigator.onLine === false) {
+            setMessage('Hors connexion · exportez votre sauvegarde ou enregistrez dans votre compte après le retour du réseau.');
+            return;
+        }
         verrou.current = true;
         setOccupe(true);
         const capture = signature;
@@ -154,75 +178,99 @@ export default function Olympiades() {
         }
     }
     function changerEpreuve(id: string, modifier: (e: EpreuveOlympiade) => EpreuveOlympiade) { setD(a => ({ ...a, epreuves: a.epreuves.map(e => e.id === id ? modifier(e) : e) })); }
-    function ajouterEquipe() { if (structureVerrouillee)
-        return; try {
-        if (d.equipes.length >= 32)
-            throw new Error('32 équipes maximum.');
-        if (!equipe.trim() || equipe.trim().length > 100 || d.equipes.some(e => e.nom.toLocaleLowerCase('fr') === equipe.trim().toLocaleLowerCase('fr')))
-            throw new Error('Ajoutez un nom d’équipe unique.');
-        setD(a => ({ ...a, equipes: [...a.equipes, { id: crypto.randomUUID(), nom: equipe.trim(), joueurs: [] }] }));
-        setEquipe('');
+    function ajouterEquipe() {
+        if (structureVerrouillee)
+            return;
+        try {
+            if (d.equipes.length >= 32)
+                throw new Error('32 équipes maximum.');
+            if (!equipe.trim() || equipe.trim().length > 100 || d.equipes.some(e => e.nom.toLocaleLowerCase('fr') === equipe.trim().toLocaleLowerCase('fr')))
+                throw new Error('Ajoutez un nom d’équipe unique.');
+            setD(a => ({ ...a, equipes: [...a.equipes, { id: crypto.randomUUID(), nom: equipe.trim(), joueurs: [] }] }));
+            setEquipe('');
+        }
+        catch (e) {
+            setMessage(e instanceof Error ? e.message : 'Nom invalide.');
+        }
     }
-    catch (e) {
-        setMessage(e instanceof Error ? e.message : 'Nom invalide.');
-    } }
     const structureVerrouillee = d.epreuves.some(e => e.validee);
     if (!pret)
-        return <main className="v2-page"><div className="v2-shell"><TourneoNav /><p role="status">Ouverture des Olympiades…</p></div></main>;
-    return <main className="v2-page"><div className="v2-shell"><TourneoNav showBack contextLabel="Olympiades"/><h1 className="tourneo-olympic-print-title">{d.nom}</h1>
- <section className="v2-card tourneo-olympic-editor"><span className="v2-eyebrow">Plusieurs activités · les mêmes équipes</span><h1>Olympiades</h1><p>Ajoutez vos équipes, vos épreuves, puis notez chaque performance. Le classement se construit avec les épreuves validées.</p><a href="/guides/outils-et-olympiades">Comment organiser mes Olympiades ?</a>{message && <p role="status">{message}</p>}{conflit && <div className="tourneo-sync-conflict"><p>Deux versions existent. Cette copie reste disponible à l’export.</p><button type="button" onClick={() => exporterOlympiade(d)}>Exporter cette copie</button><button type="button" onClick={() => { if (window.confirm('Recharger la version en ligne ? Votre copie locale sera téléchargée.')) {
-        exporterOlympiade(d);
-        localStorage.removeItem(`${CLE}:${id}`);
-        window.location.reload();
-    } }}>Charger la version en ligne</button></div>}
- <label>Nom de la journée<input maxLength={100} value={d.nom} disabled={!pret || occupe} onChange={e => setD(a => ({ ...a, nom: e.target.value }))}/></label>
- <div className="tourneo-tool-actions"><button type="button" disabled={!pret || occupe || conflit} onClick={() => void enregistrer()}>{occupe ? 'Enregistrement…' : 'Enregistrer dans mon compte'}</button><button type="button" disabled={!pret} onClick={() => exporterOlympiade(d)}>Exporter une sauvegarde</button><button type="button" onClick={() => window.print()}>Imprimer</button></div><p className="tourneo-tool-note">{signature === sauve && id ? 'Version enregistrée dans votre compte.' : 'Modifications conservées sur cet appareil ; utilisez Enregistrer pour les retrouver ailleurs.'}</p>
- <details className="tourneo-tool-settings"><summary>Retrouver, importer ou partager</summary><button type="button" onClick={() => { try {
-        const brut = localStorage.getItem(`${CLE}:precedent`);
-        if (!brut)
-            throw new Error('Aucun ancien brouillon à récupérer.');
-        exporterOlympiade(lireOlympiade(JSON.stringify(JSON.parse(brut).donnees)));
-    }
-    catch (e) {
-        setMessage(e instanceof Error ? e.message : 'Récupération impossible.');
-    } }}>Récupérer le brouillon précédent</button><label>Mes Olympiades<select value={id} disabled={occupe} onChange={e => { if (!e.target.value)
-        return; if (signature !== sauve && !window.confirm('Changer d’Olympiade ? La copie actuelle restera sur cet appareil.'))
-        return; window.location.href = `/olympiades?id=${e.target.value}`; }}><option value="">Choisir…</option>{liste.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}</select></label><label>Importer une sauvegarde<input type="file" accept=".json,application/json" disabled={occupe} onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f)
-        return; try {
-        if (f.size > 1000000)
-            throw new Error('Fichier trop volumineux.');
-        const copie = lireOlympiade(await f.text());
-        if (!window.confirm('Ouvrir cette sauvegarde comme une nouvelle Olympiade ? La copie actuelle sera téléchargée avant le remplacement.'))
-            return;
-        exporterOlympiade(d);
-        setD(copie);
-        setId('');
-        setRevision(null);
-        setPartage(false);
-        setSauve('');
-        setConflit(false);
-        window.history.replaceState({}, '', '/olympiades');
-    }
-    catch (err) {
-        setMessage(err instanceof Error ? err.message : 'Fichier invalide.');
-    } }}/></label><div className="tourneo-tool-actions"><button type="button" disabled={occupe || conflit} onClick={() => void enregistrer(!partage)}>{partage ? 'Fermer le partage public' : 'Activer le partage public'}</button>{id && partage && <a href={`/olympiades/partage/${id}`}>Ouvrir le classement public</a>}<button type="button" disabled={occupe} onClick={() => { if (window.confirm('Préparer une nouvelle Olympiade ? Exportez votre copie actuelle si nécessaire.')) {
-        exporterOlympiade(d);
-        setD(vide());
-        setId('');
-        setRevision(null);
-        setSauve('');
-        setPartage(false);
-        setConflit(false);
-        window.history.replaceState({}, '', '/olympiades');
-    } }}>Nouvelle Olympiade</button></div><p className="tourneo-tool-note">Le partage affiche les noms d’équipes et les résultats validés. La liste des membres reste privée.</p></details></section>
- <section className="v2-card tourneo-olympic-editor"><h2>1. Les équipes</h2>{!d.equipes.length && <p>Ajoutez vos équipes ou utilisez <a href="/outils">la roulette pour répartir les participants</a>.</p>}<div className="tourneo-tool-actions"><label>Nouvelle équipe<input maxLength={100} value={equipe} disabled={!pret || structureVerrouillee} onChange={e => setEquipe(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') {
-        e.preventDefault();
-        ajouterEquipe();
-    } }}/></label><button type="button" disabled={!pret || structureVerrouillee || !equipe.trim()} onClick={ajouterEquipe}>Ajouter</button></div><div className="tourneo-drawn-teams">{d.equipes.map(e => <article key={e.id}><strong>{e.nom}</strong>{e.joueurs.length > 0 && <p>{e.joueurs.join(', ')}</p>}<button type="button" disabled={structureVerrouillee} onClick={() => setD(a => ({ ...a, equipes: a.equipes.filter(t => t.id !== e.id) }))}>Retirer</button></article>)}</div>{structureVerrouillee && <p className="tourneo-tool-note">La composition est protégée après la première validation. Rouvrez les résultats des épreuves pour la modifier.</p>}</section>
- <section className="v2-card tourneo-olympic-editor"><h2>2. Les épreuves</h2><div className="tourneo-tool-fields"><label>Activité<input maxLength={100} value={epreuve} disabled={!pret || occupe} placeholder="Relais, lancer de précision, quiz…" onChange={e => setEpreuve(e.target.value)}/></label><label>Performance mesurée<select value={unite} onChange={e => { setUnite(e.target.value); setSens(e.target.value === 'secondes' ? 'moins' : 'plus'); }}><option>points</option><option>secondes</option><option>centimètres</option><option>réussites</option></select></label><label>Meilleure performance<select value={sens} onChange={e => setSens(e.target.value as 'plus' | 'moins')}><option value="plus">La plus grande valeur gagne</option><option value="moins">La plus petite valeur gagne</option></select></label></div><button type="button" disabled={!pret || occupe || !epreuve.trim() || d.epreuves.length >= 32} onClick={() => { setD(a => ({ ...a, epreuves: [...a.epreuves, { id: crypto.randomUUID(), nom: epreuve.trim(), unite, sens, validee: false, mesures: {} }] })); setEpreuve(''); }}>Ajouter l’épreuve</button></section>
- {d.epreuves.map(e => <section className="v2-card" key={e.id}><h2>{e.nom}</h2><p>{e.sens === 'moins' ? 'La plus petite valeur gagne' : 'La plus grande valeur gagne'} · {e.unite}{e.validee ? ' · Résultats validés' : ' · Épreuve en cours'}</p><div className="tourneo-olympic-measures">{d.equipes.map(t => <label key={t.id}>{t.nom}<input inputMode="decimal" aria-label={`${e.nom} — ${t.nom} (${e.unite})`} value={e.mesures[t.id] || ''} disabled={e.validee || occupe} maxLength={13} placeholder={e.unite} onChange={ev => { if (/^\d{0,9}(?:[.,]\d{0,3})?$/.test(ev.target.value))
-        changerEpreuve(e.id, a => ({ ...a, mesures: { ...a.mesures, [t.id]: ev.target.value } })); }}/></label>)}</div><div className="tourneo-tool-actions tourneo-olympic-editor"><button type="button" disabled={occupe || (!e.validee && classementEpreuve(e, d.equipes).length !== d.equipes.length) || d.equipes.length < 2} onClick={() => changerEpreuve(e.id, a => ({ ...a, validee: !a.validee }))}>{e.validee ? 'Corriger les résultats' : 'Valider cette épreuve'}</button>{!e.validee && <button type="button" disabled={occupe} onClick={() => { if (window.confirm('Supprimer cette épreuve ?'))
-        setD(a => ({ ...a, epreuves: a.epreuves.filter(x => x.id !== e.id) })); }}>Supprimer</button>}</div></section>)}
+        return <main className="v2-page"><div className="v2-shell"><TourneoNav /><p role="status">{tr("Ouverture des Olympiades\u2026")}</p></div></main>;
+    return <main className="v2-page"><div className="v2-shell"><TourneoNav showBack contextLabel={tr("Olympiades")}/><h1 className="tourneo-olympic-print-title">{d.nom}</h1>
+ <section className="v2-card tourneo-olympic-editor"><span className="v2-eyebrow">{tr("Plusieurs activit\u00E9s \u00B7 les m\u00EAmes \u00E9quipes")}</span><h1>{tr("Olympiades")}</h1><p>{tr("Ajoutez vos \u00E9quipes, vos \u00E9preuves, puis notez chaque performance. Le classement se construit avec les \u00E9preuves valid\u00E9es.")}</p><a href="/guides/outils-et-olympiades">{tr("Comment organiser mes Olympiades ?")}</a>{tr(message) && <p role="status">{tr(message)}</p>}{conflit && <div className="tourneo-sync-conflict"><p>{tr("Deux versions existent. Cette copie reste disponible \u00E0 l\u2019export.")}</p><button type="button" onClick={() => exporterOlympiade(d)}>{tr("Exporter cette copie")}</button><button type="button" onClick={() => {
+                if (window.confirm('Recharger la version en ligne ? Votre copie locale sera téléchargée.')) {
+                    exporterOlympiade(d);
+                    localStorage.removeItem(`${CLE}:${id}`);
+                    window.location.reload();
+                }
+            }}>{tr("Charger la version en ligne")}</button></div>}
+ <label>{tr("Nom de la journ\u00E9e")}<input maxLength={100} value={d.nom} disabled={!pret || occupe} onChange={e => setD(a => ({ ...a, nom: e.target.value }))}/></label>
+ <div className="tourneo-tool-actions"><button type="button" disabled={!pret || occupe || conflit} onClick={() => void enregistrer()}>{occupe ? tr('Enregistrement…') : tr('Enregistrer dans mon compte')}</button><button type="button" disabled={!pret} onClick={() => exporterOlympiade(d)}>{tr("Exporter une sauvegarde")}</button><button type="button" onClick={() => window.print()}>{tr("Imprimer")}</button></div><p className="tourneo-tool-note">{signature === sauve && id ? tr('Version enregistrée dans votre compte.') : tr('Modifications conservées sur cet appareil ; utilisez Enregistrer pour les retrouver ailleurs.')}</p>
+ <details className="tourneo-tool-settings"><summary>{tr("Retrouver, importer ou partager")}</summary><button type="button" onClick={() => {
+            try {
+                const brut = localStorage.getItem(`${CLE}:precedent`);
+                if (!brut)
+                    throw new Error('Aucun ancien brouillon à récupérer.');
+                exporterOlympiade(lireOlympiade(JSON.stringify(JSON.parse(brut).donnees)));
+            }
+            catch (e) {
+                setMessage(e instanceof Error ? e.message : 'Récupération impossible.');
+            }
+        }}>{tr("R\u00E9cup\u00E9rer le brouillon pr\u00E9c\u00E9dent")}</button><label>{tr("Mes Olympiades")}<select value={id} disabled={occupe} onChange={e => {
+            if (!e.target.value)
+                return;
+            if (signature !== sauve && !window.confirm('Changer d’Olympiade ? La copie actuelle restera sur cet appareil.'))
+                return;
+            window.location.href = `/olympiades?id=${e.target.value}`;
+        }}><option value="">{tr("Choisir\u2026")}</option>{liste.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}</select></label><label>{tr("Importer une sauvegarde")}<input type="file" accept=".json,application/json" disabled={occupe} onChange={async (e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (!f)
+                return;
+            try {
+                if (f.size > 1000000)
+                    throw new Error('Fichier trop volumineux.');
+                const copie = lireOlympiade(await f.text());
+                if (!window.confirm('Ouvrir cette sauvegarde comme une nouvelle Olympiade ? La copie actuelle sera téléchargée avant le remplacement.'))
+                    return;
+                exporterOlympiade(d);
+                setD(copie);
+                setId('');
+                setRevision(null);
+                setPartage(false);
+                setSauve('');
+                setConflit(false);
+                window.history.replaceState({}, '', '/olympiades');
+            }
+            catch (err) {
+                setMessage(err instanceof Error ? err.message : 'Fichier invalide.');
+            }
+        }}/></label><div className="tourneo-tool-actions"><button type="button" disabled={occupe || conflit} onClick={() => void enregistrer(!partage)}>{partage ? tr('Fermer le partage public') : tr('Activer le partage public')}</button>{id && partage && <a href={`/olympiades/partage/${id}`}>{tr("Ouvrir le classement public")}</a>}<button type="button" disabled={occupe} onClick={() => {
+            if (window.confirm('Préparer une nouvelle Olympiade ? Exportez votre copie actuelle si nécessaire.')) {
+                exporterOlympiade(d);
+                setD(vide());
+                setId('');
+                setRevision(null);
+                setSauve('');
+                setPartage(false);
+                setConflit(false);
+                window.history.replaceState({}, '', '/olympiades');
+            }
+        }}>{tr("Nouvelle Olympiade")}</button></div><p className="tourneo-tool-note">{tr("Le partage affiche les noms d\u2019\u00E9quipes et les r\u00E9sultats valid\u00E9s. La liste des membres reste priv\u00E9e.")}</p></details></section>
+ <section className="v2-card tourneo-olympic-editor"><h2>{tr("1. Les \u00E9quipes")}</h2>{!d.equipes.length && <p>{tr("Ajoutez vos \u00E9quipes ou utilisez ")}<a href="/outils">{tr("la roulette pour r\u00E9partir les participants")}</a>.</p>}<div className="tourneo-tool-actions"><label>{tr("Nouvelle \u00E9quipe")}<input maxLength={100} value={equipe} disabled={!pret || structureVerrouillee} onChange={e => setEquipe(e.target.value)} onKeyDown={e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                ajouterEquipe();
+            }
+        }}/></label><button type="button" disabled={!pret || structureVerrouillee || !equipe.trim()} onClick={ajouterEquipe}>{tr("Ajouter")}</button></div><div className="tourneo-drawn-teams">{d.equipes.map(e => <article key={e.id}><strong>{e.nom}</strong>{e.joueurs.length > 0 && <p>{e.joueurs.join(', ')}</p>}<button type="button" disabled={structureVerrouillee} onClick={() => setD(a => ({ ...a, equipes: a.equipes.filter(t => t.id !== e.id) }))}>{tr("Retirer")}</button></article>)}</div>{structureVerrouillee && <p className="tourneo-tool-note">{tr("La composition est prot\u00E9g\u00E9e apr\u00E8s la premi\u00E8re validation. Rouvrez les r\u00E9sultats des \u00E9preuves pour la modifier.")}</p>}</section>
+ <section className="v2-card tourneo-olympic-editor"><h2>{tr("2. Les \u00E9preuves")}</h2><div className="tourneo-tool-fields"><label>{tr("Activit\u00E9")}<input maxLength={100} value={epreuve} disabled={!pret || occupe} placeholder={tr("Relais, lancer de précision, quiz…")} onChange={e => setEpreuve(e.target.value)}/></label><label>{tr("Performance mesur\u00E9e")}<select value={unite} onChange={e => { setUnite(e.target.value); setSens(e.target.value === 'secondes' ? 'moins' : 'plus'); }}><option>{tr("points")}</option><option>{tr("secondes")}</option><option>{tr("centim\u00E8tres")}</option><option>{tr("r\u00E9ussites")}</option></select></label><label>{tr("Meilleure performance")}<select value={sens} onChange={e => setSens(e.target.value as 'plus' | 'moins')}><option value="plus">{tr("La plus grande valeur gagne")}</option><option value="moins">{tr("La plus petite valeur gagne")}</option></select></label></div><button type="button" disabled={!pret || occupe || !epreuve.trim() || d.epreuves.length >= 32} onClick={() => { setD(a => ({ ...a, epreuves: [...a.epreuves, { id: crypto.randomUUID(), nom: epreuve.trim(), unite, sens, validee: false, mesures: {} }] })); setEpreuve(''); }}>{tr("Ajouter l\u2019\u00E9preuve")}</button></section>
+ {d.epreuves.map(e => <section className="v2-card" key={e.id}><h2>{e.nom}</h2><p>{e.sens === 'moins' ? tr('La plus petite valeur gagne') : tr('La plus grande valeur gagne')} · {e.unite}{e.validee ? tr(' · Résultats validés') : tr(' · Épreuve en cours')}</p><div className="tourneo-olympic-measures">{d.equipes.map(t => <label key={t.id}>{t.nom}<input inputMode="decimal" aria-label={trModele("{0} \u2014 {1} ({2})", e.nom, t.nom, e.unite)} value={e.mesures[t.id] || ''} disabled={e.validee || occupe} maxLength={13} placeholder={e.unite} onChange={ev => {
+                    if (/^\d{0,9}(?:[.,]\d{0,3})?$/.test(ev.target.value))
+                        changerEpreuve(e.id, a => ({ ...a, mesures: { ...a.mesures, [t.id]: ev.target.value } }));
+                }}/></label>)}</div><div className="tourneo-tool-actions tourneo-olympic-editor"><button type="button" disabled={occupe || (!e.validee && classementEpreuve(e, d.equipes).length !== d.equipes.length) || d.equipes.length < 2} onClick={() => changerEpreuve(e.id, a => ({ ...a, validee: !a.validee }))}>{e.validee ? tr('Corriger les résultats') : tr('Valider cette épreuve')}</button>{!e.validee && <button type="button" disabled={occupe} onClick={() => {
+                    if (window.confirm('Supprimer cette épreuve ?'))
+                        setD(a => ({ ...a, epreuves: a.epreuves.filter(x => x.id !== e.id) }));
+                }}>{tr("Supprimer")}</button>}</div></section>)}
  <ClassementOlympiade donnees={d}/>
  </div></main>;
 }

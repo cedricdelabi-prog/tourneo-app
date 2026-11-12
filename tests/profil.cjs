@@ -6,7 +6,7 @@ const path = require('node:path');
 const ts = require('typescript');
 const profile = { id: 'player', display_name: 'Alice', player_code: 'TRN-TEST', avatar_url: 'new-avatar' };
 let hooks = [], cursor = 0, updates = [], uploads = [], encode, rejectSave = false;
-const react = {
+const react = {useSyncExternalStore: (_subscribe,read)=>read(),
   useEffect() {},
   useState(initial) {
     const i = cursor++;
@@ -27,6 +27,7 @@ const moduleUnderTest = { exports: {} };
 const source = fs.readFileSync(path.join(__dirname, '../app/profil/page.tsx'), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
 new Function('require', 'module', 'exports', js)(id => {
+  if (id === '@/lib/langue') return {useLangue:()=> 'fr',tr:v=>v,trModele:(s,...vs)=>vs.reduce((r,v,i)=>r.replaceAll('{'+i+'}',String(v)),s)};
   if (id === 'react') return react;
   if (id === 'react/jsx-runtime') return { jsx, jsxs: jsx };
   if (id === '@/lib/supabase') return { supabase };

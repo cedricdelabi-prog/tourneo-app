@@ -1,3 +1,4 @@
+import {trModele} from "@/lib/langue";
 export type EquipeTiree = {
     nom: string;
     joueurs: string[];
@@ -31,7 +32,7 @@ export function tirerEquipes(noms: string[], nombre: number, hasard: (max: numbe
             throw new Error('Tirage indisponible.');
         [verifies[i], verifies[j]] = [verifies[j], verifies[i]];
     }
-    const equipes = Array.from({ length: nombre }, (_, i) => ({ nom: `Équipe ${i + 1}`, joueurs: [] as string[] }));
+    const equipes = Array.from({ length: nombre }, (_, i) => ({ nom: trModele("Équipe {0}",i+1), joueurs: [] as string[] }));
     verifies.forEach((nom, i) => equipes[i % nombre].joueurs.push(nom));
     return equipes;
 }

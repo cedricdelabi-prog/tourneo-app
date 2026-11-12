@@ -5,11 +5,11 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.cedricdelabi.tourneo"
+        applicationId "com.cedricdelabi.tourneo.v2"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "1.6"
+        versionCode 200001
+        versionName "2.0-test.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         aaptOptions {

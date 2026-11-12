@@ -761,4 +761,6 @@ returns jsonb language sql stable security invoker set search_path=public,pg_tem
 revoke all on function public.tourneo_olympiade_publique(uuid) from public;
 grant execute on function public.tourneo_olympiade_publique(uuid) to anon,authenticated;
 
+alter table public.tourneo_preferences add column langue text not null default 'fr' check(langue in ('fr','en','nl'));
+
 commit;

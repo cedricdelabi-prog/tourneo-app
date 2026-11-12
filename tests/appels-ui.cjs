@@ -4,7 +4,7 @@ const path = require('node:path');
 const ts = require('typescript');
 let hooks=[],cursor=0,effects=[],calls=[],dropResponse=false;
 let participants=[{participant_id:'a',nom:'Alice',statut:'disponible'},{participant_id:'b',nom:'Bob',statut:'sans_profil'}];
-const react={
+const react={useSyncExternalStore: (_subscribe,read)=>read(),
  useState(v){const i=cursor++;if(!(i in hooks))hooks[i]=v;return[hooks[i],next=>{hooks[i]=typeof next==='function'?next(hooks[i]):next;}];},
  useRef(v){const i=cursor++;return hooks[i]||=( {current:v} );},
  useCallback(fn,deps){const i=cursor++;if(!hooks[i]||deps.some((v,n)=>v!==hooks[i].deps[n]))hooks[i]={deps,fn};return hooks[i].fn;},
@@ -19,7 +19,7 @@ const supabase={async rpc(name,args){
 const source=fs.readFileSync(path.join(__dirname,'../components/AppelTournoi.tsx'),'utf8');
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2020}}).outputText;
 const moduleUnderTest={exports:{}};
-new Function('require','module','exports',js)(id=>id==='react'?react:id==='react/jsx-runtime'?{jsx,jsxs:jsx}:{supabase},moduleUnderTest,moduleUnderTest.exports);
+new Function('require','module','exports',js)(id=>id==='@/lib/langue'?{useLangue:()=> 'fr',tr:v=>v,trModele:(s,...vs)=>vs.reduce((r,v,i)=>r.replaceAll('{'+i+'}',String(v)),s)}:id==='react'?react:id==='react/jsx-runtime'?{jsx,jsxs:jsx}:{supabase},moduleUnderTest,moduleUnderTest.exports);
 global.setInterval=()=>1;global.clearInterval=()=>{};global.document={visibilityState:'visible'};
 function all(n){if(Array.isArray(n))return n.flatMap(all);if(!n||typeof n!=='object')return[];return[n,...all(n.props?.children)];}
 function text(n){if(Array.isArray(n))return n.map(text).join('');return n&&typeof n==='object'?text(n.props?.children):n==null?'':String(n);}
