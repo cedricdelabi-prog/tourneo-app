@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
+import ChampMotDePasse from "@/components/ChampMotDePasse";
 import TourneoBrand from "@/components/TourneoBrand";
 
 export default function LoginPage() {
@@ -16,6 +17,11 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [googleDisponible, setGoogleDisponible] = useState(false);
+  const [action, setAction] = useState<"connexion" | "inscription" | "google" | "reset" | null>(null);
+  const [etatMessage, setEtatMessage] = useState<"info" | "succes" | "erreur">("info");
+  const verrou = useRef(false);
+  const messageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (message) messageRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [message]);
 
   useEffect(() => {
     const controleur = new AbortController();
@@ -31,97 +37,63 @@ export default function LoginPage() {
     return () => { clearTimeout(delai); controleur.abort(); };
   }, []);
 
-  async function connexionGoogle() {
-    setMessage("");
-    setChargement(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (error) {
-        console.error("Erreur connexion Google :", error);
-        setMessage("Impossible de se connecter avec Google.");
-        setChargement(false);
-      }
-    } catch (error) {
-      console.error("Erreur connexion Google :", error);
-      setMessage("Impossible de se connecter avec Google.");
-      setChargement(false);
-    }
+  function notifier(texte: string, etat: "info" | "succes" | "erreur" = "info") {
+    setMessage(texte); setEtatMessage(etat);
   }
-
+  function commencer(action: "connexion" | "inscription" | "google" | "reset", texte: string) {
+    if (verrou.current) return false;
+    verrou.current = true; setAction(action); setChargement(true); notifier(texte); return true;
+  }
+  function terminer() { verrou.current = false; setAction(null); setChargement(false); }
+  function erreurLisible(erreur: unknown) {
+    const texte = erreur instanceof Error ? erreur.message : "";
+    if (/invalid login credentials/i.test(texte)) return "E-mail ou mot de passe incorrect.";
+    if (/email not confirmed/i.test(texte)) return "Confirmez votre adresse e-mail avant de vous connecter.";
+    if (/rate limit|too many requests/i.test(texte)) return "Trop de tentatives. Réessayez dans quelques instants.";
+    return texte || "La demande n’a pas abouti. Vérifiez votre connexion et réessayez.";
+  }
+  async function connexionGoogle() {
+    if (!commencer("google", "Redirection vers Google…")) return;
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/dashboard` } });
+      if (error) throw error;
+    } catch (error) { notifier(erreurLisible(error), "erreur"); terminer(); }
+  }
   async function envoyer() {
-    setMessage("");
-    if (!email || !password) {
-      setMessage("Renseignez votre e-mail et votre mot de passe.");
-      return;
-    }
-    if (password.length < 6) {
-      setMessage("Le mot de passe doit contenir au moins 6 caractères.");
-      return;
-    }
-
-    setChargement(true);
+    if (verrou.current) return;
+    if (!email.trim() || !password) { notifier("Renseignez votre e-mail et votre mot de passe.", "erreur"); return; }
+    if (password.length < 6) { notifier("Le mot de passe doit contenir au moins 6 caractères.", "erreur"); return; }
+    if (mode === "inscription" && (!prenom.trim() || !nom.trim())) { notifier("Renseignez votre prénom et votre nom.", "erreur"); return; }
+    if (!commencer(mode, mode === "inscription" ? "Création de votre compte en cours…" : "Connexion en cours…")) return;
+    let redirection = false;
     try {
       if (mode === "inscription") {
-        if (!prenom.trim() || !nom.trim()) {
-          setMessage("Prénom et nom sont nécessaires pour créer votre profil Tourneo.");
-          return;
-        }
-
-        const displayName = pseudo.trim() || `${prenom.trim()} ${nom.trim()}`;
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: {
-              first_name: prenom.trim(),
-              last_name: nom.trim(),
-              display_name: displayName,
-              city: ville.trim(),
-            },
-          },
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password,
+          options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: {
+            first_name: prenom.trim(), last_name: nom.trim(), display_name: pseudo.trim() || `${prenom.trim()} ${nom.trim()}`, city: ville.trim(),
+          } },
         });
-
-        if (error) {
-          setMessage(error.message);
-        } else if (data.session) {
-          window.location.href = "/dashboard";
-        } else {
-          setMessage("Compte créé. Un e-mail Tourneo vous attend pour confirmer votre adresse.");
-        }
+        if (error) throw error;
+        if (data.session) { redirection = true; notifier("Compte créé. Ouverture de votre espace…", "succes"); window.location.href = "/dashboard"; }
+        else notifier("Demande prise en compte. Consultez vos e-mails pour confirmer votre adresse, puis connectez-vous.", "succes");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (error) {
-          console.error("Erreur connexion Supabase :", error);
-          setMessage(error.message || "Impossible de vous connecter.");
-        } else {
-          window.location.href = "/dashboard";
-        }
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw error;
+        redirection = true; notifier("Connexion réussie. Ouverture de votre espace…", "succes"); window.location.href = "/dashboard";
       }
-    } finally {
-      setChargement(false);
-    }
+    } catch (error) { notifier(erreurLisible(error), "erreur"); }
+    finally { if (!redirection) terminer(); }
   }
-
   async function motDePasseOublie() {
-    if (!email) {
-      setMessage("Saisissez d’abord votre adresse e-mail.");
-      return;
-    }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setMessage(error ? error.message : "Un e-mail de réinitialisation vient d’être envoyé.");
+    if (verrou.current) return;
+    if (!email.trim()) { notifier("Saisissez d’abord votre adresse e-mail.", "erreur"); return; }
+    if (!commencer("reset", "Envoi du lien de réinitialisation en cours…")) return;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` });
+      if (error) throw error;
+      notifier("Demande prise en compte. Si un compte correspond à cette adresse, consultez vos e-mails pour réinitialiser le mot de passe.", "succes");
+    } catch (error) { notifier(erreurLisible(error), "erreur"); }
+    finally { terminer(); }
   }
 
   return (
@@ -140,7 +112,8 @@ export default function LoginPage() {
               ...s.switch,
               ...(mode === "connexion" ? s.switchActive : {}),
             }}
-            onClick={() => setMode("connexion")}
+            onClick={() => { setMode("connexion"); notifier(""); }}
+            aria-pressed={mode === "connexion"}
             disabled={chargement}
           >
             Connexion
@@ -151,7 +124,8 @@ export default function LoginPage() {
               ...s.switch,
               ...(mode === "inscription" ? s.switchActive : {}),
             }}
-            onClick={() => setMode("inscription")}
+            onClick={() => { setMode("inscription"); notifier(""); }}
+            aria-pressed={mode === "inscription"}
             disabled={chargement}
           >
             Créer un compte
@@ -167,31 +141,33 @@ export default function LoginPage() {
           disabled={chargement}
         >
           <span style={s.googleMark}>G</span>
-          Continuer avec Google
+          {action === "google" ? "Redirection vers Google…" : "Continuer avec Google"}
         </button>
 
         <div style={s.separator}>
           <span>ou</span>
         </div></>}
 
+        <form aria-busy={chargement} onSubmit={e => { e.preventDefault(); void envoyer(); }}>
+        <fieldset disabled={chargement} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         {mode === "inscription" && (
           <>
             <div style={s.two}>
               <div>
-                <label style={s.label}>Prénom</label>
+                <label htmlFor="auth-first-name" style={s.label}>Prénom</label>
                 <input
                   style={s.input}
-                  value={prenom}
+                  id="auth-first-name" value={prenom}
                   onChange={(e) => setPrenom(e.target.value)}
                   autoComplete="given-name"
                 />
               </div>
 
               <div>
-                <label style={s.label}>Nom</label>
+                <label htmlFor="auth-last-name" style={s.label}>Nom</label>
                 <input
                   style={s.input}
-                  value={nom}
+                  id="auth-last-name" value={nom}
                   onChange={(e) => setNom(e.target.value)}
                   autoComplete="family-name"
                 />
@@ -221,45 +197,53 @@ export default function LoginPage() {
           </>
         )}
 
-        <label style={s.label}>E-mail</label>
+        <label htmlFor="auth-email" style={s.label}>E-mail</label>
         <input
           style={s.input}
           type="email"
-          value={email}
+          id="auth-email" value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           placeholder="vous@email.fr"
         />
 
-        <label style={s.label}>Mot de passe</label>
-        <input
-          style={s.input}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete={mode === "connexion" ? "current-password" : "new-password"}
-          placeholder="6 caractères minimum"
-        />
+        <label htmlFor="auth-password" style={s.label}>Mot de passe</label>
+        <ChampMotDePasse key={mode} id="auth-password" style={s.input} value={password}
+          onChange={e => setPassword(e.target.value)} autoComplete={mode === "connexion" ? "current-password" : "new-password"}
+          placeholder="6 caractères minimum"/>
 
         <button
           style={s.primary}
-          onClick={envoyer}
+          type="submit"
           disabled={chargement}
         >
-          {chargement
-            ? "Chargement…"
+          {(action === "connexion" || action === "inscription") && <span className="auth-spinner" aria-hidden="true"/>}
+          {action === "connexion" || action === "inscription"
+            ? action === "inscription" ? "Création du compte…" : "Connexion en cours…"
             : mode === "connexion"
               ? "Se connecter"
               : "Créer mon compte"}
         </button>
 
         {mode === "connexion" && (
-          <button style={s.link} onClick={motDePasseOublie}>
-            Mot de passe oublié ?
+          <button type="button" style={s.link} onClick={motDePasseOublie}>
+            {action === "reset" ? "Envoi du lien…" : "Mot de passe oublié ?"}
           </button>
         )}
 
-        {message && <div style={s.message}>{message}</div>}
+        </fieldset>
+        </form>
+        <div ref={messageRef} role={etatMessage === "erreur" ? "alert" : "status"} aria-live={etatMessage === "erreur" ? "assertive" : "polite"} aria-atomic="true">
+          {message && <div style={{ ...s.message, ...(etatMessage === "succes" ? { background: "rgba(34,197,94,.12)", borderColor: "#22c55e", color: "#bbf7d0" } : etatMessage === "erreur" ? { background: "rgba(239,68,68,.12)", borderColor: "#ef4444", color: "#fecaca" } : {}) }}>{etatMessage === "succes" ? "✓ " : etatMessage === "erreur" ? "! " : ""}{message}</div>}
+        </div>
+        <style jsx>{`
+          button:not(:disabled):active { filter: brightness(.88); }
+          button:disabled { cursor: wait !important; opacity: .65; }
+          button:focus-visible { outline: 2px solid #72e7ff; outline-offset: 3px; }
+          .auth-spinner { display: inline-block; width: 16px; height: 16px; margin-right: 8px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: middle; animation: auth-spin .8s linear infinite; }
+          @keyframes auth-spin { to { transform: rotate(360deg); } }
+          @media (prefers-reduced-motion: reduce) { .auth-spinner { animation: none; } }
+        `}</style>
 
         <p style={s.legal}>
           En créant un compte, vous acceptez le fonctionnement et les règles de

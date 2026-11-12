@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import ChampMotDePasse from "@/components/ChampMotDePasse";
 import { supabase } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
@@ -9,6 +10,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState("");
   const [chargement, setChargement] = useState(false);
   const [lienValide, setLienValide] = useState(false);
+  const verrou = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -29,6 +31,7 @@ export default function ResetPasswordPage() {
   }, []);
 
   async function modifierMotDePasse() {
+    if (verrou.current) return;
     setMessage("");
 
     if (motDePasse.length < 6) {
@@ -41,24 +44,18 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    verrou.current = true;
     setChargement(true);
-
-    const { error } = await supabase.auth.updateUser({
-      password: motDePasse,
-    });
-
-    setChargement(false);
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage("Mot de passe modifié avec succès ✅");
-
-    window.setTimeout(() => {
-      window.location.href = "/login";
-    }, 1500);
+    setMessage("Modification de votre mot de passe en cours…");
+    let redirection = false;
+    try {
+      const { error } = await supabase.auth.updateUser({ password: motDePasse });
+      if (error) { setMessage(error.message); return; }
+      redirection = true;
+      setMessage("Mot de passe modifié. Retour à la connexion…");
+      window.setTimeout(() => { window.location.href = "/login"; }, 1500);
+    } catch { setMessage("La modification n’a pas abouti. Vérifiez votre connexion et réessayez."); }
+    finally { if (!redirection) { verrou.current = false; setChargement(false); } }
   }
 
   return (
@@ -73,20 +70,18 @@ export default function ResetPasswordPage() {
           </p>
         ) : (
           <>
-            <label style={styles.label}>Nouveau mot de passe</label>
+            <label htmlFor="reset-password" style={styles.label}>Nouveau mot de passe</label>
 
-            <input
-              type="password"
+            <ChampMotDePasse id="reset-password" disabled={chargement} autoComplete="new-password"
               value={motDePasse}
               onChange={(event) => setMotDePasse(event.target.value)}
               placeholder="6 caractères minimum"
               style={styles.input}
             />
 
-            <label style={styles.label}>Confirmer le mot de passe</label>
+            <label htmlFor="reset-confirmation" style={styles.label}>Confirmer le mot de passe</label>
 
-            <input
-              type="password"
+            <ChampMotDePasse id="reset-confirmation" disabled={chargement} autoComplete="new-password"
               value={confirmation}
               onChange={(event) => setConfirmation(event.target.value)}
               placeholder="Confirme ton mot de passe"
@@ -105,7 +100,7 @@ export default function ResetPasswordPage() {
           </>
         )}
 
-        {message && <p style={styles.message}>{message}</p>}
+        <div role="status" aria-live="polite" aria-atomic="true">{message && <p style={styles.message}>{message}</p>}</div>
 
         <button
           style={styles.retour}
