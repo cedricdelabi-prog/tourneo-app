@@ -1,5 +1,12 @@
 import type { Match } from '@/types';
 export type Creneau = { matchId:number; terrain:number; debut:number; fin:number; journee:number };
+export function affecterTerrain(matchs: Match[], matchId: number, terrain?: number): Match[] {
+  if (terrain !== undefined && (!Number.isInteger(terrain) || terrain < 1 || terrain > 32)) throw new Error('Terrain invalide.');
+  return matchs.map(m => m.id === matchId ? { ...m, terrain } : m);
+}
+export function terrainDisponible(terrain: unknown, terrains: number): terrain is number {
+  return typeof terrain === 'number' && Number.isInteger(terrain) && terrain >= 1 && terrain <= terrains;
+}
 export function joueursDuMatch(match: Match): string[] {
   const cote = (id: string, joueurs?: string[]) => joueurs?.length ? joueurs : id.startsWith('duo:') ? id.slice(4).split('|') : [id];
   return [...new Set([...cote(match.equipe1Id, match.joueurs1Ids), ...cote(match.equipe2Id, match.joueurs2Ids)])];
@@ -14,7 +21,8 @@ export function planifierMatchs(matchs: Match[], options: { terrains:number;dure
     const tour=matchs.filter(m=>m.journee===journee).sort((a,b)=>(a.ordre??a.id)-(b.ordre??b.id));
     for(const m of tour){
       const participants = joueursDuMatch(m);
-      const candidats=dispos.map((dispo,i)=>({terrain:i+1,debut:Math.max(debutRonde,dispo,...participants.map(id=>joueurs.get(id)??0))}));
+      const candidats=dispos.map((dispo,i)=>({terrain:i+1,debut:Math.max(debutRonde,dispo,...participants.map(id=>joueurs.get(id)??0))}))
+        .filter(c => !terrainDisponible(m.terrain,terrains) || c.terrain === m.terrain);
       const libre=candidats.sort((a,b)=>a.debut-b.debut||a.terrain-b.terrain)[0];
       const fin=libre.debut+duree;
       dispos[libre.terrain-1]=fin;

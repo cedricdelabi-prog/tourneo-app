@@ -11,8 +11,8 @@ function load(file) {
   new Function('require', 'module', 'exports', js)(id => id.startsWith('@/') ? load(id.slice(2) + '.ts') : require(id), module, module.exports);
   return module.exports;
 }
-const { passagesJoueur, notifierPassage } = load('lib/suivi-matchs.ts');
-const { planifierMatchs, joueursDuMatch } = load('lib/planning.ts');
+const { passagesJoueur, passagesParticipants, notifierPassage } = load('lib/suivi-matchs.ts');
+const { planifierMatchs, joueursDuMatch, affecterTerrain } = load('lib/planning.ts');
 const options = { terrains: 2, duree: 10, repos: 5 };
 const a = { id: 1, journee: 1, equipe1Id: 'a', equipe2Id: 'b', joueurs1Ids: [], joueurs2Ids: [], score1: '', score2: '' };
 const b = { ...a, id: 2, equipe2Id: 'c' };
@@ -30,6 +30,26 @@ assert.deepEqual(passagesJoueur('exempt', [a], options, []), []);
 assert.equal(passagesJoueur('a', [{ ...a, ordre: 2 }, { ...b, ordre: 1 }], options, [])[0].match.id, 2, 'manual order preserved');
 assert.deepEqual(joueursDuMatch({ ...a, equipe1Id: 'duo:a|b', equipe2Id: 'duo:c|d' }), ['a', 'b', 'c', 'd']);
 assert.equal(passagesJoueur('d', [{ ...a, equipe1Id: 'duo:a|b', equipe2Id: 'duo:c|d' }], options, []).length, 1);
+const fixes = affecterTerrain([a,b],1,2);
+assert.equal(fixes[0].terrain,2);assert.equal(a.terrain,undefined,'assignment is immutable');
+assert.equal(planifierMatchs(fixes,options)[0].terrain,2);
+assert.equal(planifierMatchs(fixes,{...options,terrains:1})[0].terrain,1,'removed court falls back to automatic scheduling');
+assert.equal(affecterTerrain(fixes,1)[0].terrain,undefined);
+for(const invalid of [0,33,1.5,NaN])assert.throws(()=>affecterTerrain([a],1,invalid));
+const c={...a,id:3,equipe1Id:'d',equipe2Id:'e',terrain:2};
+const assigned=[{...a,terrain:2},{...b,terrain:1},c];
+const slots=planifierMatchs(assigned,options);
+assert.equal(slots.find(x=>x.matchId===2).debut,15,'shared player rest survives a court change');
+assert.equal(slots.find(x=>x.matchId===3).debut,10,'same court cannot overlap');
+const overview=passagesParticipants(assigned,options,[]);
+assert.deepEqual(overview.get('a'),passagesJoueur('a',assigned,options,[]));
+assert.equal(overview.get('d')[0].avant,1);
+assert.equal(overview.get('a')[1].avant,1,'shared participant blockers counted once');
+const backup={version:2,nomTournoi:'Test',sport:'petanque',formatTournoi:'complet',equipes:[{id:'a',nom:'A'},{id:'b',nom:'B'}],matchs:[{...a,joueurs1Ids:undefined,joueurs2Ids:undefined,terrain:2,ordre:4}],optionsV2:options,matchsValides:[]};
+const {lireSauvegarde}=load('lib/sauvegarde.ts');
+const restored=lireSauvegarde(JSON.stringify(backup));
+assert.equal(restored.matchs[0].terrain,2);assert.equal(restored.matchs[0].ordre,4);
+assert.throws(()=>lireSauvegarde(JSON.stringify({...backup,matchs:[{...backup.matchs[0],terrain:33}]})));
 async function run() {
   const notifications = [];
   global.window = {};

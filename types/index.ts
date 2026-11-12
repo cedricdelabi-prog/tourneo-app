@@ -12,6 +12,7 @@ export type Equipe = {
 };
 
 export type Match = {
+  terrain?: number;
   joueurs1Ids?: string[];
   joueurs2Ids?: string[];
   ordre?: number;

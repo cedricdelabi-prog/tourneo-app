@@ -10,6 +10,7 @@ let hooks = [], cursor = 0, effects = [], rpcCalls = [], lookupError = false, co
 const react = {
   Fragment: 'fragment',
   useState(initial) { const i=cursor++; if (!(i in hooks)) hooks[i]=initial; return [hooks[i],v=>{ hooks[i]=typeof v==='function'?v(hooks[i]):v; }]; },
+  useMemo(fn) { return fn(); },
   useRef(initial) { const i=cursor++; return hooks[i] ||= {current:initial}; },
   useEffect(fn,deps) { const i=cursor++; if (!hooks[i] || deps.some((d,n)=>d!==hooks[i][n])) effects.push(fn); hooks[i]=deps; },
 };
@@ -59,6 +60,27 @@ async function run(){
   assert.equal(cartes.length,2);assert.equal(all(tree).filter(n=>n.type==='input').length,2);
   const descendre=all(tree).find(n=>n.type==='button'&&n.props['aria-label']==='Reculer le match');
   descendre.props.onClick();assert.equal(nouvelOrdre.find(m=>m.id===2).ordre,0);assert.equal(nouvelOrdre.find(m=>m.id===1).ordre,1);
+  let modifies;
+  const propsTerrains={matchs:deuxMatchs,options:{...OPTIONS_V2,terrains:2},onChange(value){modifies=value;}};
+  tree=render(propsTerrains);
+  all(tree).find(n=>n.type==='select'&&n.props['aria-label']==='Terrain du match 1').props.onChange({target:{value:'2'}});
+  assert.equal(modifies[0].terrain,2,'dropdown assigns the selected court');
+  all(tree).find(n=>n.props.className==='tourneo-drag-handle').props.onDragStart({preventDefault(){}});
+  tree=render(propsTerrains);
+  const zone=all(tree).find(n=>n.type==='div'&&n.props.onDrop&&text(n)==='Terrain 2Déposer un match');
+  zone.props.onDrop({preventDefault(){},stopPropagation(){}});assert.equal(modifies[0].terrain,2,'drop assigns a court');
+  modifies=undefined;tree=render({...propsTerrains,valides:[1]});
+  const choix=all(tree).find(n=>n.type==='select'&&n.props['aria-label']==='Terrain du match 1');
+  assert.equal(choix.props.disabled,true);choix.props.onChange({target:{value:'2'}});assert.equal(modifies,undefined);
+  assert.equal(all(tree).find(n=>n.props.className==='tourneo-drag-handle').props.draggable,false);
+  const Attente=load('components/AttenteParticipants.tsx').default;
+  const participants=[...equipes,{id:'c',nom:'Céline'},{id:'d',nom:'David'}];
+  const suite=[matchs[0],{...matchs[0],id:2,equipe1Id:'c',equipe2Id:'d'}];
+  function attente(){cursor=0;return Attente({equipes:participants,matchs:suite,options:{...OPTIONS_V2,terrains:1},valides:[]});}
+  hooks=[];tree=attente();assert.match(text(tree),/2 en attente/);assert.match(text(tree),/Céline/);assert.doesNotMatch(text(tree),/Alice/);
+  all(tree).find(n=>n.type==='select').props.onChange({target:{value:'tous'}});tree=attente();assert.match(text(tree),/Alice/);
+  all(tree).find(n=>n.type==='input').props.onChange({target:{value:' céL '}});tree=attente();
+  assert.equal(all(tree).filter(n=>n.type==='article').length,1);assert.equal(all(tree).find(n=>n.type==='a').props.href,'#organisateur-match-2');
   console.log('Annonces : profils vérifiés, UUID sans compte, erreur réseau, doubles tournants et aucune fausse confirmation d’envoi : OK');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;});

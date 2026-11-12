@@ -13,8 +13,10 @@ export function lireSauvegarde(texte:string):SauvegardeTournoi{
  const score=(v:unknown)=>typeof v==='string'&&(v===''||/^(0|[1-9]\d*)$/.test(v)&&Number.isSafeInteger(Number(v)));
  const matchs:Match[]=d.matchs.map((m:Match)=>{
   if(!m||typeof m.equipe1Id!=='string'||typeof m.equipe2Id!=='string'||m.equipe1Id.length>350||m.equipe2Id.length>350||!Number.isInteger(m.id)||m.id<1||!Number.isInteger(m.journee)||m.journee<1||!score(m.score1)||!score(m.score2))throw new Error('Match invalide.');
+  if(m.terrain!==undefined&&(!Number.isInteger(m.terrain)||m.terrain<1||m.terrain>32))throw new Error('Terrain de match invalide.');
+  if(m.ordre!==undefined&&(!Number.isInteger(m.ordre)||m.ordre<0||m.ordre>70000))throw new Error('Ordre de match invalide.');
   const a=m.joueurs1Ids??[m.equipe1Id],b=m.joueurs2Ids??[m.equipe2Id];if(!Array.isArray(a)||!Array.isArray(b)||a.length<1||b.length<1||a.length>2||b.length>2||new Set([...a,...b]).size!==a.length+b.length||[...a,...b].some(id=>!ids.has(id)))throw new Error('Participant de match inconnu.');
-  return{id:m.id,journee:m.journee,equipe1Id:m.equipe1Id,equipe2Id:m.equipe2Id,score1:m.score1,score2:m.score2,joueurs1Ids:m.joueurs1Ids? a:undefined,joueurs2Ids:m.joueurs2Ids?b:undefined,branche:['principale','repechage','consolante','finale'].includes(m.branche??'')?m.branche:undefined,manches:Array.isArray(m.manches)?m.manches.slice(0,9).map(s=>{if(!score(s.score1)||!score(s.score2))throw new Error('Manche invalide.');return{score1:s.score1,score2:s.score2};}):undefined};
+  return{id:m.id,journee:m.journee,terrain:m.terrain,ordre:m.ordre,equipe1Id:m.equipe1Id,equipe2Id:m.equipe2Id,score1:m.score1,score2:m.score2,joueurs1Ids:m.joueurs1Ids? a:undefined,joueurs2Ids:m.joueurs2Ids?b:undefined,branche:['principale','repechage','consolante','finale'].includes(m.branche??'')?m.branche:undefined,manches:Array.isArray(m.manches)?m.manches.slice(0,9).map(s=>{if(!score(s.score1)||!score(s.score2))throw new Error('Manche invalide.');return{score1:s.score1,score2:s.score2};}):undefined};
  });
  if(new Set(matchs.map(m=>m.id)).size!==matchs.length)throw new Error('Identifiants de matchs dupliqués.');
  let poules:PouleSauvegarde[]=[];

@@ -9,7 +9,7 @@ import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
 import { normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
 import { scoreValide } from "@/lib/formats-avances";
 import { passagesJoueur, notifierPassage } from "@/lib/suivi-matchs";
-import { heureCreneau } from "@/lib/planning";
+import { heureCreneau, planifierMatchs } from "@/lib/planning";
 import type { Equipe as EquipeMoteur, Match as MatchMoteur } from "@/types";
 import TourneoBrand from "@/components/TourneoBrand";
 
@@ -25,6 +25,7 @@ type Equipe = {
 };
 
 type Match = {
+  terrain?: number;
   ordre?: number;
   joueurs1Ids?: string[];
   joueurs2Ids?: string[];
@@ -174,7 +175,8 @@ export default function PartagePage() {
 
   const options = normaliserOptionsV2(donnees.optionsV2);
   const equipesMoteur: EquipeMoteur[] = equipes.filter(e=>e.id).map(e=>({id:e.id!,nom:e.nomEquipe||e.nom||"Participant",emoji:e.emoji||"",couleur:e.couleur||"",photo:e.photo,profilId:e.profilId}));
-  const matchsMoteur: MatchMoteur[] = matchs.map(m=>({id:Number(m.id),journee:m.journee??1,equipe1Id:m.equipe1Id||"",equipe2Id:m.equipe2Id||"",score1:m.score1==null?"":String(m.score1),score2:m.score2==null?"":String(m.score2),branche:m.branche,ordre:m.ordre,joueurs1Ids:m.joueurs1Ids,joueurs2Ids:m.joueurs2Ids}));
+  const matchsMoteur: MatchMoteur[] = matchs.map(m=>({id:Number(m.id),journee:m.journee??1,equipe1Id:m.equipe1Id||"",equipe2Id:m.equipe2Id||"",score1:m.score1==null?"":String(m.score1),score2:m.score2==null?"":String(m.score2),branche:m.branche,ordre:m.ordre,terrain:typeof m.terrain === "number" ? m.terrain : undefined,joueurs1Ids:m.joueurs1Ids,joueurs2Ids:m.joueurs2Ids}));
+  const planningPublic = new Map(planifierMatchs(matchsMoteur,options).map(c => [c.matchId,c]));
   const formatParcours = donnees.formatTournoi === "doubleElimination" || donnees.formatTournoi === "consolante" ? donnees.formatTournoi : null;
   const classement = classementTournoi(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options).map(l=>({...l,id:l.equipe.id,nom:l.equipe.nom}));
   const tournoiTermine = tournoiEstTermine(donnees.formatTournoi||"complet",equipesMoteur,matchsMoteur,options,donnees.matchsValides);
@@ -403,8 +405,9 @@ export default function PartagePage() {
 
                   <div style={s.scoreBlock}>
                     {m.journee ? (
-                      <small style={s.day}>J{m.journee}</small>
+                      <small style={s.day}>J{m.journee} · Terrain {planningPublic.get(Number(m.id))?.terrain || "—"}</small>
                     ) : null}
+                    {planningPublic.has(Number(m.id)) && <small style={s.muted}>{heureCreneau(planningPublic.get(Number(m.id))!.debut,options.depart)} (estimé)</small>}
                     <strong style={s.score}>
                       {scoreRenseigne(m.score1) ? m.score1 : "–"} :{" "}
                       {scoreRenseigne(m.score2) ? m.score2 : "–"}

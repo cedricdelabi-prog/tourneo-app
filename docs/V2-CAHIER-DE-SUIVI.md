@@ -10,8 +10,8 @@ Les points 86 et 87 sont des priorités ajoutées qui recoupent plusieurs foncti
 
 | Statut | Nombre |
 |---|---:|
-| Développée | 75 |
-| Partiellement développée | 4 |
+| Développée | 77 |
+| Partiellement développée | 2 |
 | À développer | 2 |
 | À tester | 4 |
 
@@ -108,10 +108,10 @@ Source du périmètre : récapitulatif transmis par l’utilisateur dans cette c
 | 76 | Évolutions 76–85 | Écran géant | Développée | [app/partage/[id]/page.tsx](../app/partage/[id]/page.tsx) | Affichage et plein écran présents ; vérifier sur télévision ou vidéoprojecteur. |
 | 77 | Évolutions 76–85 | Liste d’attente quand le tournoi est complet | Développée | [app/inscriptions/[id]/page.tsx](../app/inscriptions/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Les nouvelles demandes vont en attente ; les places libérées sont attribuées par l’organisateur. |
 | 78 | Évolutions 76–85 | Import Excel et CSV | Développée | [lib/import-participants.ts](../lib/import-participants.ts) ; [tests/import-excel.cjs](../tests/import-excel.cjs) | XLSX première feuille, aperçu, dédoublonnage et limite cumulée de 256 participants. |
-| 79 | Évolutions 76–85 | Planning glisser-déposer des matchs et terrains | Partiellement développée | [components/PlanningTournoi.tsx](../components/PlanningTournoi.tsx) ; [tests/annonces.cjs](../tests/annonces.cjs) | Ordre des matchs d’un même tour modifiable ; terrains calculés automatiquement. Pas d’affectation manuelle à un terrain par glisser-déposer. |
+| 79 | Évolutions 76–85 | Planning glisser-déposer des matchs et terrains | Développée | [components/PlanningTournoi.tsx](../components/PlanningTournoi.tsx) ; [lib/planning.ts](../lib/planning.ts) ; [tests/annonces.cjs](../tests/annonces.cjs) ; [tests/suivi.cjs](../tests/suivi.cjs) | Ordre dans un tour, affectation de terrain par liste ou dépôt, repos et absence de chevauchement conservés. Matchs validés protégés ; terrain supprimé recalculé automatiquement. |
 | 80 | Évolutions 76–85 | Classement général multi-tournois | Développée | [app/evenements/page.tsx](../app/evenements/page.tsx) ; [tests/evenements.cjs](../tests/evenements.cjs) | Classement des profils identifiés sur les tournois terminés sélectionnés. |
 | 81 | Évolutions 76–85 | Appel des joueurs pour leur prochain match | À tester | [components/AppelTournoi.tsx](../components/AppelTournoi.tsx) ; [tests/appels-ui.cjs](../tests/appels-ui.cjs) ; [supabase/tests/appels_v2.sql](../supabase/tests/appels_v2.sql) | Dépôt privé, consentement et état marqué comme lu développés. Parcours réel entre comptes à confirmer ; pas de push application fermée. |
-| 82 | Évolutions 76–85 | Suivi des participants qui attendent de jouer | Partiellement développée | [lib/suivi-matchs.ts](../lib/suivi-matchs.ts) ; [tests/suivi.cjs](../tests/suivi.cjs) | Prochains passages et attente par pseudo dans la page publique. Pas encore de vue globale dédiée de tous les participants en attente. |
+| 82 | Évolutions 76–85 | Suivi des participants qui attendent de jouer | Développée | [components/AttenteParticipants.tsx](../components/AttenteParticipants.tsx) ; [lib/suivi-matchs.ts](../lib/suivi-matchs.ts) ; [tests/annonces.cjs](../tests/annonces.cjs) ; [tests/suivi.cjs](../tests/suivi.cjs) | Vue globale repliable, filtre par situation et recherche par nom, lien vers la prochaine rencontre. Repères estimés issus du planning : aucune présence ni début réel de match affirmés. |
 | 83 | Évolutions 76–85 | Évaluation des tournois par les participants | Développée | [app/avis/[id]/page.tsx](../app/avis/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Avis privés, participant identifié, note/commentaire, modification/retrait et refus d’autoévaluation organisateur. |
 | 84 | Évolutions 76–85 | Statistiques avancées organisateur | Développée | [app/statistiques/page.tsx](../app/statistiques/page.tsx) ; [lib/statistiques.ts](../lib/statistiques.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Période, disciplines, participations, matchs validés, avis, CSV et impression ; présentation refaite après essai utilisateur. |
 | 85 | Évolutions 76–85 | Programme des animations de camping | Développée | [app/evenements/page.tsx](../app/evenements/page.tsx) ; [tests/evenements.cjs](../tests/evenements.cjs) | Événement multi-tournois, programme chronologique et impression des seules activités retenues. |

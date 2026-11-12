@@ -3,21 +3,34 @@ import { joueursDuMatch, planifierMatchs, type Creneau } from '@/lib/planning';
 import { scoreValide } from '@/lib/formats-avances';
 
 export type PassageJoueur = { match: Match; creneau: Creneau; avant: number; statut: 'validation' | 'attente' | 'prochain' };
-export function passagesJoueur(participant: string, matchs: Match[], options: Parameters<typeof planifierMatchs>[1], valides?: readonly number[]): PassageJoueur[] {
-  if (!participant) return [];
+export function passagesParticipants(matchs: Match[], options: Parameters<typeof planifierMatchs>[1], valides?: readonly number[]): Map<string, PassageJoueur[]> {
   const planning = planifierMatchs(matchs, options);
-  const parId = new Map(matchs.map(m => [m.id, m]));
-  const valide = (m: Match) => valides ? valides.includes(m.id) : scoreValide(m.score1) && scoreValide(m.score2);
-  return planning.flatMap((creneau, index) => {
+  const parId = new Map(matchs.map(m => [m.id,m]));
+  const resultats = new Map<string,PassageJoueur[]>();
+  const marques = valides ? new Set(valides) : null;
+  const attenteTerrain = new Map<number,number>();
+  const attenteJoueur = new Map<string,Map<number,number>>();
+  for (const creneau of planning) {
     const match = parId.get(creneau.matchId)!;
+    const scores = scoreValide(match.score1) && scoreValide(match.score2);
+    if (marques ? marques.has(match.id) : scores) continue;
     const joueurs = joueursDuMatch(match);
-    if (!joueurs.includes(participant) || valide(match)) return [];
-    const avant = planning.slice(0, index).filter(p => {
-      const precedent = parId.get(p.matchId)!;
-      return !valide(precedent) && (p.terrain === creneau.terrain || joueursDuMatch(precedent).some(j => joueurs.includes(j)));
-    }).length;
-    return [{ match, creneau, avant, statut: scoreValide(match.score1) && scoreValide(match.score2) ? 'validation' as const : avant ? 'attente' as const : 'prochain' as const }];
-  });
+    const autres = new Set<number>();
+    for (const joueur of joueurs) for (const [id,terrain] of attenteJoueur.get(joueur) || []) if (terrain !== creneau.terrain) autres.add(id);
+    const avant = (attenteTerrain.get(creneau.terrain) || 0) + autres.size;
+    const passage: PassageJoueur = { match,creneau,avant,statut:scores ? 'validation' : avant ? 'attente' : 'prochain' };
+    for (const joueur of joueurs) {
+      if (!resultats.has(joueur)) resultats.set(joueur,[]);
+      resultats.get(joueur)!.push(passage);
+      if (!attenteJoueur.has(joueur)) attenteJoueur.set(joueur,new Map());
+      attenteJoueur.get(joueur)!.set(match.id,creneau.terrain);
+    }
+    attenteTerrain.set(creneau.terrain,(attenteTerrain.get(creneau.terrain) || 0)+1);
+  }
+  return resultats;
+}
+export function passagesJoueur(participant: string, matchs: Match[], options: Parameters<typeof planifierMatchs>[1], valides?: readonly number[]): PassageJoueur[] {
+  return participant ? passagesParticipants(matchs,options,valides).get(participant) || [] : [];
 }
 
 // No account IDs or subscription are sent to the server: this is device-local follow-up.

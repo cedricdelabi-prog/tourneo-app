@@ -8,14 +8,14 @@
     "À tester": "Code présent ; validation utilisateur ou appareil indispensable avant de considérer le point terminé."
   },
   "compteur_85": {
-    "Développée": 75,
-    "Partiellement développée": 4,
+    "Développée": 77,
+    "Partiellement développée": 2,
     "À tester": 4,
     "À développer": 2
   },
   "compteur_87": {
-    "Développée": 76,
-    "Partiellement développée": 5,
+    "Développée": 78,
+    "Partiellement développée": 3,
     "À tester": 4,
     "À développer": 2
   },
@@ -726,9 +726,9 @@
       "numero": 79,
       "theme": "Évolutions 76–85",
       "evolution": "Planning glisser-déposer des matchs et terrains",
-      "statut": "Partiellement développée",
-      "preuve": "components/PlanningTournoi.tsx ; tests/annonces.cjs",
-      "reste": "Ordre des matchs d’un même tour modifiable ; terrains calculés automatiquement. Pas d’affectation manuelle à un terrain par glisser-déposer.",
+      "statut": "Développée",
+      "preuve": "components/PlanningTournoi.tsx ; lib/planning.ts ; tests/annonces.cjs ; tests/suivi.cjs",
+      "reste": "Ordre dans un tour, affectation de terrain par liste ou dépôt, repos et absence de chevauchement conservés. Matchs validés protégés ; terrain supprimé recalculé automatiquement.",
       "origine": "Numéro fourni par le récapitulatif utilisateur"
     },
     {
@@ -753,9 +753,9 @@
       "numero": 82,
       "theme": "Évolutions 76–85",
       "evolution": "Suivi des participants qui attendent de jouer",
-      "statut": "Partiellement développée",
-      "preuve": "lib/suivi-matchs.ts ; tests/suivi.cjs",
-      "reste": "Prochains passages et attente par pseudo dans la page publique. Pas encore de vue globale dédiée de tous les participants en attente.",
+      "statut": "Développée",
+      "preuve": "components/AttenteParticipants.tsx ; lib/suivi-matchs.ts ; tests/annonces.cjs ; tests/suivi.cjs",
+      "reste": "Vue globale repliable, filtre par situation et recherche par nom, lien vers la prochaine rencontre. Repères estimés issus du planning : aucune présence ni début réel de match affirmés.",
       "origine": "Numéro fourni par le récapitulatif utilisateur"
     },
     {

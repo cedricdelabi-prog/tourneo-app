@@ -146,3 +146,12 @@ Le récapitulatif fourni par l’utilisateur est conservé dans `V2-CAHIER-DE-SU
 Le calendrier et le planning ne présentent plus les mêmes rencontres deux fois : une fiche par match contient horaire et terrain estimés, score et correction, repères de profil près du nom et accès à l’annonce/appel. Les manches, branches de double élimination, poules et exemptions sont conservées. Le test de déplacement a également révélé puis corrigé un problème ancien : le bouton de descente ne déplaçait pas le match quand l’index cible était recalculé après retrait. L’index est désormais mémorisé avant le retrait ; le test vérifie la permutation.
 
 Navigation : composant de retour commun avec chevron, zone cliquable et focus clavier. Page d’inscriptions intégrée au menu commun ; retour au tournoi depuis inscriptions/impression, retour à l’activité depuis les avis, accès à la configuration et retours publics harmonisés. Les fonctions de score existantes restent les gestionnaires de la fiche fusionnée.
+
+
+## Terrains et participants en attente — 12 novembre 2026
+
+- Les terrains se choisissent directement sur la fiche du match ou en déposant sa poignée sur une zone de terrain. Le calcul respecte les occupations et le repos des joueurs, y compris en doubles tournants. Les matchs validés sont protégés.
+- Un panneau repliable réunit les participants avec filtre, recherche et lien vers la prochaine rencontre. Les situations restent des estimations à partir du planning et des résultats validés.
+- Les choix de terrain et l’ordre manuel sont conservés dans les sauvegardes. Le partage public reçoit le terrain sans ajouter de données privées.
+- Contrôles : TypeScript, moteur, parcours composants, sauvegardes, SQL local avec migrations et activation consolidée. Fonction de partage vérifiée sur la base V2 ; essais réels sur appareils encore nécessaires.
+- Suivi reconstitué : 77 développés, 2 partiels, 4 à tester et 2 à développer sur 85. Les points 86–87 recoupent des fonctions précédentes.
