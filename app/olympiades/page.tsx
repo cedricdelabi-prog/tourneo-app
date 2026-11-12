@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TourneoNav from '@/components/TourneoNav';
 import ClassementOlympiade from '@/components/ClassementOlympiade';
+import { avecDelai } from '@/lib/delai';
 import { supabase } from '@/lib/supabase';
 import { classementEpreuve, exporterOlympiade, lireOlympiade, type Olympiade, type EpreuveOlympiade } from '@/lib/olympiades';
 import { nomsPourTirage, type EquipeTiree } from '@/lib/outils-arbitre';
@@ -59,15 +60,17 @@ export default function Olympiades() {
                 }
                 if (identifiant && actif)
                     setId(identifiant);
-                const auth = await supabase.auth.getUser();
+                if (navigator.onLine === false) { setMessage('Hors connexion · copie conservée sur cet appareil. Exportez une sauvegarde avant de quitter.'); return; }
+                if (!identifiant && actif) setPret(true);
+                const auth = await avecDelai(supabase.auth.getUser(),2500);
+                if (!auth) { if(actif)setMessage('Connexion au compte trop lente · travail possible sur cet appareil.'); return; }
                 if (!actif)
                     return;
                 if (auth.data.user) {
-                    const ls = await supabase.from('tourneo_olympiades').select('id,nom').eq('user_id', auth.data.user.id).order('created_at', { ascending: false });
-                    if (actif && !ls.error)
-                        setListe(ls.data || []);
+                    void Promise.resolve(supabase.from('tourneo_olympiades').select('id,nom').eq('user_id', auth.data.user.id).order('created_at', { ascending: false })).then(ls=>{if(actif&&!ls.error)setListe(ls.data||[]);}).catch(()=>{});
                     if (identifiant) {
-                        const r = await supabase.from('tourneo_olympiades').select('donnees,revision,partage').eq('id', identifiant).eq('user_id', auth.data.user.id).maybeSingle();
+                        const r = await avecDelai(supabase.from('tourneo_olympiades').select('donnees,revision,partage').eq('id', identifiant).eq('user_id', auth.data.user.id).maybeSingle(),4000);
+                        if (!r) throw new Error('Chargement en ligne trop lent. Votre copie locale reste disponible.');
                         if (r.error || !r.data)
                             throw new Error('Olympiade inaccessible. La copie locale reste conservée.');
                         if (!actif)
@@ -112,6 +115,7 @@ export default function Olympiades() {
     async function enregistrer(activerPartage = partage) {
         if (verrou.current || !pret || conflit)
             return;
+        if(navigator.onLine===false){setMessage('Hors connexion · exportez votre sauvegarde ou enregistrez dans votre compte après le retour du réseau.');return;}
         verrou.current = true;
         setOccupe(true);
         const capture = signature;

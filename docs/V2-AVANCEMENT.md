@@ -166,3 +166,5 @@ Navigation : composant de retour commun avec chevron, zone cliquable et focus cl
 - Navigation allégée, gestion du tournoi regroupée et guide `/guides/outils-et-olympiades`.
 - Vérifications : TypeScript, compilation Next, moteurs, contrôles composants, SQL local avec RLS et projection publique. Métadonnées de la base V2 contrôlées après migration. Aucun test n’a envoyé de message réel ni modifié un tournoi utilisateur.
 - Les essais sur de vrais téléphones, deux comptes connectés et les coupures réseau réelles restent à confirmer. Les avertissements Supabase antérieurs ne sont pas tous supprimés ; aucun nouveau signal ne vise les fonctions ou tables ajoutées ici.
+
+- Chargement des Olympiades : reprise locale immédiate sans réseau ; lectures du compte et de la version en ligne bornées pour éviter un écran bloqué. Régression vérifiée dans `tests/outils-ui.cjs`.

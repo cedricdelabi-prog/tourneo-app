@@ -1,4 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),ts=require('typescript');
+let appelsAuth=0;Object.defineProperty(global,'navigator',{configurable:true,value:{onLine:true}});
 let hooks=[],cursor=0,effects=[],timers=[],intervals=[],clock=1000;
 const realNow=Date.now;Date.now=()=>clock;
 const storage=new Map();global.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
@@ -7,7 +8,7 @@ const oldTimeout=global.setTimeout,oldInterval=global.setInterval,oldClear=globa
 global.setTimeout=fn=>(timers.push(fn),timers.length);global.setInterval=fn=>(intervals.push(fn),intervals.length);global.clearInterval=()=>{};
 const react={useMemo:fn=>fn(),useState(initial){const i=cursor++;if(!(i in hooks))hooks[i]=typeof initial==='function'?initial():initial;return[hooks[i],v=>{hooks[i]=typeof v==='function'?v(hooks[i]):v;}];},useRef(initial){const i=cursor++;return hooks[i]||={current:initial};},useEffect(fn,deps){const i=cursor++;if(!hooks[i]||deps.some((d,n)=>d!==hooks[i][n]))effects.push(fn);hooks[i]=deps;}};
 const jsx=(type,props)=>({type,props}),cache=new Map();
-function load(file){if(cache.has(file))return cache.get(file).exports;const m={exports:{}};cache.set(file,m);const js=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2020}}).outputText;new Function('require','module','exports',js)(id=>{if(id==='react')return react;if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};if(id==='@/lib/supabase')return {supabase:{auth:{async getUser(){return{data:{user:null}};}}}};if(id.startsWith('@/components/'))return{default:()=>null};if(id.startsWith('@/'))return load(id.slice(2)+'.ts');return require(id);},m,m.exports);return m.exports;}
+function load(file){if(cache.has(file))return cache.get(file).exports;const m={exports:{}};cache.set(file,m);const js=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2020}}).outputText;new Function('require','module','exports',js)(id=>{if(id==='react')return react;if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};if(id==='@/lib/supabase')return {supabase:{auth:{async getUser(){appelsAuth++;return{data:{user:null}};}}}};if(id.startsWith('@/components/'))return{default:()=>null};if(id.startsWith('@/'))return load(id.slice(2)+'.ts');return require(id);},m,m.exports);return m.exports;}
 function render(Component,props={}){cursor=0;const t=Component(props);const run=effects;effects=[];run.forEach(f=>f());return t;}
 function all(n){if(Array.isArray(n))return n.flatMap(all);return n&&typeof n==='object'?[n,...all(n.props?.children)]:[];}
 function text(n){return Array.isArray(n)?n.map(text).join(''):n&&typeof n==='object'?text(n.props?.children):n==null?'':String(n);}
@@ -35,5 +36,10 @@ function button(t,label){const n=all(t).find(n=>n.type==='button'&&text(n)===lab
  all(tree).find(n=>n.props['aria-label']==='Quiz — A (points)').props.onChange({target:{value:'3'}});tree=render(Olympia);all(tree).find(n=>n.props['aria-label']==='Quiz — B (points)').props.onChange({target:{value:'2'}});tree=render(Olympia);
  assert.equal(button(tree,'Valider cette épreuve').props.disabled,false);button(tree,'Valider cette épreuve').props.onClick();tree=render(Olympia);
  assert.equal(all(tree).find(n=>n.props['aria-label']==='Quiz — A (points)').props.disabled,true);button(tree,'Corriger les résultats').props.onClick();tree=render(Olympia);assert.equal(all(tree).find(n=>n.props['aria-label']==='Quiz — A (points)').props.disabled,false);
+ const idOffline='11111111-1111-4111-8111-111111111111';window.location.search=`?id=${idOffline}`;navigator.onLine=false;
+ const cacheOffline={version:1,nom:'Hors réseau',equipes:[{id:'A',nom:'Bleus',joueurs:[]},{id:'B',nom:'Rouges',joueurs:[]}],epreuves:[]};
+ storage.set(`tourneo-olympiade-locale:v1:${idOffline}`,JSON.stringify({donnees:cacheOffline,revision:4,partage:false,signature:''}));
+ const avantAuth=appelsAuth;hooks=[];effects=[];render(Olympia);await new Promise(resolve=>setImmediate(resolve));tree=render(Olympia);
+ assert.equal(appelsAuth,avantAuth,'offline recovery does not wait for an unavailable account');assert.ok(all(tree).some(n=>n.type==='input'&&n.props.value==='Hors réseau'));assert.match(text(tree),/Hors connexion/);
  console.log('Outils UI : chrono/pause, double clic roulette, transfert 21/3, annulation de point et compteur persistant : OK');
 }finally{Date.now=realNow;global.setTimeout=oldTimeout;global.setInterval=oldInterval;global.clearInterval=oldClear;}})().catch(e=>{console.error(e);process.exitCode=1;});
