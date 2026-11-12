@@ -1,0 +1,807 @@
+{
+  "date": "12 novembre 2026",
+  "methode": "Grille reconstituée. Numérotation 1–74 proposée à partir des thèmes utilisateur et du périmètre déjà travaillé ; 75 retrouvé ; 76–87 fournis/retrouvés. Pas une reproduction de la liste initiale.",
+  "definitions": {
+    "Développée": "Fonction intégrée dans la V2, contrôlée dans le code ou par des tests locaux. Ce statut ne remplace pas tous les essais réels.",
+    "Partiellement développée": "Une partie fonctionne ; une limite précise reste listée.",
+    "À développer": "Fonction absente du parcours utilisable.",
+    "À tester": "Code présent ; validation utilisateur ou appareil indispensable avant de considérer le point terminé."
+  },
+  "compteur_85": {
+    "Développée": 75,
+    "Partiellement développée": 4,
+    "À tester": 4,
+    "À développer": 2
+  },
+  "compteur_87": {
+    "Développée": 76,
+    "Partiellement développée": 5,
+    "À tester": 4,
+    "À développer": 2
+  },
+  "points": [
+    {
+      "numero": 1,
+      "theme": "Création et gestion",
+      "evolution": "Création simplifiée d’un tournoi",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 2,
+      "theme": "Création et gestion",
+      "evolution": "Mode Simple",
+      "statut": "Développée",
+      "preuve": "components/OptionsTournoiV2.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 3,
+      "theme": "Création et gestion",
+      "evolution": "Mode Expert gratuit",
+      "statut": "Développée",
+      "preuve": "lib/options-v2.ts",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 4,
+      "theme": "Création et gestion",
+      "evolution": "Nom du tournoi et discipline personnalisables",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 5,
+      "theme": "Création et gestion",
+      "evolution": "Ajout de joueurs sans compte ni téléphone",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 6,
+      "theme": "Création et gestion",
+      "evolution": "Équipes avec liste de membres",
+      "statut": "Développée",
+      "preuve": "components/TeamModal.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 7,
+      "theme": "Création et gestion",
+      "evolution": "Modifier ou supprimer les participants avant les résultats",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 8,
+      "theme": "Création et gestion",
+      "evolution": "Modifier la composition d’un tournoi déjà en cours",
+      "statut": "Partiellement développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Composition modifiable tant qu’aucun score n’est joué. Pas de recomposition générale avec conservation de résultats existants.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 9,
+      "theme": "Création et gestion",
+      "evolution": "Configurer le nombre de terrains",
+      "statut": "Développée",
+      "preuve": "components/OptionsTournoiV2.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 10,
+      "theme": "Création et gestion",
+      "evolution": "Configurer le départ et la durée des rencontres",
+      "statut": "Développée",
+      "preuve": "lib/planning.ts",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 11,
+      "theme": "Création et gestion",
+      "evolution": "Respecter un repos minimum entre deux rencontres",
+      "statut": "Développée",
+      "preuve": "lib/planning.ts ; tests/suivi.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 12,
+      "theme": "Création et gestion",
+      "evolution": "Mémoriser et réutiliser un modèle de règles",
+      "statut": "Développée",
+      "preuve": "components/OptionsTournoiV2.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 13,
+      "theme": "Formats de compétition",
+      "evolution": "Championnat aller-retour",
+      "statut": "Développée",
+      "preuve": "lib/tournoi.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 14,
+      "theme": "Formats de compétition",
+      "evolution": "Compétition en poules",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx ; lib/tirages.ts",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 15,
+      "theme": "Formats de compétition",
+      "evolution": "Poules puis phase finale",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 16,
+      "theme": "Formats de compétition",
+      "evolution": "Élimination directe",
+      "statut": "Développée",
+      "preuve": "lib/tournoi.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 17,
+      "theme": "Formats de compétition",
+      "evolution": "Double élimination",
+      "statut": "Développée",
+      "preuve": "lib/parcours.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 18,
+      "theme": "Formats de compétition",
+      "evolution": "Seconde finale de double élimination si nécessaire",
+      "statut": "Développée",
+      "preuve": "lib/parcours.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 19,
+      "theme": "Formats de compétition",
+      "evolution": "Consolante",
+      "statut": "Développée",
+      "preuve": "lib/parcours.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 20,
+      "theme": "Formats de compétition",
+      "evolution": "Système suisse",
+      "statut": "Développée",
+      "preuve": "lib/formats-avances.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 21,
+      "theme": "Formats de compétition",
+      "evolution": "Nombre de rondes suisse configurable",
+      "statut": "Développée",
+      "preuve": "components/OptionsTournoiV2.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 22,
+      "theme": "Formats de compétition",
+      "evolution": "Appariements suisses limitant les répétitions",
+      "statut": "Développée",
+      "preuve": "lib/formats-avances.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 23,
+      "theme": "Formats de compétition",
+      "evolution": "Exemptions et rotation des joueurs exemptés",
+      "statut": "Développée",
+      "preuve": "lib/formats-avances.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 24,
+      "theme": "Formats de compétition",
+      "evolution": "Rencontres en plusieurs manches gagnantes",
+      "statut": "Développée",
+      "preuve": "components/SaisieManches.tsx ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 25,
+      "theme": "Formats de compétition",
+      "evolution": "Règles et préréglages selon la discipline",
+      "statut": "Développée",
+      "preuve": "lib/sports.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 26,
+      "theme": "Formats de compétition",
+      "evolution": "Barème de points configurable",
+      "statut": "Développée",
+      "preuve": "lib/options-v2.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 27,
+      "theme": "Formats de compétition",
+      "evolution": "Classements et départages cohérents entre les vues",
+      "statut": "Développée",
+      "preuve": "lib/resultats.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 28,
+      "theme": "Formats de compétition",
+      "evolution": "Doubles à partenaires tournants",
+      "statut": "Développée",
+      "preuve": "lib/rotation.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 29,
+      "theme": "Formats de compétition",
+      "evolution": "Tirage aléatoire",
+      "statut": "Développée",
+      "preuve": "lib/tirages.ts",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 30,
+      "theme": "Formats de compétition",
+      "evolution": "Tirage équilibré selon les niveaux",
+      "statut": "Développée",
+      "preuve": "lib/tirages.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 31,
+      "theme": "Formats de compétition",
+      "evolution": "Positions et poules manuelles",
+      "statut": "Développée",
+      "preuve": "lib/tirages.ts ; components/TeamModal.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 32,
+      "theme": "Inscriptions",
+      "evolution": "Brouillon du tournoi avant les inscriptions",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 33,
+      "theme": "Inscriptions",
+      "evolution": "Inscription à distance par lien",
+      "statut": "Développée",
+      "preuve": "app/inscriptions/[id]/page.tsx ; supabase/tests/integration_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 34,
+      "theme": "Inscriptions",
+      "evolution": "Invitation et inscription par QR",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/inscriptions/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 35,
+      "theme": "Inscriptions",
+      "evolution": "Quota et capacité du tournoi",
+      "statut": "Développée",
+      "preuve": "supabase/tests/integration_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 36,
+      "theme": "Inscriptions",
+      "evolution": "Date limite des inscriptions",
+      "statut": "Développée",
+      "preuve": "supabase/modules/2026110901_inscriptions_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 37,
+      "theme": "Inscriptions",
+      "evolution": "Validation des demandes manuelle ou automatique",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/inscriptions/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 38,
+      "theme": "Inscriptions",
+      "evolution": "Inscriptions individuelles ou en équipe avec pseudo",
+      "statut": "Développée",
+      "preuve": "app/inscriptions/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 39,
+      "theme": "Inscriptions",
+      "evolution": "Annulation d’une inscription depuis l’appareil invité",
+      "statut": "Développée",
+      "preuve": "supabase/tests/integration_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 40,
+      "theme": "Inscriptions",
+      "evolution": "Pointage de présence par l’organisateur",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/inscriptions/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 41,
+      "theme": "Inscriptions",
+      "evolution": "Intégration des acceptés et fermeture au démarrage",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx ; supabase/tests/integration_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 42,
+      "theme": "Inscriptions",
+      "evolution": "Groupes privés de club et accompagnateurs, copie des listes",
+      "statut": "Développée",
+      "preuve": "app/groupes/page.tsx ; supabase/tests/groupes_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 43,
+      "theme": "Profils joueurs",
+      "evolution": "Compte par e-mail et connexion",
+      "statut": "Développée",
+      "preuve": "app/login/page.tsx",
+      "reste": "Essai utilisateur sur ordinateur positif ; confirmation et réinitialisation à compléter sur d’autres appareils.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 44,
+      "theme": "Profils joueurs",
+      "evolution": "Retour immédiat au clic et affichage contrôlé du mot de passe",
+      "statut": "Développée",
+      "preuve": "components/ChampMotDePasse.tsx ; app/login/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 45,
+      "theme": "Profils joueurs",
+      "evolution": "Photo de profil depuis la galerie",
+      "statut": "Développée",
+      "preuve": "app/profil/page.tsx ; tests/profil.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 46,
+      "theme": "Profils joueurs",
+      "evolution": "Prise de photo avec la caméra du téléphone",
+      "statut": "À tester",
+      "preuve": "app/profil/page.tsx",
+      "reste": "Commande présente. Vérifier l’ouverture de la caméra et l’envoi sur un vrai téléphone.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 47,
+      "theme": "Profils joueurs",
+      "evolution": "Choix d’un emoji comme avatar",
+      "statut": "Développée",
+      "preuve": "app/profil/page.tsx ; tests/profil.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 48,
+      "theme": "Profils joueurs",
+      "evolution": "Couleur, code et QR du joueur",
+      "statut": "Développée",
+      "preuve": "app/profil/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 49,
+      "theme": "Profils joueurs",
+      "evolution": "Ajout d’un profil par son code",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 50,
+      "theme": "Profils joueurs",
+      "evolution": "Palmarès et identité conservée entre tournois",
+      "statut": "Développée",
+      "preuve": "app/joueur/[code]/page.tsx ; lib/statistiques.ts",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 51,
+      "theme": "Profils joueurs",
+      "evolution": "Texte agrandi et animations réduites",
+      "statut": "Développée",
+      "preuve": "components/AccessibiliteCompte.tsx ; components/PreferencesCompte.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 52,
+      "theme": "Résultats et partage",
+      "evolution": "Saisie des scores",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 53,
+      "theme": "Résultats et partage",
+      "evolution": "Validation et correction des résultats",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 54,
+      "theme": "Résultats et partage",
+      "evolution": "Calcul automatique du classement",
+      "statut": "Développée",
+      "preuve": "lib/resultats.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 55,
+      "theme": "Résultats et partage",
+      "evolution": "Scores et classements publics actualisés",
+      "statut": "Développée",
+      "preuve": "app/partage/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 56,
+      "theme": "Résultats et partage",
+      "evolution": "Partage public limité aux pseudos et résultats",
+      "statut": "Développée",
+      "preuve": "supabase/tests/partage_public_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 57,
+      "theme": "Résultats et partage",
+      "evolution": "Podium animé à la demande",
+      "statut": "Développée",
+      "preuve": "app/partage/[id]/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 58,
+      "theme": "Résultats et partage",
+      "evolution": "Export CSV des classements",
+      "statut": "Développée",
+      "preuve": "lib/formats-avances.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 59,
+      "theme": "Résultats et partage",
+      "evolution": "Sauvegarde et restauration JSON validées",
+      "statut": "Développée",
+      "preuve": "lib/sauvegarde.ts ; tests/moteur.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 60,
+      "theme": "Résultats et partage",
+      "evolution": "Enregistrement cloud et reprise des envois en attente",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/page.tsx",
+      "reste": "Sauvegardes séquentielles et données locales prioritaires. Conflits entre plusieurs appareils non fusionnés automatiquement.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 61,
+      "theme": "Résultats et partage",
+      "evolution": "Stockage privé des photos et liens temporaires",
+      "statut": "Développée",
+      "preuve": "lib/media-prive.ts ; components/PhotoPrivee.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 62,
+      "theme": "Résultats et partage",
+      "evolution": "Conservation des photos de tournoi à 15 ou 90 jours",
+      "statut": "Développée",
+      "preuve": "supabase/tests/conservation_photos_v2.sql ; tests/purge-photos.cjs",
+      "reste": "Traitement horaire installé. Suppression d’un vrai fichier expiré encore à vérifier ; les avatars sont exclus.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 63,
+      "theme": "Résultats et partage",
+      "evolution": "Export ou impression PDF des résultats",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/imprimer/page.tsx ; tests/impression.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 64,
+      "theme": "Résultats et partage",
+      "evolution": "Feuilles vierges et pointage papier",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/imprimer/page.tsx ; tests/impression.cjs",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 65,
+      "theme": "Résultats et partage",
+      "evolution": "Historique des inscriptions, arbitrages et participations",
+      "statut": "Développée",
+      "preuve": "app/activite/page.tsx",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 66,
+      "theme": "Expérience et accès",
+      "evolution": "Affichage responsive smartphone, tablette et ordinateur",
+      "statut": "À tester",
+      "preuve": "app/globals.css",
+      "reste": "Ordinateur validé par les essais utilisateur. Vérification complète sur petits écrans et tablette à terminer.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 67,
+      "theme": "Expérience et accès",
+      "evolution": "Utilisation sur iPhone",
+      "statut": "À tester",
+      "preuve": "app/manifest.ts ; app/login/page.tsx",
+      "reste": "Parcours Safari/iPhone et installation écran d’accueil à vérifier sur appareil réel.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 68,
+      "theme": "Expérience et accès",
+      "evolution": "Utilisation sur Android et distribution de la V2",
+      "statut": "Partiellement développée",
+      "preuve": "android ; capacitor.config.ts",
+      "reste": "Site V2 et structure Capacitor présents. Paquet V2 et publication store non livrés par ce travail.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 69,
+      "theme": "Expérience et accès",
+      "evolution": "Navigation commune et retours cohérents",
+      "statut": "Développée",
+      "preuve": "components/TourneoNav.tsx ; components/TourneoRetour.tsx",
+      "reste": "Inclut la fusion planning/scores/appels en une fiche de match, demandée pendant les essais.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 70,
+      "theme": "Expérience et accès",
+      "evolution": "Application gratuite et suppression des publicités",
+      "statut": "Développée",
+      "preuve": "app ; components",
+      "reste": "Aucun paiement ou espace publicitaire dans la V2. Tous les modes restent gratuits selon la demande actuelle.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 71,
+      "theme": "Expérience et accès",
+      "evolution": "Notifications internes liées à Tourneo",
+      "statut": "Développée",
+      "preuve": "app/activite/page.tsx ; supabase/tests/integration_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 72,
+      "theme": "Expérience et accès",
+      "evolution": "Préférences sportives et consentement promotionnel distincts",
+      "statut": "Développée",
+      "preuve": "components/PreferencesCompte.tsx ; supabase/tests/integration_v2.sql",
+      "reste": "Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 73,
+      "theme": "Expérience et accès",
+      "evolution": "E-mails sportifs et notifications téléphone application fermée",
+      "statut": "À développer",
+      "preuve": "docs/V2-AVANCEMENT.md",
+      "reste": "Les messages internes et alertes locales existent. Les canaux e-mail et push fermé ne sont pas activés.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 74,
+      "theme": "Expérience et accès",
+      "evolution": "Traduction complète selon la langue du compte",
+      "statut": "À développer",
+      "preuve": "docs/V2-AVANCEMENT.md",
+      "reste": "Interface française. Pas encore de parcours entièrement traduit selon une préférence de langue.",
+      "origine": "Reconstituée à partir des thèmes validés"
+    },
+    {
+      "numero": 75,
+      "theme": "Impression",
+      "evolution": "Impression personnalisable du tournoi",
+      "statut": "Développée",
+      "preuve": "app/tournoi/[id]/imprimer/page.tsx ; tests/impression.cjs",
+      "reste": "A4/A3, orientation, sections, grandes cases, couleurs, poules, tableaux et QR par match. Vérification d’une impression physique à poursuivre.",
+      "origine": "Point 75 retrouvé ; périmètre consolidé"
+    },
+    {
+      "numero": 76,
+      "theme": "Évolutions 76–85",
+      "evolution": "Écran géant",
+      "statut": "Développée",
+      "preuve": "app/partage/[id]/page.tsx",
+      "reste": "Affichage et plein écran présents ; vérifier sur télévision ou vidéoprojecteur.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 77,
+      "theme": "Évolutions 76–85",
+      "evolution": "Liste d’attente quand le tournoi est complet",
+      "statut": "Développée",
+      "preuve": "app/inscriptions/[id]/page.tsx ; supabase/tests/integration_v2.sql",
+      "reste": "Les nouvelles demandes vont en attente ; les places libérées sont attribuées par l’organisateur.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 78,
+      "theme": "Évolutions 76–85",
+      "evolution": "Import Excel et CSV",
+      "statut": "Développée",
+      "preuve": "lib/import-participants.ts ; tests/import-excel.cjs",
+      "reste": "XLSX première feuille, aperçu, dédoublonnage et limite cumulée de 256 participants.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 79,
+      "theme": "Évolutions 76–85",
+      "evolution": "Planning glisser-déposer des matchs et terrains",
+      "statut": "Partiellement développée",
+      "preuve": "components/PlanningTournoi.tsx ; tests/annonces.cjs",
+      "reste": "Ordre des matchs d’un même tour modifiable ; terrains calculés automatiquement. Pas d’affectation manuelle à un terrain par glisser-déposer.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 80,
+      "theme": "Évolutions 76–85",
+      "evolution": "Classement général multi-tournois",
+      "statut": "Développée",
+      "preuve": "app/evenements/page.tsx ; tests/evenements.cjs",
+      "reste": "Classement des profils identifiés sur les tournois terminés sélectionnés.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 81,
+      "theme": "Évolutions 76–85",
+      "evolution": "Appel des joueurs pour leur prochain match",
+      "statut": "À tester",
+      "preuve": "components/AppelTournoi.tsx ; tests/appels-ui.cjs ; supabase/tests/appels_v2.sql",
+      "reste": "Dépôt privé, consentement et état marqué comme lu développés. Parcours réel entre comptes à confirmer ; pas de push application fermée.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 82,
+      "theme": "Évolutions 76–85",
+      "evolution": "Suivi des participants qui attendent de jouer",
+      "statut": "Partiellement développée",
+      "preuve": "lib/suivi-matchs.ts ; tests/suivi.cjs",
+      "reste": "Prochains passages et attente par pseudo dans la page publique. Pas encore de vue globale dédiée de tous les participants en attente.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 83,
+      "theme": "Évolutions 76–85",
+      "evolution": "Évaluation des tournois par les participants",
+      "statut": "Développée",
+      "preuve": "app/avis/[id]/page.tsx ; supabase/tests/integration_v2.sql",
+      "reste": "Avis privés, participant identifié, note/commentaire, modification/retrait et refus d’autoévaluation organisateur.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 84,
+      "theme": "Évolutions 76–85",
+      "evolution": "Statistiques avancées organisateur",
+      "statut": "Développée",
+      "preuve": "app/statistiques/page.tsx ; lib/statistiques.ts ; tests/moteur.cjs",
+      "reste": "Période, disciplines, participations, matchs validés, avis, CSV et impression ; présentation refaite après essai utilisateur.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 85,
+      "theme": "Évolutions 76–85",
+      "evolution": "Programme des animations de camping",
+      "statut": "Développée",
+      "preuve": "app/evenements/page.tsx ; tests/evenements.cjs",
+      "reste": "Événement multi-tournois, programme chronologique et impression des seules activités retenues.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 86,
+      "theme": "Priorités supplémentaires",
+      "evolution": "Priorité hors connexion puis synchronisation",
+      "statut": "Partiellement développée",
+      "preuve": "components/OfflineV2.tsx ; public/sw-v2.js ; app/tournoi/[id]/page.tsx",
+      "reste": "Données locales et reprise réseau présentes. Exige un premier chargement ; modules en ligne et conflits multi-appareils restent limités. Essai réel de coupure à terminer.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    },
+    {
+      "numero": 87,
+      "theme": "Priorités supplémentaires",
+      "evolution": "Priorité camping et organisation sur papier",
+      "statut": "Développée",
+      "preuve": "lib/options-v2.ts ; app/tournoi/[id]/imprimer/page.tsx ; tests/impression.cjs",
+      "reste": "Mode Camping, joueurs sans téléphone, feuilles papier et QR. Recoupe des points précédents : priorité suivie à part, pas une fonction entièrement distincte.",
+      "origine": "Numéro fourni par le récapitulatif utilisateur"
+    }
+  ]
+}

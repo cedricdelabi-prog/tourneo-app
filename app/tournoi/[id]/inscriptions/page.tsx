@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabase';
-import TourneoBrand from '@/components/TourneoBrand';
+import TourneoNav from '@/components/TourneoNav';
 import { erreurInscriptions, STATUTS_INSCRIPTION, type Inscription, type StatutInscription } from '@/lib/inscriptions';
 export default function GestionInscriptions() {
   const { id } = useParams<{id:string}>();
@@ -35,7 +35,7 @@ export default function GestionInscriptions() {
     if(error)setErreur(erreurInscriptions(error.message));else await charger();setOccupe(false);
   }
   const visibles=lignes.filter(l=>filtre==='tous'||l.statut===filtre);
-  return <main className="v2-page"><div className="v2-shell"><TourneoBrand/><p><a href={`/tournoi/${id}`}>← Revenir au tournoi</a></p><section className="v2-card"><h1>Inscriptions · {nom}</h1>
+  return <main className="v2-page"><div className="v2-shell"><TourneoNav active="tournoi" showBack backHref={`/tournoi/${id}`} backLabel="Retour au tournoi" contextLabel="Inscriptions et pointage"/><section className="v2-card"><h1>Inscriptions · {nom}</h1>
     {erreur&&<p role="alert" className="v2-alert">{erreur}</p>}{message&&<p role="status">{message}</p>}
     {demarre&&<p>Tournoi démarré : inscriptions closes. Le pointage reste disponible.</p>}
     <form onSubmit={enregistrer} className="v2-form"><label className="v2-check"><input type="checkbox" checked={ouvert} disabled={demarre} onChange={e=>setOuvert(e.target.checked)}/>Ouvrir les inscriptions</label>

@@ -33,7 +33,7 @@ const Page=load('components/PlanningTournoi.tsx').default;
 const {reperesAppel}=load('lib/reperes-appel.ts');
 const {OPTIONS_V2}=load('lib/options-v2.ts');
 Object.defineProperty(global,'navigator',{configurable:true,value:{clipboard:{async writeText(value){copied=value;}}}});
-function render(){cursor=0;const tree=Page({equipes,matchs,options:OPTIONS_V2,onChange(){}});const callbacks=effects;effects=[];callbacks.forEach(fn=>fn());return tree;}
+function render(extra={}){cursor=0;const tree=Page({equipes,matchs,options:OPTIONS_V2,onChange(){},...extra});const callbacks=effects;effects=[];callbacks.forEach(fn=>fn());return tree;}
 function all(n){if(Array.isArray(n))return n.flatMap(all);if(!n||typeof n!=='object')return[];return[n,...all(n.props?.children)];}
 function text(n){if(Array.isArray(n))return n.map(text).join('');return n&&typeof n==='object'?text(n.props?.children):n==null?'':String(n);}
 function bouton(tree,label){const found=all(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(found,label);return found;}
@@ -52,6 +52,13 @@ async function run(){
   assert.equal(all(tree).filter(n=>n.type==='span'&&n.props.className?.includes('tourneo-player-marker')).every(n=>text(n).includes('non vérifié')),true,'failed verification never labels an account as unreachable or reachable');
   const rotation={...matchs[0],equipe1Id:`duo:${alice}|${bob}`,equipe2Id:'duo:c|d',joueurs1Ids:[alice,bob],joueurs2Ids:['c','d']};
   assert.equal(reperesAppel(rotation,[...equipes,{id:'c',nom:'C',profilId:alice},{id:'d',nom:'D'}],new Set([alice])).filter(r=>r.statut==='profil').length,2);
+  const scoresRendus=[], deuxMatchs=[matchs[0],{...matchs[0],id:2}]; let nouvelOrdre;
+  tree=render({matchs:deuxMatchs,renderMatch(m){scoresRendus.push(m.id);return jsx('input',{value:m.score1,'aria-label':`Score ${m.id}`});},onChange(value){nouvelOrdre=value;}});
+  assert.deepEqual(scoresRendus,[1,2], 'each match score is rendered exactly once in the scheduling card');
+  const cartes=all(tree).filter(n=>n.type==='article'&&n.props.className?.startsWith('tourneo-unified-match'));
+  assert.equal(cartes.length,2);assert.equal(all(tree).filter(n=>n.type==='input').length,2);
+  const descendre=all(tree).find(n=>n.type==='button'&&n.props['aria-label']==='Reculer le match');
+  descendre.props.onClick();assert.equal(nouvelOrdre.find(m=>m.id===2).ordre,0);assert.equal(nouvelOrdre.find(m=>m.id===1).ordre,1);
   console.log('Annonces : profils vérifiés, UUID sans compte, erreur réseau, doubles tournants et aucune fausse confirmation d’envoi : OK');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;});

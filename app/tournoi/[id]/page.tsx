@@ -23,6 +23,8 @@ import { lireSauvegarde,telechargerSauvegarde } from "@/lib/sauvegarde";
 import { reglesPourSport,erreurScoreSport } from "@/lib/sports";
 import { repartirPoules, ordreElimination } from "@/lib/tirages";
 import ArbitresTournoi from "@/components/ArbitresTournoi";
+import TourneoRetour from "@/components/TourneoRetour";
+import RepereParticipant from "@/components/RepereParticipant";
 import PlanningTournoi from "@/components/PlanningTournoi";
 import OptionsTournoiV2 from "@/components/OptionsTournoiV2";
 import SaisieManches from "@/components/SaisieManches";
@@ -1957,9 +1959,7 @@ ${lienPartage}`,
 
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={preparerInscriptions}>{tournoiId ? "Gérer les inscriptions et le pointage" : "Préparer les inscriptions par lien / QR"}</button>
                 <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? "Enregistrement…" : "Démarrer le tournoi"}</button>
-                <button style={{ ...styles.ghostButton, width: "100%", marginTop: 8 }} onClick={() => setCreationEtape("configuration")}>
-                  ← Revenir à la configuration
-                </button>
+                <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>Configuration du tournoi</TourneoRetour></div>
                 {messageCloud && <div style={styles.statusLine}>{messageCloud}</div>}
               </>
             )}
@@ -2560,25 +2560,9 @@ ${lienPartage}`,
           </section>
         )}
 
-        {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs}/>}
-
-        {onglet === "matchs" && journees.map((journee, journeeIndex) => {
-          const matchsJournee = matchs.filter((match) => match.journee === journee);
-
-          return (
-            <div key={journee}>
-              <section style={styles.card}>
-              <div style={styles.roundHeader}>
-                <div>
-                  <span style={styles.eyebrow}>{(formatTournoi === "complet" || formatTournoi === "allerRetour") ? "Calendrier" : "Tournoi"}</span>
-                  <h2 style={styles.sectionTitle}>{titreJournee(journee)}</h2>
-                </div>
-                <span style={styles.pill}>{matchsJournee.length} match(s)</span>
-                {optionsV2.exemptions.filter(e=>e.ronde===journee).map(e=><p key={e.id} style={styles.muted}>Exempt : {trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire} pts)</p>)}
-              </div>
-
-              <div style={styles.matchList}>
-                {matchsJournee.map((match) => {
+        {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs} valides={matchsValides} titreTour={titreJournee}
+          detailsTour={journee => optionsV2.exemptions.filter(e => e.ronde === journee).map(e => <p key={e.id} style={styles.muted}>Exempt : {trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire} pts)</p>)}
+          renderMatch={(match,reperes) => {
                   const equipe1 = trouverEquipe(match.equipe1Id);
                   const equipe2 = trouverEquipe(match.equipe2Id);
                   const pouleDuMatch = poules.find(
@@ -2594,8 +2578,7 @@ ${lienPartage}`,
                     (formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE);
                   const editable = scoreModifiable(match);
 
-                  return (
-                    <article key={match.id} style={{ ...styles.matchCard, ...(fini ? styles.matchDone : {}) }}>
+            return <>
                       {pouleDuMatch && match.id < SEUIL_PHASE_FINALE && (
                         <div style={styles.matchMeta}>
                           <span>{pouleDuMatch.nom}</span>
@@ -2603,15 +2586,16 @@ ${lienPartage}`,
                         </div>
                       )}
 
-                      <div style={styles.matchGrid}>
+                      <div className="tourneo-unified-score-grid" style={styles.matchGrid}>
                         <div style={styles.teamLeft}>
                           {equipe1 && <TeamAvatar equipe={equipe1} taille={38} />}
-                          <strong>{equipe1?.nom ?? "Participant supprimé"}</strong>
+                          <div className="tourneo-score-team-label"><strong>{equipe1?.nom ?? "Participant supprimé"}</strong><RepereParticipant id={match.equipe1Id} reperes={reperes}/></div>
                         </div>
 
                         <input
                           style={{ ...styles.scoreInput, ...(editable ? {} : styles.scoreLocked) }}
                           type="number"
+                          aria-label={`Score de ${equipe1?.nom ?? "participant 1"}`}
                           min="0"
                           value={match.score1}
                           disabled={!editable || optionsV2.score === "sets"}
@@ -2624,6 +2608,7 @@ ${lienPartage}`,
                         <input
                           style={{ ...styles.scoreInput, ...(editable ? {} : styles.scoreLocked) }}
                           type="number"
+                          aria-label={`Score de ${equipe2?.nom ?? "participant 2"}`}
                           min="0"
                           value={match.score2}
                           disabled={!editable || optionsV2.score === "sets"}
@@ -2632,7 +2617,7 @@ ${lienPartage}`,
                         />
 
                         <div style={styles.teamRight}>
-                          <strong>{equipe2?.nom ?? "Participant supprimé"}</strong>
+                          <div className="tourneo-score-team-label"><strong>{equipe2?.nom ?? "Participant supprimé"}</strong><RepereParticipant id={match.equipe2Id} reperes={reperes}/></div>
                           {equipe2 && <TeamAvatar equipe={equipe2} taille={38} />}
                         </div>
                       </div>
@@ -2646,14 +2631,8 @@ ${lienPartage}`,
                           <button style={styles.ghostButton} onClick={() => corrigerScore(match)}>Modifier le résultat</button>
                         </div>
                       )}
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-            </div>
-          );
-        })}
+            </>;
+          }}/>}
 
         {formatParcours && <section style={styles.card}><h2 style={styles.sectionTitle}>{parcoursTermine(formatParcours,equipes,matchs) ? `Vainqueur : ${classement[0]?.equipe.nom ?? ""}` : "Tournoi en cours"}</h2><p style={styles.muted}>Les tours suivants sont générés après validation de tous les matchs. Les exemptions avancent automatiquement. Le classement devient définitif à la fin du tournoi.</p></section>}
 

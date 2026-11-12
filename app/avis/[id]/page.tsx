@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import TourneoRetour from "@/components/TourneoRetour";
 import TourneoNav from "@/components/TourneoNav";
 export default function Avis() {
   const { id } = useParams<{ id: string }>();
@@ -25,5 +26,5 @@ export default function Avis() {
     setOccupe(true); const r = await supabase.from("tourneo_evaluations").delete().eq("tournoi_id", id).eq("user_id", user);
     if (r.error) setMessage("Suppression impossible."); else { setExiste(false); setCommentaire(""); setMessage("Votre avis a été retiré."); } setOccupe(false);
   }
-  return <main className="v2-page"><div className="v2-shell"><TourneoNav/><section className="v2-card"><h1>Mon avis sur le tournoi</h1><p>Votre retour aide l’organisateur. Il n’est pas publié sur le lien public.</p><form className="v2-form" onSubmit={sauver}><label>Note<select value={note} onChange={e => setNote(Number(e.target.value))}>{[5,4,3,2,1].map(n => <option key={n} value={n}>{n} sur 5</option>)}</select></label><label>Commentaire facultatif<textarea maxLength={1000} value={commentaire} onChange={e => setCommentaire(e.target.value)}/></label><button disabled={!user || occupe}>Enregistrer mon avis</button></form>{existe && <button disabled={occupe} onClick={() => void retirer()}>Retirer mon avis</button>}<p role="status">{message}</p><a href="/activite">Retour à mon activité</a></section></div></main>;
+  return <main className="v2-page"><div className="v2-shell"><TourneoNav/><section className="v2-card"><h1>Mon avis sur le tournoi</h1><p>Votre retour aide l’organisateur. Il n’est pas publié sur le lien public.</p><form className="v2-form" onSubmit={sauver}><label>Note<select value={note} onChange={e => setNote(Number(e.target.value))}>{[5,4,3,2,1].map(n => <option key={n} value={n}>{n} sur 5</option>)}</select></label><label>Commentaire facultatif<textarea maxLength={1000} value={commentaire} onChange={e => setCommentaire(e.target.value)}/></label><button disabled={!user || occupe}>Enregistrer mon avis</button></form>{existe && <button disabled={occupe} onClick={() => void retirer()}>Retirer mon avis</button>}<p role="status">{message}</p><TourneoRetour href="/activite">Mon activité</TourneoRetour></section></div></main>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import TourneoRetour from '@/components/TourneoRetour';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
@@ -60,7 +61,7 @@ export default function FeuilleTournoi() {
   const matchsParId = new Map(matchs.map(m => [m.id, m]));
   const nom = (participant: string) => nomParticipant(participant, equipes);
   return <main className={`v2-paper${couleur ? ' v2-paper-color' : ''}${grandesCases ? ' v2-paper-large' : ''}`}>
-    <div className="v2-paper-actions"><a href={`/tournoi/${id}`}>← Tournoi</a>
+    <div className="v2-paper-actions"><TourneoRetour href={`/tournoi/${id}`}>Retour au tournoi</TourneoRetour>
       <button type="button" onClick={() => window.print()} disabled={!contenu || !auMoinsUneSection}>Imprimer / Enregistrer en PDF</button>
     </div>
     <fieldset className="v2-print-settings"><legend>Personnaliser l’impression</legend>

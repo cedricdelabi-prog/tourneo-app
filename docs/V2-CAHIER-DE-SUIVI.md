@@ -1,0 +1,127 @@
+# Tourneo V2 — cahier de suivi reconstitué
+
+État au 12 novembre 2026. Branche `tourneo-v2-dev`, environnement `tourneo-v2-test`.
+
+Grille reconstituée. Numérotation 1–74 proposée à partir des thèmes utilisateur et du périmètre déjà travaillé ; 75 retrouvé ; 76–87 fournis/retrouvés. Pas une reproduction de la liste initiale.
+
+Les points 86 et 87 sont des priorités ajoutées qui recoupent plusieurs fonctions de la grille. Le total de points ne correspond donc pas à 87 fonctions indépendantes. Les fonctions déjà présentes en V1 sont incluses ici lorsqu’elles font partie des critères de livraison V2 demandés.
+
+## Compteur sur les 85 points de la grille reconstituée
+
+| Statut | Nombre |
+|---|---:|
+| Développée | 75 |
+| Partiellement développée | 4 |
+| À développer | 2 |
+| À tester | 4 |
+
+**Ces nombres mesurent la présente grille reconstituée. Ils ne certifient pas un nombre terminé dans une liste historique 1–75 que nous ne possédons pas intégralement.**
+
+## Lecture des statuts
+
+- **Développée** : Fonction intégrée dans la V2, contrôlée dans le code ou par des tests locaux. Ce statut ne remplace pas tous les essais réels.
+- **Partiellement développée** : Une partie fonctionne ; une limite précise reste listée.
+- **À développer** : Fonction absente du parcours utilisable.
+- **À tester** : Code présent ; validation utilisateur ou appareil indispensable avant de considérer le point terminé.
+
+Source du périmètre : récapitulatif transmis par l’utilisateur dans cette conversation le 12 novembre 2026, décisions précédentes retrouvées et demandes de correction pendant les essais. Les preuves ci-dessous sont des fichiers du dépôt ; les tests indiqués sont locaux sauf mention contraire.
+
+## Grille détaillée
+
+| N° | Thème | Évolution / critère de livraison | Statut | Preuve dans le dépôt | Limite ou vérification restante |
+|---:|---|---|---|---|---|
+| 1 | Création et gestion | Création simplifiée d’un tournoi | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 2 | Création et gestion | Mode Simple | Développée | [components/OptionsTournoiV2.tsx](../components/OptionsTournoiV2.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 3 | Création et gestion | Mode Expert gratuit | Développée | [lib/options-v2.ts](../lib/options-v2.ts) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 4 | Création et gestion | Nom du tournoi et discipline personnalisables | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 5 | Création et gestion | Ajout de joueurs sans compte ni téléphone | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 6 | Création et gestion | Équipes avec liste de membres | Développée | [components/TeamModal.tsx](../components/TeamModal.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 7 | Création et gestion | Modifier ou supprimer les participants avant les résultats | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 8 | Création et gestion | Modifier la composition d’un tournoi déjà en cours | Partiellement développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Composition modifiable tant qu’aucun score n’est joué. Pas de recomposition générale avec conservation de résultats existants. |
+| 9 | Création et gestion | Configurer le nombre de terrains | Développée | [components/OptionsTournoiV2.tsx](../components/OptionsTournoiV2.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 10 | Création et gestion | Configurer le départ et la durée des rencontres | Développée | [lib/planning.ts](../lib/planning.ts) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 11 | Création et gestion | Respecter un repos minimum entre deux rencontres | Développée | [lib/planning.ts](../lib/planning.ts) ; [tests/suivi.cjs](../tests/suivi.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 12 | Création et gestion | Mémoriser et réutiliser un modèle de règles | Développée | [components/OptionsTournoiV2.tsx](../components/OptionsTournoiV2.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 13 | Formats de compétition | Championnat aller-retour | Développée | [lib/tournoi.ts](../lib/tournoi.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 14 | Formats de compétition | Compétition en poules | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) ; [lib/tirages.ts](../lib/tirages.ts) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 15 | Formats de compétition | Poules puis phase finale | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 16 | Formats de compétition | Élimination directe | Développée | [lib/tournoi.ts](../lib/tournoi.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 17 | Formats de compétition | Double élimination | Développée | [lib/parcours.ts](../lib/parcours.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 18 | Formats de compétition | Seconde finale de double élimination si nécessaire | Développée | [lib/parcours.ts](../lib/parcours.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 19 | Formats de compétition | Consolante | Développée | [lib/parcours.ts](../lib/parcours.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 20 | Formats de compétition | Système suisse | Développée | [lib/formats-avances.ts](../lib/formats-avances.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 21 | Formats de compétition | Nombre de rondes suisse configurable | Développée | [components/OptionsTournoiV2.tsx](../components/OptionsTournoiV2.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 22 | Formats de compétition | Appariements suisses limitant les répétitions | Développée | [lib/formats-avances.ts](../lib/formats-avances.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 23 | Formats de compétition | Exemptions et rotation des joueurs exemptés | Développée | [lib/formats-avances.ts](../lib/formats-avances.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 24 | Formats de compétition | Rencontres en plusieurs manches gagnantes | Développée | [components/SaisieManches.tsx](../components/SaisieManches.tsx) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 25 | Formats de compétition | Règles et préréglages selon la discipline | Développée | [lib/sports.ts](../lib/sports.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 26 | Formats de compétition | Barème de points configurable | Développée | [lib/options-v2.ts](../lib/options-v2.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 27 | Formats de compétition | Classements et départages cohérents entre les vues | Développée | [lib/resultats.ts](../lib/resultats.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 28 | Formats de compétition | Doubles à partenaires tournants | Développée | [lib/rotation.ts](../lib/rotation.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 29 | Formats de compétition | Tirage aléatoire | Développée | [lib/tirages.ts](../lib/tirages.ts) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 30 | Formats de compétition | Tirage équilibré selon les niveaux | Développée | [lib/tirages.ts](../lib/tirages.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 31 | Formats de compétition | Positions et poules manuelles | Développée | [lib/tirages.ts](../lib/tirages.ts) ; [components/TeamModal.tsx](../components/TeamModal.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 32 | Inscriptions | Brouillon du tournoi avant les inscriptions | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 33 | Inscriptions | Inscription à distance par lien | Développée | [app/inscriptions/[id]/page.tsx](../app/inscriptions/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 34 | Inscriptions | Invitation et inscription par QR | Développée | [app/tournoi/[id]/inscriptions/page.tsx](../app/tournoi/[id]/inscriptions/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 35 | Inscriptions | Quota et capacité du tournoi | Développée | [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 36 | Inscriptions | Date limite des inscriptions | Développée | [supabase/modules/2026110901_inscriptions_v2.sql](../supabase/modules/2026110901_inscriptions_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 37 | Inscriptions | Validation des demandes manuelle ou automatique | Développée | [app/tournoi/[id]/inscriptions/page.tsx](../app/tournoi/[id]/inscriptions/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 38 | Inscriptions | Inscriptions individuelles ou en équipe avec pseudo | Développée | [app/inscriptions/[id]/page.tsx](../app/inscriptions/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 39 | Inscriptions | Annulation d’une inscription depuis l’appareil invité | Développée | [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 40 | Inscriptions | Pointage de présence par l’organisateur | Développée | [app/tournoi/[id]/inscriptions/page.tsx](../app/tournoi/[id]/inscriptions/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 41 | Inscriptions | Intégration des acceptés et fermeture au démarrage | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 42 | Inscriptions | Groupes privés de club et accompagnateurs, copie des listes | Développée | [app/groupes/page.tsx](../app/groupes/page.tsx) ; [supabase/tests/groupes_v2.sql](../supabase/tests/groupes_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 43 | Profils joueurs | Compte par e-mail et connexion | Développée | [app/login/page.tsx](../app/login/page.tsx) | Essai utilisateur sur ordinateur positif ; confirmation et réinitialisation à compléter sur d’autres appareils. |
+| 44 | Profils joueurs | Retour immédiat au clic et affichage contrôlé du mot de passe | Développée | [components/ChampMotDePasse.tsx](../components/ChampMotDePasse.tsx) ; [app/login/page.tsx](../app/login/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 45 | Profils joueurs | Photo de profil depuis la galerie | Développée | [app/profil/page.tsx](../app/profil/page.tsx) ; [tests/profil.cjs](../tests/profil.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 46 | Profils joueurs | Prise de photo avec la caméra du téléphone | À tester | [app/profil/page.tsx](../app/profil/page.tsx) | Commande présente. Vérifier l’ouverture de la caméra et l’envoi sur un vrai téléphone. |
+| 47 | Profils joueurs | Choix d’un emoji comme avatar | Développée | [app/profil/page.tsx](../app/profil/page.tsx) ; [tests/profil.cjs](../tests/profil.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 48 | Profils joueurs | Couleur, code et QR du joueur | Développée | [app/profil/page.tsx](../app/profil/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 49 | Profils joueurs | Ajout d’un profil par son code | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 50 | Profils joueurs | Palmarès et identité conservée entre tournois | Développée | [app/joueur/[code]/page.tsx](../app/joueur/[code]/page.tsx) ; [lib/statistiques.ts](../lib/statistiques.ts) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 51 | Profils joueurs | Texte agrandi et animations réduites | Développée | [components/AccessibiliteCompte.tsx](../components/AccessibiliteCompte.tsx) ; [components/PreferencesCompte.tsx](../components/PreferencesCompte.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 52 | Résultats et partage | Saisie des scores | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 53 | Résultats et partage | Validation et correction des résultats | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 54 | Résultats et partage | Calcul automatique du classement | Développée | [lib/resultats.ts](../lib/resultats.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 55 | Résultats et partage | Scores et classements publics actualisés | Développée | [app/partage/[id]/page.tsx](../app/partage/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 56 | Résultats et partage | Partage public limité aux pseudos et résultats | Développée | [supabase/tests/partage_public_v2.sql](../supabase/tests/partage_public_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 57 | Résultats et partage | Podium animé à la demande | Développée | [app/partage/[id]/page.tsx](../app/partage/[id]/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 58 | Résultats et partage | Export CSV des classements | Développée | [lib/formats-avances.ts](../lib/formats-avances.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 59 | Résultats et partage | Sauvegarde et restauration JSON validées | Développée | [lib/sauvegarde.ts](../lib/sauvegarde.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 60 | Résultats et partage | Enregistrement cloud et reprise des envois en attente | Développée | [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Sauvegardes séquentielles et données locales prioritaires. Conflits entre plusieurs appareils non fusionnés automatiquement. |
+| 61 | Résultats et partage | Stockage privé des photos et liens temporaires | Développée | [lib/media-prive.ts](../lib/media-prive.ts) ; [components/PhotoPrivee.tsx](../components/PhotoPrivee.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 62 | Résultats et partage | Conservation des photos de tournoi à 15 ou 90 jours | Développée | [supabase/tests/conservation_photos_v2.sql](../supabase/tests/conservation_photos_v2.sql) ; [tests/purge-photos.cjs](../tests/purge-photos.cjs) | Traitement horaire installé. Suppression d’un vrai fichier expiré encore à vérifier ; les avatars sont exclus. |
+| 63 | Résultats et partage | Export ou impression PDF des résultats | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 64 | Résultats et partage | Feuilles vierges et pointage papier | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 65 | Résultats et partage | Historique des inscriptions, arbitrages et participations | Développée | [app/activite/page.tsx](../app/activite/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 66 | Expérience et accès | Affichage responsive smartphone, tablette et ordinateur | À tester | [app/globals.css](../app/globals.css) | Ordinateur validé par les essais utilisateur. Vérification complète sur petits écrans et tablette à terminer. |
+| 67 | Expérience et accès | Utilisation sur iPhone | À tester | [app/manifest.ts](../app/manifest.ts) ; [app/login/page.tsx](../app/login/page.tsx) | Parcours Safari/iPhone et installation écran d’accueil à vérifier sur appareil réel. |
+| 68 | Expérience et accès | Utilisation sur Android et distribution de la V2 | Partiellement développée | [android](../android) ; [capacitor.config.ts](../capacitor.config.ts) | Site V2 et structure Capacitor présents. Paquet V2 et publication store non livrés par ce travail. |
+| 69 | Expérience et accès | Navigation commune et retours cohérents | Développée | [components/TourneoNav.tsx](../components/TourneoNav.tsx) ; [components/TourneoRetour.tsx](../components/TourneoRetour.tsx) | Inclut la fusion planning/scores/appels en une fiche de match, demandée pendant les essais. |
+| 70 | Expérience et accès | Application gratuite et suppression des publicités | Développée | [app](../app) ; [components](../components) | Aucun paiement ou espace publicitaire dans la V2. Tous les modes restent gratuits selon la demande actuelle. |
+| 71 | Expérience et accès | Notifications internes liées à Tourneo | Développée | [app/activite/page.tsx](../app/activite/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 72 | Expérience et accès | Préférences sportives et consentement promotionnel distincts | Développée | [components/PreferencesCompte.tsx](../components/PreferencesCompte.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
+| 73 | Expérience et accès | E-mails sportifs et notifications téléphone application fermée | À développer | [docs/V2-AVANCEMENT.md](../docs/V2-AVANCEMENT.md) | Les messages internes et alertes locales existent. Les canaux e-mail et push fermé ne sont pas activés. |
+| 74 | Expérience et accès | Traduction complète selon la langue du compte | À développer | [docs/V2-AVANCEMENT.md](../docs/V2-AVANCEMENT.md) | Interface française. Pas encore de parcours entièrement traduit selon une préférence de langue. |
+| 75 | Impression | Impression personnalisable du tournoi | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | A4/A3, orientation, sections, grandes cases, couleurs, poules, tableaux et QR par match. Vérification d’une impression physique à poursuivre. |
+| 76 | Évolutions 76–85 | Écran géant | Développée | [app/partage/[id]/page.tsx](../app/partage/[id]/page.tsx) | Affichage et plein écran présents ; vérifier sur télévision ou vidéoprojecteur. |
+| 77 | Évolutions 76–85 | Liste d’attente quand le tournoi est complet | Développée | [app/inscriptions/[id]/page.tsx](../app/inscriptions/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Les nouvelles demandes vont en attente ; les places libérées sont attribuées par l’organisateur. |
+| 78 | Évolutions 76–85 | Import Excel et CSV | Développée | [lib/import-participants.ts](../lib/import-participants.ts) ; [tests/import-excel.cjs](../tests/import-excel.cjs) | XLSX première feuille, aperçu, dédoublonnage et limite cumulée de 256 participants. |
+| 79 | Évolutions 76–85 | Planning glisser-déposer des matchs et terrains | Partiellement développée | [components/PlanningTournoi.tsx](../components/PlanningTournoi.tsx) ; [tests/annonces.cjs](../tests/annonces.cjs) | Ordre des matchs d’un même tour modifiable ; terrains calculés automatiquement. Pas d’affectation manuelle à un terrain par glisser-déposer. |
+| 80 | Évolutions 76–85 | Classement général multi-tournois | Développée | [app/evenements/page.tsx](../app/evenements/page.tsx) ; [tests/evenements.cjs](../tests/evenements.cjs) | Classement des profils identifiés sur les tournois terminés sélectionnés. |
+| 81 | Évolutions 76–85 | Appel des joueurs pour leur prochain match | À tester | [components/AppelTournoi.tsx](../components/AppelTournoi.tsx) ; [tests/appels-ui.cjs](../tests/appels-ui.cjs) ; [supabase/tests/appels_v2.sql](../supabase/tests/appels_v2.sql) | Dépôt privé, consentement et état marqué comme lu développés. Parcours réel entre comptes à confirmer ; pas de push application fermée. |
+| 82 | Évolutions 76–85 | Suivi des participants qui attendent de jouer | Partiellement développée | [lib/suivi-matchs.ts](../lib/suivi-matchs.ts) ; [tests/suivi.cjs](../tests/suivi.cjs) | Prochains passages et attente par pseudo dans la page publique. Pas encore de vue globale dédiée de tous les participants en attente. |
+| 83 | Évolutions 76–85 | Évaluation des tournois par les participants | Développée | [app/avis/[id]/page.tsx](../app/avis/[id]/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Avis privés, participant identifié, note/commentaire, modification/retrait et refus d’autoévaluation organisateur. |
+| 84 | Évolutions 76–85 | Statistiques avancées organisateur | Développée | [app/statistiques/page.tsx](../app/statistiques/page.tsx) ; [lib/statistiques.ts](../lib/statistiques.ts) ; [tests/moteur.cjs](../tests/moteur.cjs) | Période, disciplines, participations, matchs validés, avis, CSV et impression ; présentation refaite après essai utilisateur. |
+| 85 | Évolutions 76–85 | Programme des animations de camping | Développée | [app/evenements/page.tsx](../app/evenements/page.tsx) ; [tests/evenements.cjs](../tests/evenements.cjs) | Événement multi-tournois, programme chronologique et impression des seules activités retenues. |
+| 86 | Priorités supplémentaires | Priorité hors connexion puis synchronisation | Partiellement développée | [components/OfflineV2.tsx](../components/OfflineV2.tsx) ; [public/sw-v2.js](../public/sw-v2.js) ; [app/tournoi/[id]/page.tsx](../app/tournoi/[id]/page.tsx) | Données locales et reprise réseau présentes. Exige un premier chargement ; modules en ligne et conflits multi-appareils restent limités. Essai réel de coupure à terminer. |
+| 87 | Priorités supplémentaires | Priorité camping et organisation sur papier | Développée | [lib/options-v2.ts](../lib/options-v2.ts) ; [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | Mode Camping, joueurs sans téléphone, feuilles papier et QR. Recoupe des points précédents : priorité suivie à part, pas une fonction entièrement distincte. |
+
+## Décisions qui restent à préciser
+
+- Le détail attendu du format coopératif n’est pas décrit dans le récapitulatif fourni. Il n’est pas remplacé par une règle inventée dans cette grille.
+- Tous les modes, y compris Expert, restent gratuits. Aucune publicité ni monétisation n’est prévue dans ce suivi.
+- Les tests simultanés multi-appareils, les parcours iPhone/Android réels et le test complet des appels entre deux comptes restent nécessaires avant une annonce de V2 entièrement validée.
+
+Les données structurées du suivi et les compteurs sont conservés dans [V2-SUIVI-87.json](V2-SUIVI-87.json).

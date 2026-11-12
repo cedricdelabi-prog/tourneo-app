@@ -1,13 +1,17 @@
 "use client";
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Equipe, Match } from '@/types';
 import type { OptionsV2 } from '@/lib/options-v2';
 import { nomParticipant } from '@/lib/rotation';
 import { planifierMatchs, heureCreneau } from '@/lib/planning';
-import { reperesAppel } from '@/lib/reperes-appel';
+import { reperesAppel, type RepereAppel } from '@/lib/reperes-appel';
 import AppelTournoi from "@/components/AppelTournoi";
 import { supabase } from '@/lib/supabase';
-export default function PlanningTournoi({ equipes, matchs, options, onChange, tournoiId }: { tournoiId?: string; equipes: Equipe[]; matchs: Match[]; options: OptionsV2; onChange: (m: Match[]) => void }) {
+export default function PlanningTournoi({ equipes, matchs, options, onChange, tournoiId, renderMatch, titreTour, detailsTour, valides = [] }: {
+  tournoiId?: string; equipes: Equipe[]; matchs: Match[]; options: OptionsV2; onChange: (m: Match[]) => void;
+  renderMatch?: (match: Match, reperes: RepereAppel[]) => ReactNode;
+  titreTour?: (tour: number) => string; detailsTour?: (tour: number) => ReactNode; valides?: readonly number[];
+}) {
   const [glisse, setGlisse] = useState<number | null>(null);
   const [annonceId, setAnnonceId] = useState<number | null>(null), [copie, setCopie] = useState('');
   const [verification, setVerification] = useState<{ cle: string; ids: string[] | null }>({ cle: '', ids: null });
@@ -41,20 +45,36 @@ export default function PlanningTournoi({ equipes, matchs, options, onChange, to
     const a = parId.get(id), b = parId.get(cible);
     if (!a || !b || a.journee !== b.journee || id === cible) return;
     const tour = matchs.filter(m => m.journee === a.journee).sort((a, b) => (a.ordre ?? a.id) - (b.ordre ?? b.id));
-    tour.splice(tour.findIndex(m => m.id === id), 1); tour.splice(tour.findIndex(m => m.id === cible), 0, a);
+    const destination = tour.findIndex(m => m.id === cible);
+    tour.splice(tour.findIndex(m => m.id === id), 1); tour.splice(destination, 0, a);
     const ordre = new Map(tour.map((m, i) => [m.id, i]));
     onChange(matchs.map(m => ordre.has(m.id) ? { ...m, ordre: ordre.get(m.id) } : m));
   }
-  return <section className="v2-planning"><h2>Planning des terrains</h2><p>Estimation : {planning.reduce((fin,c) => Math.max(fin,c.fin),0)} minutes · {options.terrains} terrain(s). Déplacez les lignes au sein d’une même ronde, ou utilisez les flèches. Les temps de repos sont conservés.</p>
-    <div className="tourneo-call-info"><strong>Appels et notifications</strong><p>Le bouton « Annonce sur place » prépare le texte à annoncer aux joueurs. Une fois ouvert, il permet aussi un envoi distinct dans leur activité Tourneo, si un profil est lié et accepte les informations sportives.</p><p>Un profil lié ne garantit ni l’installation de l’application, ni l’activation des alertes, ni leur réception. Les joueurs peuvent activer leur suivi depuis le lien public.</p><button type="button" disabled={verificationEnCours} onClick={() => setRevisionProfils(v => v + 1)}>{verificationEnCours ? 'Vérification…' : 'Vérifier les profils liés'}</button></div>
-    <div style={{ overflowX: 'auto' }}><table><thead><tr><th>Tour</th><th>Début estimé</th><th>Terrain</th><th>Rencontre / repères joueurs</th><th className="v2-no-print">Ordre / annonce</th></tr></thead><tbody>{planning.map((c, i) => {
-      const m = parId.get(c.matchId)!; const avant = planning[i - 1], apres = planning[i + 1];
-      const reperes = reperesAppel(m, equipes, profils);
-      const texte = `Match sur le terrain ${c.terrain} : ${nom(m.equipe1Id)} contre ${nom(m.equipe2Id)}.`;
-      return <Fragment key={m.id}><tr draggable onDragStart={() => setGlisse(m.id)} onDragEnd={() => setGlisse(null)} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (glisse !== null) deplacer(glisse, m.id); setGlisse(null); }}>
-        <td>{m.journee}</td><td>{heureCreneau(c.debut, options.depart)}</td><td>{c.terrain}</td><td><strong>{nom(m.equipe1Id)} — {nom(m.equipe2Id)}</strong><div className="tourneo-player-markers">{reperes.map(r => <span key={r.id} className={`tourneo-player-marker is-${r.statut}`}>{r.nom} · {r.statut === 'profil' ? 'Profil lié' : r.statut === 'sur_place' ? 'Sans profil lié' : 'Profil non vérifié'}</span>)}</div><small className="tourneo-receipt-note">Réception d’alerte non vérifiée · prévenir sur place</small></td>
-        <td className="v2-no-print"><div className="tourneo-planning-actions"><button type="button" aria-label="Avancer le match" disabled={!avant || avant.journee !== m.journee} onClick={() => deplacer(m.id, avant.matchId)}>↑</button><button type="button" aria-label="Reculer le match" disabled={!apres || apres.journee !== m.journee} onClick={() => deplacer(apres.matchId, m.id)}>↓</button><button type="button" aria-expanded={annonceId === m.id} aria-controls={annonceId === m.id ? `annonce-${m.id}` : undefined} onClick={e => { boutonAnnonce.current = e.currentTarget; setAnnonceId(annonceId === m.id ? null : m.id); setCopie(''); }}>Annonce sur place</button></div></td>
-      </tr>{annonceId === m.id && <tr className="v2-no-print"><td colSpan={5}><div id={`annonce-${m.id}`} ref={panneau} tabIndex={-1} className="tourneo-announcement"><strong>Annonce à faire sur place</strong><p>{texte}</p><p className="tourneo-announcement-warning">Cette annonce et sa copie n’envoient aucune notification. Prévenez les participants sur place, ou utilisez séparément l’envoi dans Tourneo ci-dessous.</p><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(texte); setCopie('Texte copié. Aucune notification envoyée.'); } catch { setCopie('Copie indisponible : sélectionnez le texte pour le copier.'); } }}>Copier l’annonce</button><button type="button" onClick={() => { setAnnonceId(null); boutonAnnonce.current?.focus(); }}>Fermer</button>{copie && <p role="status">{copie}</p>}{tournoiId && <AppelTournoi key={`${tournoiId}:${m.id}`} tournoiId={tournoiId} matchId={m.id}/>}</div></td></tr>}</Fragment>;
-    })}</tbody></table></div>
-    <p>Les horaires réels dépendent de la durée des rencontres. Les repères de profil ne sont pas des confirmations de réception.</p></section>;
+  const indexParId = new Map(planning.map((c,i) => [c.matchId,i]));
+  const parTour = new Map<number, typeof planning>();
+  for (const c of planning) { if (!parTour.has(c.journee)) parTour.set(c.journee,[]); parTour.get(c.journee)!.push(c); }
+  const tours = [...parTour.keys()];
+  return <section className="v2-planning tourneo-match-workspace">
+    <header className="tourneo-match-summary"><div><span className="v2-eyebrow">Vue complète</span><h2>Matchs et planning</h2><p>Scores, terrains et appels réunis au même endroit.</p></div><div className="tourneo-workspace-totals"><span>{matchs.length} rencontres</span><span>{options.terrains} terrain(s)</span><span>{planning.reduce((fin,c) => Math.max(fin,c.fin),0)} min estimées</span></div></header>
+    <details className="tourneo-workspace-help"><summary>Repères joueurs et fonctionnement des appels</summary><p>Un profil lié ne garantit pas l’installation de l’application ni la réception d’une alerte. « Annonce sur place » prépare un texte et permet un envoi distinct dans l’activité Tourneo des profils éligibles.</p><p>Déplacez les rencontres dans un même tour avec les flèches ou la poignée. Les temps de repos sont conservés.</p><button type="button" disabled={verificationEnCours} onClick={() => setRevisionProfils(v => v + 1)}>{verificationEnCours ? 'Vérification…' : 'Vérifier les profils liés'}</button></details>
+    {!matchs.length && <p>Aucune rencontre générée pour le moment.</p>}
+    {tours.map(tour => <section className="tourneo-unified-round" key={tour}><header className="tourneo-unified-round-heading"><div><span className="v2-eyebrow">Calendrier</span><h2>{titreTour?.(tour) || `Tour ${tour}`}</h2>{detailsTour?.(tour)}</div><span>{parTour.get(tour)!.length} match(s)</span></header>
+      <div className="tourneo-unified-match-list">{parTour.get(tour)!.map(c => {
+        const m = parId.get(c.matchId)!; const index = indexParId.get(m.id)!;
+        const avant = planning[index - 1], apres = planning[index + 1];
+        const reperes = reperesAppel(m, equipes, profils);
+        const texte = `Match sur le terrain ${c.terrain} : ${nom(m.equipe1Id)} contre ${nom(m.equipe2Id)}.`;
+        return <article id={`organisateur-match-${m.id}`} className={`tourneo-unified-match${valides.includes(m.id) ? ' is-validated' : ''}${glisse === m.id ? ' is-dragging' : ''}`} key={m.id} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (glisse !== null) deplacer(glisse,m.id); setGlisse(null); }}>
+          <div className="tourneo-unified-match-toolbar"><div className="tourneo-match-schedule"><span className="tourneo-court-chip">Terrain {c.terrain}</span><span>{heureCreneau(c.debut,options.depart)} <small>estimé</small></span></div><div className="tourneo-unified-match-controls">
+            <span className="tourneo-drag-handle" draggable onDragStart={() => setGlisse(m.id)} onDragEnd={() => setGlisse(null)} title="Glisser pour réorganiser les matchs du tour"><svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">{[4,10,16].flatMap(y => [4,10].map(x => <circle key={`${x}:${y}`} cx={x} cy={y} r="1.3"/>))}</svg></span>
+            <button type="button" aria-label="Avancer le match" disabled={!avant || avant.journee !== m.journee} onClick={() => deplacer(m.id,avant.matchId)}>↑</button><button type="button" aria-label="Reculer le match" disabled={!apres || apres.journee !== m.journee} onClick={() => deplacer(m.id,apres.matchId)}>↓</button>
+            <button type="button" className="tourneo-open-call" aria-expanded={annonceId === m.id} aria-controls={annonceId === m.id ? `annonce-${m.id}` : undefined} onClick={e => { boutonAnnonce.current = e.currentTarget; setAnnonceId(annonceId === m.id ? null : m.id); setCopie(''); }}>Annonce sur place</button>
+          </div></div>
+          <div className="tourneo-unified-match-content">{renderMatch ? renderMatch(m,reperes) : <><h3>{nom(m.equipe1Id)} — {nom(m.equipe2Id)}</h3><div className="tourneo-player-markers">{reperes.map(r => <span key={r.id} className={`tourneo-player-marker is-${r.statut}`}>{r.nom} · {r.statut === 'profil' ? 'Profil lié' : r.statut === 'sur_place' ? 'Sans profil lié' : 'Profil non vérifié'}</span>)}</div></>}</div>
+          {annonceId === m.id && <div id={`annonce-${m.id}`} ref={panneau} tabIndex={-1} className="tourneo-announcement v2-no-print"><strong>Annonce à faire sur place</strong><p>{texte}</p><p className="tourneo-announcement-warning">Cette annonce et sa copie n’envoient aucune notification. L’envoi dans Tourneo se fait séparément ci-dessous.</p><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(texte); setCopie('Texte copié uniquement : cette copie n’a envoyé aucune notification.'); } catch { setCopie('Copie indisponible : sélectionnez le texte pour le copier.'); } }}>Copier l’annonce</button><button type="button" onClick={() => { setAnnonceId(null); boutonAnnonce.current?.focus(); }}>Fermer</button>{copie && <p role="status">{copie}</p>}{tournoiId && <AppelTournoi key={`${tournoiId}:${m.id}`} tournoiId={tournoiId} matchId={m.id}/>}</div>}
+        </article>;
+      })}</div>
+    </section>)}
+    <p className="tourneo-planning-footnote">Horaires estimés : attendez l’appel de l’organisateur pour rejoindre le terrain.</p>
+  </section>;
 }

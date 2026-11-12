@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import TourneoRetour from "@/components/TourneoRetour";
 import TourneoBrand from "@/components/TourneoBrand";
 
 const sections = [
@@ -12,8 +13,8 @@ const sections = [
 ] as const;
 type Active = "dashboard" | "tournoi" | "profil" | "aide" | "contact" | "none";
 
-export default function TourneoNav({ active = "none", onLogout, primaryLabel, primaryHref }: {
-  active?: Active; showBack?: boolean; backHref?: string;
+export default function TourneoNav({ active = "none", onLogout, primaryLabel, primaryHref, showBack = active === "tournoi", backHref = "/dashboard", backLabel = "Mes tournois", contextLabel }: {
+  active?: Active; showBack?: boolean; backHref?: string; backLabel?: string; contextLabel?: string;
   onLogout?: () => void | Promise<void>; primaryLabel?: string; primaryHref?: string;
 }) {
   const pathname = usePathname();
@@ -42,6 +43,7 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
           {primaryLabel && primaryHref && <Link className="tourneo-nav-primary" href={primaryHref}>{primaryLabel}</Link>}
         </div>
       </div>
+      {showBack && <div className="tourneo-context-bar"><TourneoRetour href={backHref}>{backLabel}</TourneoRetour>{contextLabel && <span className="tourneo-context-label">{contextLabel}</span>}</div>}
       <nav className="tourneo-desktop-nav" aria-label="Navigation principale">
         {sections.map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{label}</Link>)}
       </nav>

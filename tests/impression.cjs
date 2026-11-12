@@ -19,6 +19,7 @@ function load(file) {
     if (id === 'react/jsx-runtime') return { jsx, jsxs: jsx };
     if (id === 'next/navigation') return { useParams: () => ({ id: 'offline-test' }) };
     if (id === 'qrcode.react') return { QRCodeSVG: 'qr' };
+    if (id.startsWith('@/components/')) return { default: 'retour' };
     if (id === '@/lib/supabase') return { supabase: { auth: { getUser() { throw new Error('Offline cache should not require Auth'); } } } };
     if (id.startsWith('@/')) return load(id.slice(2) + '.ts');
     return require(id);

@@ -27,7 +27,7 @@ Branche exclusive : `tourneo-v2-dev`. `main` et la V1 restent hors du périmètr
 - Arbitres avec compte, attribution par code joueur, propositions de scores et validation finale par l'organisateur.
 - Projection publique explicite des données de jeu.
 
-Douze migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
+Treize migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
 
 ## Vérifications
 
@@ -50,7 +50,7 @@ Le mode hors connexion exige un premier chargement réseau et ne gère pas encor
 - Avis privés après clôture, réservés aux participants identifiés : une évaluation par compte/tournoi, modification/retrait ; refus de l'autoévaluation organisateur.
 - Statistiques organisateur : période/sport, participations, matchs validés, état terminé selon le moteur commun, avis, export CSV protégé et impression. Pagination des lectures.
 - Groupes privés club/accompagnement : liste de pseudos sans smartphone, partage par code joueur en lecture seule ou rôle accompagnateur, retrait d'accès, limite de 256 participants ; copie de la liste dans un nouveau tournoi sans modifier les tournois existants.
-- Cache du tableau de bord isolé par compte, statut terminé corrigé pour les résultats non validés et le format suisse. Appels joueurs visuels uniquement.
+- Cache du tableau de bord isolé par compte, statut terminé corrigé pour les résultats non validés et le format suisse. Annonces sur place et appels privés dans l’activité Tourneo.
 
 ## Accès et partage
 
@@ -138,3 +138,11 @@ La migration `20261112135620_tourneo_v2_appels_internes.sql` est appliquée uniq
 L’activité du joueur inclut ces appels, un lien vers le match public et une actualisation périodique pendant que la page est visible. Le panneau organisateur relit les états, sans déclencher de nouvel envoi. Une réponse réseau perdue n’est pas présentée comme un succès : l’état doit être relu et l’opération reste idempotente.
 
 Vérifications : les migrations ordonnées et l’activation consolidée passent les tests PostgreSQL locaux, dont `appels_v2.sql` (propriétaire, RLS, opt-out, compte absent, rotation, match terminé, idempotence, preuve de lecture non falsifiable). `tests/appels-ui.cjs` vérifie les états et la perte de réponse après dépôt. Les autres tests de parcours et la compilation passent. Sur Supabase V2, RLS et privilèges sont vérifiés, aucun appel réel n’est présent et aucun nouvel avis de sécurité n’est ajouté par ce module. La confirmation du test SQL en ligne avec écritures temporaires a expiré : ce test n’a pas été exécuté, et aucun parcours réel à deux comptes n’est annoncé comme validé.
+
+## Référence reconstituée et fiches de match unifiées
+
+Le récapitulatif fourni par l’utilisateur est conservé dans `V2-CAHIER-DE-SUIVI.md` et `V2-SUIVI-87.json`. Les points 1–74 sont un découpage reconstitué des thèmes et du périmètre déjà travaillé, sans prétendre reproduire l’ancienne numérotation ; le point 75 a été retrouvé et les points 76–87 conservent les intitulés fournis/retrouvés. Le compteur mesure cette grille reconstituée et non une liste historique complète que nous n’avons pas. Deux priorités supplémentaires recoupent d’autres points et ne sont pas présentées comme deux fonctions totalement indépendantes.
+
+Le calendrier et le planning ne présentent plus les mêmes rencontres deux fois : une fiche par match contient horaire et terrain estimés, score et correction, repères de profil près du nom et accès à l’annonce/appel. Les manches, branches de double élimination, poules et exemptions sont conservées. Le test de déplacement a également révélé puis corrigé un problème ancien : le bouton de descente ne déplaçait pas le match quand l’index cible était recalculé après retrait. L’index est désormais mémorisé avant le retrait ; le test vérifie la permutation.
+
+Navigation : composant de retour commun avec chevron, zone cliquable et focus clavier. Page d’inscriptions intégrée au menu commun ; retour au tournoi depuis inscriptions/impression, retour à l’activité depuis les avis, accès à la configuration et retours publics harmonisés. Les fonctions de score existantes restent les gestionnaires de la fiche fusionnée.

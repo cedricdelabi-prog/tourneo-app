@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import TourneoRetour from "@/components/TourneoRetour";
 
 export const metadata = {
   title: "Suppression de compte | Tourneo",
@@ -11,9 +12,7 @@ export default function SuppressionComptePage() {
   return (
     <main style={s.page}>
       <div style={s.shell}>
-        <Link href="/" style={s.back}>
-          ← Retour à Tourneo
-        </Link>
+        <TourneoRetour href="/">Accueil Tourneo</TourneoRetour>
 
         <header style={s.hero}>
           <span style={s.eyebrow}>TOURNEO</span>
