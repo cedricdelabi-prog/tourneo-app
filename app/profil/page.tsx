@@ -33,6 +33,7 @@ export default function ProfilPage() {
   const [enregistrement, setEnregistrement] = useState(false);
   const [photoEnCours, setPhotoEnCours] = useState(false);
   const inputPhoto = useRef<HTMLInputElement>(null);
+  const inputCamera = useRef<HTMLInputElement>(null);
 
   useEffect(() => { charger(); }, []);
 
@@ -123,7 +124,7 @@ export default function ProfilPage() {
   }
 
   async function changerPhoto(file?: File) {
-    if (!file || !profil || photoEnCours) return;
+    if (!file || !profil || photoEnCours || enregistrement) return;
     if (!file.type.startsWith("image/")) {
       setMessage("Choisissez une image valide.");
       return;
@@ -147,16 +148,35 @@ export default function ProfilPage() {
       if (saveError || !updated) throw saveError || new Error("Photo non enregistrée.");
       setProfil(updated as Profil);
       setAvatar(photo);
-      setMessage("Photo de profil enregistrée ✓");
+      setMessage("Avatar de profil enregistré ✓");
     } catch (error) {
       setMessage(error instanceof Error ? `Photo impossible : ${error.message}` : "Impossible d'enregistrer la photo.");
     } finally {
       setPhotoEnCours(false);
       if (inputPhoto.current) inputPhoto.current.value = "";
+      if (inputCamera.current) inputCamera.current.value = "";
     }
   }
 
+  async function choisirEmoji(emoji: string) {
+    if (photoEnCours || enregistrement || chargement) return;
+    // Use the same private image upload as photos, so the avatar works everywhere.
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 256;
+    const context = canvas.getContext("2d");
+    if (!context) { setMessage("Impossible de préparer cet emoji. Réessayez."); return; }
+    context.font = '168px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(emoji, 128, 140);
+    canvas.toBlob(blob => {
+      if (!blob) { setMessage("Impossible de préparer cet emoji. Réessayez."); return; }
+      void changerPhoto(new File([blob], "avatar-emoji.png", { type: "image/png" }));
+    }, "image/png");
+  }
+
   async function enregistrer() {
+    if (photoEnCours || enregistrement) return;
     if (!profil) {
       setMessage("Votre profil n’est pas encore prêt. Réessayez dans quelques instants.");
       return;
@@ -207,12 +227,22 @@ export default function ProfilPage() {
         <TourneoNav active="profil" showBack backHref="/dashboard" onLogout={logout} primaryLabel="Créer un tournoi" primaryHref="/tournoi/nouveau" />
 
         <section style={s.hero}>
-          <div style={s.avatarWrap}>
+          <div className="tourneo-avatar-picker" style={s.avatarWrap}>
             <div style={{ ...s.avatar, background: couleur }}>
               {avatar ? <PhotoPrivee src={avatar} alt="" style={s.avatarImg} /> : <span>{(nom || "T").slice(0,1).toUpperCase()}</span>}
             </div>
             <input ref={inputPhoto} hidden type="file" accept="image/*,image/gif" onChange={(e) => changerPhoto(e.target.files?.[0])} />
-            <button style={s.secondary} disabled={photoEnCours || chargement} onClick={() => inputPhoto.current?.click()}>{photoEnCours ? "Envoi…" : "Photo / GIF"}</button>
+            <input ref={inputCamera} hidden type="file" accept="image/*" capture="user" onChange={(e) => changerPhoto(e.target.files?.[0])} />
+            <div className="tourneo-avatar-actions">
+              <button type="button" style={s.secondary} disabled={photoEnCours || chargement || enregistrement} onClick={() => inputCamera.current?.click()}>Prendre une photo</button>
+              <button type="button" style={s.secondary} disabled={photoEnCours || chargement || enregistrement} onClick={() => inputPhoto.current?.click()}>Galerie / GIF</button>
+            </div>
+            <span style={{ color: "#b6c6dd", fontSize: 13 }}>Ou choisissez un emoji</span>
+            <div className="tourneo-emoji-options" role="group" aria-label="Choisir un emoji comme avatar">
+              {[["🙂", "Sourire"], ["😎", "Lunettes"], ["🤩", "Étoiles"], ["🦊", "Renard"], ["🐼", "Panda"], ["🦁", "Lion"], ["⚽", "Football"], ["🏀", "Basket"], ["🏓", "Tennis de table"], ["🎾", "Tennis"], ["🎯", "Cible"], ["🏸", "Badminton"]].map(([emoji, label]) => <button key={emoji} type="button" aria-label={`Choisir : ${label}`} disabled={photoEnCours || chargement || enregistrement} onClick={() => void choisirEmoji(emoji)}>{emoji}</button>)}
+            </div>
+            <small style={{ color: "#9cafc7", textAlign: "center" }}>Enregistré automatiquement · Image de 5 Mo maximum</small>
+            {message && <p role="status" aria-live="polite" style={{ color: "#d5efff", fontSize: 13, textAlign: "center", maxWidth: 260 }}>{message}</p>}
           </div>
           <div style={s.heroCopy}>
             <span style={s.eyebrow}>Profil joueur</span>
@@ -242,7 +272,7 @@ export default function ProfilPage() {
 
             <label style={s.label}>Couleur du profil</label>
             <input style={s.colorInput} type="color" value={couleur} onChange={(e) => setCouleur(e.target.value)} />
-            <button style={{...s.primary, opacity: enregistrement || chargement ? .65 : 1}} onClick={enregistrer} disabled={enregistrement || chargement}>{enregistrement ? "Enregistrement…" : chargement ? "Chargement du profil…" : "Enregistrer mon profil"}</button>
+            <button style={{...s.primary, opacity: enregistrement || chargement ? .65 : 1}} onClick={enregistrer} disabled={enregistrement || chargement || photoEnCours}>{enregistrement ? "Enregistrement…" : chargement ? "Chargement du profil…" : "Enregistrer mon profil"}</button>
             {message && <div style={s.feedback}>{message}</div>}
           </article>
 

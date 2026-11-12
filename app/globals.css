@@ -87,3 +87,48 @@ body {
 .tourneo-texte-agrandi button, .tourneo-texte-agrandi input, .tourneo-texte-agrandi select, .tourneo-texte-agrandi textarea { font-size: max(1rem, 18px) !important; }
 .tourneo-texte-agrandi p, .tourneo-texte-agrandi label { font-size: max(1rem, 18px) !important; }
 .tourneo-animations-reduites *, .tourneo-animations-reduites *::before, .tourneo-animations-reduites *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+
+/* Shared navigation, identical across account sections. */
+.tourneo-top-nav { width:100%; margin-bottom:28px; font-family:var(--font-geist-sans),system-ui,sans-serif; }
+.tourneo-nav-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:0 0 18px; }
+.tourneo-top-nav a,.tourneo-mobile-bottom-nav a,.tourneo-mobile-more a { text-decoration:none; }
+.tourneo-brand-link { display:block; flex-shrink:0; border-radius:24px; }
+.tourneo-nav-utilities { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px; }
+.tourneo-top-nav .tourneo-nav-utilities a,.tourneo-top-nav .tourneo-nav-utilities button { padding:10px 13px; margin:0; border:1px solid transparent; border-radius:12px; color:#adbed5; background:transparent; font:inherit; font-size:13px; cursor:pointer; }
+.tourneo-top-nav .tourneo-nav-utilities .tourneo-nav-primary { color:#fff; font-weight:700; background:linear-gradient(120deg,#086cdf,#007fab); border-color:#44bbfa66; box-shadow:0 6px 22px #0077cf22; }
+.tourneo-desktop-nav { display:flex; flex-wrap:wrap; gap:5px; padding:7px; border:1px solid #7f9bb326; border-radius:18px; background:linear-gradient(120deg,#122238cc,#101a2bcc); }
+.tourneo-desktop-nav a { display:flex; align-items:center; justify-content:center; flex:1 0 auto; min-height:44px; padding:11px 15px; border-radius:12px; color:#adbed5; font-weight:600; font-size:14px; }
+.tourneo-desktop-nav a[aria-current=page],.tourneo-top-nav .tourneo-nav-utilities a[aria-current=page] { color:#fff; background:#208de826; box-shadow:inset 0 0 0 1px #46b6ff50; }
+.tourneo-top-nav a,.tourneo-top-nav button,.tourneo-mobile-bottom-nav a,.tourneo-mobile-bottom-nav button,.tourneo-mobile-more a,.tourneo-mobile-more button { transition:background .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease; }
+.tourneo-top-nav :focus-visible,.tourneo-mobile-bottom-nav :focus-visible,.tourneo-mobile-more :focus-visible,.tourneo-avatar-picker :focus-visible { outline:2px solid #6ad8ff; outline-offset:4px; }
+.tourneo-mobile-bottom-nav,.tourneo-mobile-more { display:none; }
+@media (hover:hover) {
+  .tourneo-desktop-nav a:hover,.tourneo-top-nav .tourneo-nav-utilities a:hover,.tourneo-top-nav .tourneo-nav-utilities button:hover,.tourneo-mobile-more a:hover { color:#fff; background:#45b8ff1c; transform:translateY(-1px); }
+  .tourneo-top-nav .tourneo-nav-utilities .tourneo-nav-primary:hover { background:linear-gradient(120deg,#167ef1,#0098c5); box-shadow:0 8px 24px #0077cf44; }
+  .v2-card button:not(:disabled):hover,.tourneo-avatar-picker button:not(:disabled):hover { filter:brightness(1.12); transform:translateY(-1px); }
+}
+.v2-card button,.tourneo-avatar-picker button { transition:filter .16s ease,transform .16s ease; }
+.tourneo-avatar-picker { display:grid; justify-items:center; gap:10px; max-width:280px; }
+.tourneo-avatar-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
+.tourneo-emoji-options { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; }
+.tourneo-emoji-options button { min-width:36px; min-height:36px; border:1px solid #7397c033; border-radius:10px; background:#ffffff08; cursor:pointer; font-size:23px; }
+.tourneo-emoji-options button:disabled { opacity:.5; cursor:wait; }
+@media (max-width:760px) {
+  .tourneo-nav-heading { padding-bottom:0; gap:12px; }
+  .tourneo-brand-link img { width:100px!important; }
+  .tourneo-nav-utilities > a:not(.tourneo-nav-primary),.tourneo-nav-utilities > button,.tourneo-desktop-nav { display:none; }
+  .tourneo-top-nav { margin-bottom:20px; }
+  .tourneo-top-nav .tourneo-nav-utilities .tourneo-nav-primary { max-width:170px; text-align:center; }
+  .tourneo-mobile-bottom-nav { display:grid; position:fixed; left:12px; right:12px; bottom:max(8px,env(safe-area-inset-bottom)); grid-template-columns:repeat(4,1fr); padding:6px; border:1px solid #94a3b829; border-radius:20px; background:#060b16f7; backdrop-filter:blur(18px); z-index:120; box-shadow:0 14px 40px #0005; }
+  .tourneo-mobile-bottom-nav a,.tourneo-mobile-bottom-nav button { display:grid; place-items:center; gap:3px; min-height:48px; padding:5px; margin:0; border:0; border-radius:14px; background:transparent; color:#a9b9cd; font:inherit; cursor:pointer; }
+  .tourneo-mobile-bottom-nav span { font-size:21px; line-height:1; }
+  .tourneo-mobile-bottom-nav small { font-size:11px; font-weight:700; }
+  .tourneo-mobile-bottom-nav [aria-current=page],.tourneo-mobile-bottom-nav [aria-expanded=true] { color:#fff; background:linear-gradient(135deg,#006bdd44,#20c5ed26); }
+  .tourneo-mobile-more { display:grid; position:fixed; left:18px; right:18px; bottom:calc(82px + env(safe-area-inset-bottom)); max-height:calc(100dvh - 120px); overflow-y:auto; padding:10px; gap:5px; border:1px solid #94a3b833; border-radius:18px; background:#09101ffc; z-index:121; box-shadow:0 18px 50px #0006; }
+  .tourneo-mobile-more a,.tourneo-mobile-more button { margin:0; padding:12px 14px; border:0; border-radius:10px; color:#eef6ff; background:#ffffff08; text-align:left; font:inherit; }
+  .tourneo-mobile-more [aria-current=page] { background:#208de826; }
+  main:has(.tourneo-top-nav) { padding-bottom:calc(132px + env(safe-area-inset-bottom))!important; }
+}
+@media (prefers-reduced-motion:reduce) { .tourneo-top-nav *,.tourneo-avatar-picker button,.v2-card button { transform:none!important; } }
+.tourneo-animations-reduites .tourneo-top-nav *,.tourneo-animations-reduites .tourneo-avatar-picker button,.tourneo-animations-reduites .v2-card button { transform:none!important; }
+@media print { .tourneo-top-nav,.tourneo-mobile-bottom-nav,.tourneo-mobile-more { display:none!important; } }

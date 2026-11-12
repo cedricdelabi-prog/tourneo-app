@@ -1,236 +1,62 @@
 "use client";
 
-import { useState } from "react";
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import TourneoBrand from "@/components/TourneoBrand";
 
+const sections = [
+  ["/dashboard", "Mes tournois"], ["/evenements", "Événements"],
+  ["/groupes", "Groupes"], ["/activite", "Activité"],
+  ["/arbitrage", "Arbitrage"], ["/statistiques", "Statistiques"], ["/profil", "Mon profil"],
+] as const;
 type Active = "dashboard" | "tournoi" | "profil" | "aide" | "contact" | "none";
 
-export default function TourneoNav({
-  active = "none",
-  showBack: _showBack = false,
-  backHref: _backHref = "/dashboard",
-  onLogout,
-  primaryLabel,
-  primaryHref,
-}: {
-  active?: Active;
-  showBack?: boolean;
-  backHref?: string;
-  onLogout?: () => void | Promise<void>;
-  primaryLabel?: string;
-  primaryHref?: string;
+export default function TourneoNav({ active = "none", onLogout, primaryLabel, primaryHref }: {
+  active?: Active; showBack?: boolean; backHref?: string;
+  onLogout?: () => void | Promise<void>; primaryLabel?: string; primaryHref?: string;
 }) {
+  const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
-
-  function go(href: string) {
-    window.location.href = href;
-  }
-
-  return (
-    <>
-      <header style={s.header} className="tourneo-top-nav">
-        <div style={s.left}>
-          <TourneoBrand compact />
+  const panel = useRef<HTMLDivElement>(null);
+  const moreButton = useRef<HTMLButtonElement>(null);
+  const selected = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const close = (event: PointerEvent) => {
+      if (!panel.current?.contains(event.target as Node) && !moreButton.current?.contains(event.target as Node)) setMoreOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { setMoreOpen(false); moreButton.current?.focus(); } };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", escape); };
+  }, [moreOpen]);
+  return <>
+    <header className="tourneo-top-nav">
+      <div className="tourneo-nav-heading">
+        <Link href="/dashboard" className="tourneo-brand-link" aria-label="Tourneo — mes tournois"><TourneoBrand compact /></Link>
+        <div className="tourneo-nav-utilities">
+          <Link href="/aide" aria-current={selected("/aide") ? "page" : undefined}>Aide</Link>
+          <Link href="/contact" aria-current={selected("/contact") ? "page" : undefined}>Contact</Link>
+          {onLogout && <button type="button" onClick={() => void onLogout()}>Déconnexion</button>}
+          {primaryLabel && primaryHref && <Link className="tourneo-nav-primary" href={primaryHref}>{primaryLabel}</Link>}
         </div>
-
-        <nav style={s.desktopActions} className="tourneo-desktop-nav">
-          <button style={button(active === "dashboard")} onClick={() => go("/dashboard")}>Mes tournois</button>
-          <button style={button(false)} onClick={() => go("/evenements")}>Événements</button>
-          <button style={button(false)} onClick={() => go("/groupes")}>Groupes</button>
-          <button style={button(false)} onClick={() => go("/activite")}>Activité</button>
-          <button style={button(false)} onClick={() => go("/arbitrage")}>Arbitrage</button>
-          <button style={button(false)} onClick={() => go("/statistiques")}>Statistiques</button>
-          <button style={button(active === "profil")} onClick={() => go("/profil")}>Mon profil</button>
-          <button style={button(active === "aide")} onClick={() => go("/aide")}>Aide</button>
-          <button style={button(active === "contact")} onClick={() => go("/contact")}>Contact</button>
-          {onLogout && <button style={button(false)} onClick={() => onLogout()}>Déconnexion</button>}
-          {primaryLabel && primaryHref && (
-            <button style={s.primary} onClick={() => go(primaryHref)}>{primaryLabel}</button>
-          )}
-        </nav>
-      </header>
-
-      <nav className="tourneo-mobile-bottom-nav" style={s.mobileBottom}>
-        <button className={active === "dashboard" ? "is-active" : ""} onClick={() => go("/dashboard")}>
-          <span>⌂</span><small>Accueil</small>
-        </button>
-        <button className={active === "tournoi" ? "is-active" : ""} onClick={() => go("/tournoi/nouveau")}>
-          <span>＋</span><small>Créer</small>
-        </button>
-        <button className={active === "profil" ? "is-active" : ""} onClick={() => go("/profil")}>
-          <span>◎</span><small>Profil</small>
-        </button>
-        <button className={moreOpen ? "is-active" : ""} onClick={() => setMoreOpen((v) => !v)}>
-          <span>•••</span><small>Plus</small>
-        </button>
+      </div>
+      <nav className="tourneo-desktop-nav" aria-label="Navigation principale">
+        {sections.map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{label}</Link>)}
       </nav>
-
-      {moreOpen && (
-        <div className="tourneo-mobile-more" style={s.morePanel}>
-          <button onClick={() => go("/evenements")}>Événements / Camping</button>
-          <button onClick={() => go("/groupes")}>Clubs / accompagnateurs</button>
-          <button onClick={() => go("/arbitrage")}>Mes arbitrages</button>
-          <button onClick={() => go("/activite")}>Mon activité / avis</button>
-          <button onClick={() => go("/statistiques")}>Mes statistiques</button>
-          <button onClick={() => go("/aide")}>Aide & sécurité</button>
-          <button onClick={() => go("/contact")}>Contactez-nous</button>
-          {onLogout && <button onClick={() => onLogout()}>Déconnexion</button>}
-        </div>
-      )}
-
-      <style jsx global>{`
-        .tourneo-mobile-bottom-nav,
-        .tourneo-mobile-more { display: none !important; }
-
-        @media (max-width: 760px) {
-          .tourneo-top-nav {
-            position: relative !important;
-            top: auto !important;
-            min-height: 54px !important;
-            padding: 6px 0 !important;
-            margin-bottom: 8px !important;
-            background: transparent !important;
-            border: 0 !important;
-            box-shadow: none !important;
-          }
-
-          .tourneo-desktop-nav { display: none !important; }
-
-          .tourneo-mobile-bottom-nav {
-            display: grid !important;
-            position: fixed !important;
-            left: 12px !important;
-            right: 12px !important;
-            bottom: max(8px, env(safe-area-inset-bottom)) !important;
-            grid-template-columns: repeat(4, 1fr) !important;
-            padding: 6px !important;
-            border-radius: 20px !important;
-            background: rgba(6, 11, 22, .97) !important;
-            border: 1px solid rgba(148,163,184,.16) !important;
-            backdrop-filter: blur(18px) !important;
-            z-index: 120 !important;
-            box-shadow: 0 14px 40px rgba(0,0,0,.34) !important;
-          }
-
-          .tourneo-mobile-bottom-nav button {
-            display: grid;
-            place-items: center;
-            gap: 2px;
-            min-height: 44px;
-            padding: 4px 3px;
-            border: 0;
-            border-radius: 14px;
-            background: transparent;
-            color: #8798B0;
-            font: inherit;
-          }
-
-          .tourneo-mobile-bottom-nav button span {
-            font-size: 20px;
-            line-height: 1;
-          }
-
-          .tourneo-mobile-bottom-nav button small {
-            font-size: 10px;
-            font-weight: 800;
-          }
-
-          .tourneo-mobile-bottom-nav button.is-active {
-            color: white;
-            background: linear-gradient(135deg, rgba(124,92,255,.28), rgba(34,211,238,.18));
-          }
-
-          .tourneo-mobile-more {
-            display: grid !important;
-            position: fixed !important;
-            left: 18px !important;
-            right: 18px !important;
-            bottom: 78px !important;
-            padding: 10px !important;
-            gap: 6px !important;
-            border-radius: 18px !important;
-            background: rgba(9, 16, 31, .99) !important;
-            border: 1px solid rgba(148,163,184,.18) !important;
-            z-index: 121 !important;
-            box-shadow: 0 18px 50px rgba(0,0,0,.4) !important;
-          }
-
-          .tourneo-mobile-more button {
-            padding: 13px 14px;
-            text-align: left;
-            border: 0;
-            border-radius: 14px;
-            color: white;
-            background: rgba(255,255,255,.04);
-            font-weight: 800;
-          }
-
-          main {
-            padding-bottom: calc(132px + env(safe-area-inset-bottom)) !important;
-          }
-        }
-      `}</style>
-    </>
-  );
+    </header>
+    <nav className="tourneo-mobile-bottom-nav" aria-label="Navigation mobile">
+      <Link href="/dashboard" aria-current={selected("/dashboard") ? "page" : undefined}><span aria-hidden="true">⌂</span><small>Accueil</small></Link>
+      <Link href="/tournoi/nouveau" aria-current={active === "tournoi" ? "page" : undefined}><span aria-hidden="true">＋</span><small>Créer</small></Link>
+      <Link href="/profil" aria-current={selected("/profil") ? "page" : undefined}><span aria-hidden="true">◎</span><small>Profil</small></Link>
+      <button type="button" ref={moreButton} aria-expanded={moreOpen} aria-controls="tourneo-mobile-more" onClick={() => setMoreOpen(v => !v)}><span aria-hidden="true">•••</span><small>Plus</small></button>
+    </nav>
+    {moreOpen && <div id="tourneo-mobile-more" ref={panel} className="tourneo-mobile-more" aria-label="Autres rubriques">
+      {sections.slice(1, -1).map(([href, label]) => <Link key={href} href={href} onClick={() => setMoreOpen(false)} aria-current={selected(href) ? "page" : undefined}>{label}</Link>)}
+      <Link href="/aide" onClick={() => setMoreOpen(false)}>Aide & sécurité</Link>
+      <Link href="/contact" onClick={() => setMoreOpen(false)}>Contact</Link>
+      {onLogout && <button type="button" onClick={() => { setMoreOpen(false); void onLogout(); }}>Déconnexion</button>}
+    </div>}
+  </>;
 }
-
-function button(active: boolean): CSSProperties {
-  return {
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: active ? "1px solid rgba(114,231,255,.28)" : "1px solid transparent",
-    background: active ? "rgba(114,231,255,.08)" : "transparent",
-    color: active ? "#E9FCFF" : "#A1AFC2",
-    fontWeight: 800,
-    cursor: "pointer",
-  };
-}
-
-const s: Record<string, CSSProperties> = {
-  header: {
-    width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    marginBottom: 22,
-  },
-  left: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    minWidth: 0,
-  },
-  back: {
-    width: 40,
-    height: 40,
-    display: "grid",
-    placeItems: "center",
-    borderRadius: 13,
-    border: "1px solid rgba(148,163,184,.16)",
-    background: "rgba(255,255,255,.035)",
-    color: "white",
-    cursor: "pointer",
-    fontSize: 22,
-  },
-  desktopActions: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    flexWrap: "wrap",
-    justifyContent: "flex-end",
-  },
-  primary: {
-    padding: "11px 15px",
-    border: 0,
-    borderRadius: 13,
-    background: "linear-gradient(135deg,#7C5CFF,#3B82F6 54%,#22D3EE)",
-    color: "white",
-    fontWeight: 900,
-    cursor: "pointer",
-    boxShadow: "0 10px 30px rgba(59,130,246,.22)",
-  },
-  mobileBottom: {},
-  morePanel: {},
-};
