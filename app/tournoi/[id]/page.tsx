@@ -195,6 +195,14 @@ export default function TournoiPage() {
   const [ajoutMoiEnCours, setAjoutMoiEnCours] = useState(false);
   const [souvenirOuvert, setSouvenirOuvert] = useState(false);
   const [podiumPhotoUrl, setPodiumPhotoUrl] = useState("");
+  const [photosExpirentAt, setPhotosExpirentAt] = useState("");
+  useEffect(() => {
+    if (!photosExpirentAt) return;
+    const nettoyer = () => { if (Date.parse(photosExpirentAt) <= Date.now()) setPodiumPhotoUrl(""); };
+    nettoyer();
+    const timer = window.setInterval(nettoyer, 60000);
+    return () => window.clearInterval(timer);
+  }, [photosExpirentAt]);
   const [scannerOuvert, setScannerOuvert] = useState(false);
   const [scannerMessage, setScannerMessage] = useState("");
   const videoScannerRef = useRef<HTMLVideoElement | null>(null);
@@ -229,6 +237,7 @@ export default function TournoiPage() {
         setAjoutMoiEnCours(false);
         setSouvenirOuvert(false);
         setPodiumPhotoUrl("");
+        setPhotosExpirentAt("");
       }
 
       const chargerLocal = () => {
@@ -260,7 +269,8 @@ export default function TournoiPage() {
           setPoules(data.poules ?? []);
           setMatchsPhaseFinale(data.matchsPhaseFinale ?? []);
           setMatchsValides(data.matchsValides ?? []);
-          setPodiumPhotoUrl(data.podiumPhotoUrl ?? "");
+          setPhotosExpirentAt(data.photosExpirentAt || "");
+          setPodiumPhotoUrl(data.photosExpirentAt && Date.parse(data.photosExpirentAt) <= Date.now() ? "" : data.podiumPhotoUrl ?? "");
           return true;
         } catch {
           localStorage.removeItem(CLE);
@@ -311,7 +321,7 @@ export default function TournoiPage() {
         const cloudResult = await Promise.race([
           supabase
             .from("tournois")
-            .select("id, nom, sport, donnees")
+            .select("id, nom, sport, donnees, photos_expirent_at")
             .eq("user_id", user.id)
             .eq("id", params.id)
             .maybeSingle(),
@@ -331,6 +341,11 @@ export default function TournoiPage() {
           setMessageCloud(localCharge ? "Mode local · cloud indisponible" : "Cloud indisponible");
           setPret(true);
           return;
+        }
+
+        if (tournoiCloud) {
+          setPhotosExpirentAt(tournoiCloud.photos_expirent_at || "");
+          if (tournoiCloud.photos_expirent_at && Date.parse(tournoiCloud.photos_expirent_at) <= Date.now()) setPodiumPhotoUrl("");
         }
 
         if (localCharge && localStorage.getItem(pendingKey)) {
@@ -353,7 +368,7 @@ export default function TournoiPage() {
           setPoules(donnees.poules ?? []);
           setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
           setMatchsValides(donnees.matchsValides ?? []);
-          setPodiumPhotoUrl(donnees.podiumPhotoUrl ?? "");
+          setPodiumPhotoUrl(tournoiCloud.photos_expirent_at && Date.parse(tournoiCloud.photos_expirent_at) <= Date.now() ? "" : donnees.podiumPhotoUrl ?? "");
           setLienPartage(`${window.location.origin}/partage/${tournoiCloud.id}`);
           setMessageCloud("Synchronisé");
         } else if (!localCharge) {
@@ -403,6 +418,7 @@ export default function TournoiPage() {
         matchsPhaseFinale,
         matchsValides,
         podiumPhotoUrl,
+        photosExpirentAt,
         optionsV2,
       })
     );
@@ -460,7 +476,7 @@ export default function TournoiPage() {
           },
         })
         .eq("id", tournoiId)
-        .eq("user_id", userId).select("id").maybeSingle();
+        .eq("user_id", userId).select("id,photos_expirent_at").maybeSingle();
 
       if (annule) return;
       if (error || !sauvegarde) {
@@ -468,6 +484,8 @@ export default function TournoiPage() {
         setMessageCloud(copieLocale ? "Synchronisation en attente · résultats conservés sur cet appareil" : "Sauvegarde impossible · exportez vos résultats avant de quitter.");
       } else {
         try { localStorage.removeItem(pendingKey); } catch {}
+        setPhotosExpirentAt(sauvegarde.photos_expirent_at || "");
+        if (sauvegarde.photos_expirent_at && Date.parse(sauvegarde.photos_expirent_at) <= Date.now()) setPodiumPhotoUrl("");
         setMessageCloud("Synchronisé");
       }
       }).catch(()=>{if(!annule)setMessageCloud("Synchronisation interrompue · nouvelle tentative automatique.");});
@@ -493,6 +511,7 @@ export default function TournoiPage() {
     matchsPhaseFinale,
     matchsValides,
     podiumPhotoUrl,
+    photosExpirentAt,
     optionsV2,
   ]);
 
@@ -1169,6 +1188,10 @@ export default function TournoiPage() {
   async function choisirPhotoPodium(event: ChangeEvent<HTMLInputElement>) {
     const fichier = event.target.files?.[0];
     if (!fichier) return;
+    if (photosExpirentAt && Date.parse(photosExpirentAt) <= Date.now()) {
+      setMessageCloud("La période de conservation des photos de ce tournoi est terminée.");
+      return;
+    }
 
     if (!fichier.type.startsWith("image/")) {
       alert("Choisissez une image.");
@@ -2820,6 +2843,7 @@ ${lienPartage}`,
               <button style={styles.modalClose} onClick={() => setSouvenirOuvert(false)}>×</button>
             </div>
 
+            <p>Les photos de tournoi sont privées et supprimées automatiquement 15 jours après la fin du tournoi, ou 90 jours en mode Expert. Les avatars de profil ne sont pas concernés.{photosExpirentAt ? ` Échéance : ${new Date(photosExpirentAt).toLocaleDateString("fr-FR")}.` : ""}</p>
             {podiumPhotoUrl && (
               <div style={styles.souvenirTools}>
                 <button style={styles.ghostButton} onClick={() => setPodiumPhotoUrl("")}>Retirer la photo</button>

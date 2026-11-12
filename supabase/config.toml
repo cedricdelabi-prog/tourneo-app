@@ -1,0 +1,5 @@
+[functions.purge-photos-v2]
+# Requests authenticate with short-lived, one-use database job tokens.
+# No service-role key is sent in the scheduler's HTTP request.
+verify_jwt = false
+entrypoint = "./functions/purge-photos-v2/index.js"

@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node tests/moteur.cjs",
-    "test:db": "node tests/database.cjs"
+    "test:db": "node tests/database.cjs",
+    "test:purge": "node tests/purge-photos.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

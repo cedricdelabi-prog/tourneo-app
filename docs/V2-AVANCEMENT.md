@@ -27,7 +27,7 @@ Branche exclusive : `tourneo-v2-dev`. `main` et la V1 restent hors du périmètr
 - Arbitres avec compte, attribution par code joueur, propositions de scores et validation finale par l'organisateur.
 - Projection publique explicite des données de jeu.
 
-Neuf migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
+Douze migrations appliquées sur `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Socle profils/tournois/palmarès, stockage privé, inscriptions, événements et arbitrage installés. Test SQL transactionnel réussi : RLS profils/tournois, refus organisateur non propriétaire, score arbitre, quota, idempotence et annulation. Tests simultanés et parcours navigateur réels restent à faire.
 
 ## Vérifications
 
@@ -39,7 +39,7 @@ Les builds locaux peuvent utiliser une URL Supabase factice : ils ne prouvent pa
 
 Les échanges mentionnent 87 évolutions, mais la liste numérotée complète n'a pas été récupérée. Ce document ne prétend pas les remplacer et ne permet pas d'annoncer 87/87.
 
-Restent notamment : tests navigateur et simultanéité des modules ci-dessus ; format coopératif à préciser ; traduction complète selon la langue du compte ; e-mails et notifications push (les notifications internes et les consentements séparés sont installés) ; cycle de conservation et suppression des photos (15 jours gratuit / 90 jours Expert) ; statistiques administrateur globales (les statistiques organisateur sont installées) ; vérification du périmètre de la future option Expert à paiement unique à vie. Aucun paiement n'est ajouté.
+Restent notamment : tests navigateur et simultanéité des modules ci-dessus ; format coopératif à préciser ; traduction complète selon la langue du compte ; e-mails et notifications push (les notifications internes et les consentements séparés sont installés) ; statistiques administrateur globales (les statistiques organisateur sont installées) ; vérification du périmètre de la future option Expert à paiement unique à vie. Aucun paiement n'est ajouté.
 
 Le mode hors connexion exige un premier chargement réseau et ne gère pas encore la résolution collaborative de modifications concurrentes sur plusieurs appareils. Les nouveaux modules d'inscriptions et d'arbitrage nécessitent le réseau. Les données locales non synchronisées restent prioritaires au rechargement.
 
@@ -64,10 +64,24 @@ Les fonctions SECURITY DEFINER exposées correspondent aux API autorisées (insc
 
 Tests moteur et statistiques, TypeScript et compilation locale réussis. Les tests SQL inscriptions/arbitrage/évaluations/consentements et projection publique ont réussi sur Supabase V2 avant l'ajout des groupes. Pour les groupes, la dernière confirmation Supabase a expiré ; aucune donnée de test n'a été ajoutée.
 
-`npm run test:db` exécute neuf migrations et les tests SQL sur un PostgreSQL local WASM avec schémas Auth/Storage minimaux de test : accès, refus d'autoévaluation, notifications isolées, consentement/retrait, partage sans champs privés, rôles des groupes, quota et retrait d'accès. Le script vérifie aussi que l'activation consolidée donne les mêmes colonnes et politiques que les migrations ordonnées et que les jeux de test sont annulés. Ces tests passent ; ils ne valident pas Supabase Auth/Storage/REST réels ni les courses entre plusieurs connexions.
+`npm run test:db` exécute les migrations et les tests SQL sur un PostgreSQL local WASM avec schémas Auth/Storage minimaux de test : accès, refus d'autoévaluation, notifications isolées, consentement/retrait, partage sans champs privés, rôles des groupes, quota et retrait d'accès. Le script vérifie aussi que l'activation consolidée donne les mêmes colonnes et politiques que les migrations ordonnées et que les jeux de test sont annulés. Ces tests passent ; ils ne valident pas Supabase Auth/Storage/REST réels ni les courses entre plusieurs connexions.
 
 Le navigateur local n'a pas pu démarrer à cause d'une restriction système sur les sockets ; aucun parcours UI avec compte réel n'est donc annoncé comme testé. Le build local utilise une clé Supabase factice et ne prouve pas la configuration du déploiement.
 
 Le déploiement Vercel de 59584dd a échoué. La connexion Vercel est installée, mais l'accès à l'équipe Tourneo est refusé (403) tant que l'utilisateur n'autorise pas cette équipe. Lien d'autorisation dédié généré ; ni reconnexion générale ni changement de compte requis. Ne pas annoncer la V2 publiée ou 87/87.
 
 Le client bloque tout projet Supabase autre que `tourneo-v2-test`, y compris en cas de mauvais paramétrage du déploiement, pour éviter une écriture accidentelle en V1.
+
+## Conservation automatique des photos
+
+Trois migrations supplémentaires, une Edge Function V2 et une tâche horaire sont déployées. Le premier enregistrement serveur d'un tournoi terminé fixe le délai : 15 jours en mode Simple/Camping, 90 jours en mode Expert. Le client ne peut ni imposer une date arbitraire ni prolonger le délai en changeant de mode après clôture. Les avatars de profil ne sont pas concernés.
+
+Les photos de tournoi expirées ne peuvent plus obtenir de lien signé ; la durée du lien est bornée à l'échéance. Le nettoyage utilise l'API Storage pour supprimer les fichiers, puis enlève les copies de podium conservées dans le JSON. Les photos orphelines de tournois supprimés sont ciblées après un jour de sécurité. Un ancien cache ne peut pas réintroduire une photo après son échéance ; le client conserve l'échéance dans son cache local. Les copies exportées/téléchargées hors de l'application ne sont pas effaçables par ce mécanisme.
+
+Authentification du traitement : jeton aléatoire, privé en base, valide dix minutes et consommable une fois ; aucune clé de service dans la requête du planificateur ni dans le navigateur. Les RPC administratives sont réservées au rôle serveur. `verify_jwt=false` est intentionnel, car la fonction vérifie ce jeton avant toute suppression. L'Edge Function utilise uniquement les secrets serveur fournis par Supabase.
+
+Vérification réelle sur V2 : appel avec un jeton du planificateur → HTTP 200, 0 photo à supprimer ; appel avec un faux jeton → HTTP 401. Le cron `tourneo-v2-purge-photos` est actif, à la minute 17 de chaque heure. Cela confirme le trajet cron/HTTP/Edge/DB ; aucune suppression d'un véritable fichier expiré n'a été exécutée pour les tests.
+
+Les tests locaux PostgreSQL ajoutent les limites 15/90 jours, protection des tournois actifs et avatars, interdiction de prolongation, refus de lecture après échéance, refus de restauration par un cache ancien et authentification à usage unique. Cron et HTTP sont remplacés localement par des substituts. `npm run test:purge` vérifie le refus des requêtes non autorisées, la suppression ciblée et la reprise possible après un échec Storage. Tests locaux, TypeScript et compilation réussis.
+
+La traduction complète, les e-mails/push, le format coopératif et les autres points non retrouvés dans la liste initiale restent à traiter. La V2 n'est toujours pas annoncée 87/87 ni publiée : l'accès à l'équipe Vercel reste refusé tant que l'autorisation dédiée n'est pas validée.

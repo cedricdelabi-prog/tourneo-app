@@ -16,6 +16,13 @@ export async function urlPhotoPrivee(reference: string): Promise<string> {
     } catch { /* Unknown references are not sent to external hosts. */ }
   }
   if (!path) return "";
-  const { data, error } = await supabase.storage.from("tourneo-media").createSignedUrl(path, 3600);
+  let duree = 3600;
+  const dossiers = path.split("/");
+  if (dossiers[1] === "tournois") {
+    const r = await supabase.rpc("tourneo_duree_photo", { p_tournoi: dossiers[2] });
+    if (r.error || typeof r.data !== "number" || r.data < 1) return "";
+    duree = r.data;
+  }
+  const { data, error } = await supabase.storage.from("tourneo-media").createSignedUrl(path, duree);
   return error ? "" : data.signedUrl;
 }
