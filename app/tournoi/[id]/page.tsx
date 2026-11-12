@@ -758,7 +758,7 @@ export default function TournoiPage() {
 
     const nouvellesEquipes = equipeAModifier
       ? equipes.map((item) =>
-          item.id === equipeAModifier.id ? { ...equipe, id: equipeAModifier.id } : item
+          item.id === equipeAModifier.id ? { ...item, ...equipe, id: equipeAModifier.id } : item
         )
       : [...equipes, equipe];
 
@@ -1039,6 +1039,7 @@ export default function TournoiPage() {
 
     enregistrerEquipe({
       id: userId,
+      profilId: userId,
       nom: data.display_name || data.player_code || "Moi",
       emoji: "●",
       couleur: data.favorite_color || "#3B82F6",
@@ -1071,6 +1072,7 @@ export default function TournoiPage() {
 
     const nouvelleEquipe: Equipe = {
       id: data.id,
+      profilId: data.id,
       nom: data.display_name || data.player_code,
       emoji: "👤",
       couleur: data.favorite_color || "#3B82F6",
