@@ -1,3 +1,4 @@
+import PhotoPrivee from "@/components/PhotoPrivee";
 import type { Equipe } from "@/types";
 
 export default function TeamAvatar({
@@ -9,7 +10,7 @@ export default function TeamAvatar({
 }) {
   if (equipe.photo) {
     return (
-      <img
+      <PhotoPrivee
         src={equipe.photo}
         alt={equipe.nom}
         style={{

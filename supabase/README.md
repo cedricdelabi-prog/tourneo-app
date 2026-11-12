@@ -1,16 +1,17 @@
-# Activation de la V2
+# Base Tourneo V2
 
-Cible exclusive : projet Supabase nommé **tourneo-v2-test**. Vérifier son identifiant réel, sa disponibilité, le schéma `tournois` (`id uuid`, `user_id uuid`, `donnees jsonb`) et `profiles` avant toute application. Ne jamais exécuter ces migrations sur la base V1.
+Cible exclusive : `tourneo-v2-test` (`kmjfmjhdnokkaiolxiin`). Les trois migrations de `migrations/` sont déjà appliquées le 12 novembre 2026. Ne pas les relancer sur ce projet. Les anciennes sources des modules sont dans `modules/`, hors du chemin des migrations.
 
-Sans connexion à ChatGPT, ouvrir le projet **tourneo-v2-test** dans le tableau de bord Supabase, puis **SQL Editor → New query**, copier le contenu de `supabase/ACTIVER_V2.sql` et l’exécuter. Ce fichier combine les migrations dans une seule transaction et vérifie le schéma attendu avant tout changement. Le nom du projet doit être vérifié visuellement avant exécution.
+`ACTIVER_V2.sql` regroupe le socle et les modules pour une base V2 entièrement vierge, en une transaction. Il ne supprime aucune table ni donnée existante. Vérifier le nom et l'identifiant du projet avant toute exécution ; ne jamais utiliser la V1.
 
-Autre possibilité : appliquer dans l'ordre les migrations du dossier `migrations/`, puis vérifier les parcours avec des comptes de test distincts : organisateur, arbitre et visiteur.
+## Tests
 
-1. Inscriptions : ouverture/fermeture, échéance, quota concurrent, doublons, annulation par jeton, demandes en attente, acceptation, pointage et démarrage atomique.
-2. Événements : création et attribution limitées aux tournois du propriétaire ; classement cumulé après clôture des résultats.
-3. Arbitrage : ajout par code joueur, accès limité aux tournois attribués, propositions séparées des résultats officiels, retrait de l'accès.
-4. Partage : fonction `tourneo_public_v2`, projection explicite des données de jeu publiques ; aucun jeton d'inscription ni propriétaire du compte exposé. Le client peut utiliser l'ancienne fonction tant que cette migration n'est pas appliquée.
+`tests/integration_v2.sql` crée deux utilisateurs et un tournoi temporaires dans une transaction, teste les autorisations, inscriptions, quota, annulation et arbitrage, puis effectue ROLLBACK. Exécuter seulement sur la V2. Aucun compte réel n'est nécessaire. Les tests concurrents et les essais navigateur restent nécessaires.
 
-Les fonctions d'inscription utilisent un verrou de ligne du tournoi pour sérialiser quota, acceptation et démarrage. Les requêtes publiques ne peuvent pas modifier les scores. Les identifiants de reprise des inscriptions invitées restent sur l'appareil et ne sont pas exposés publiquement.
+## Photos et partage
 
-Aucune migration n'a encore été appliquée depuis cet environnement. Les politiques RLS et les fonctions SQL doivent être vérifiées sur le projet V2 après connexion. La compilation du frontend ne constitue pas une validation de ces fonctions.
+Le bucket `tourneo-media` est privé, limité aux images de 5 Mo et aux objets du propriétaire. Le client stocke le chemin et génère des liens signés temporaires. Le lien public tournoi est temporairement désactivé après refus du contrôle automatique ; voir la proposition non appliquée dans `proposals/`. La recherche de profil nécessite une connexion. Les inscriptions invitées restent utilisables.
+
+## Reprise sur PC
+
+Sauvegarder les modifications locales avant synchronisation. Récupérer la branche `tourneo-v2-dev`, ouvrir le dossier dans VS Code puis lancer `npm ci`. Dans `.env.local`, renseigner `NEXT_PUBLIC_SUPABASE_URL=https://kmjfmjhdnokkaiolxiin.supabase.co` et `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` avec la clé publiable du projet V2 (jamais service_role). Lancer `npm run dev`. Les mêmes variables doivent être vérifiées dans le déploiement Vercel V2.

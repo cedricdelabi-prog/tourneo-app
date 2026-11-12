@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent } from "react";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
+import PhotoPrivee from "@/components/PhotoPrivee";
+import { referencePhoto, urlPhotoPrivee } from "@/lib/media-prive";
 import TeamAvatar from "@/components/TeamAvatar";
 import TeamCard from "@/components/TeamCard";
 import TeamModal from "@/components/TeamModal";
@@ -1005,9 +1007,8 @@ export default function TournoiPage() {
 
     setMessageCodeJoueur("Recherche du joueur…");
     const { data, error } = await supabase
-      .from("profiles")
+      .rpc("tourneo_profils_publics", { p_code: code })
       .select("id, display_name, player_code, avatar_url, favorite_color")
-      .eq("player_code", code)
       .maybeSingle();
 
     if (error || !data) {
@@ -1176,8 +1177,7 @@ export default function TournoiPage() {
     });
     setPodiumPhotoUrl(dataUrl);
 
-    // Si le tournoi existe dans le cloud, la photo est envoyée dans Supabase afin
-    // qu’elle soit également visible depuis le lien public après le tournoi.
+    // La photo reste privée dans le stockage du propriétaire.
     if (tournoiId && userId) {
       try {
         setMessageCloud("Envoi de la photo du podium…");
@@ -1186,8 +1186,7 @@ export default function TournoiPage() {
         const { error } = await supabase.storage.from("tourneo-media").upload(chemin, fichier, { upsert: true });
 
         if (!error) {
-          const { data } = supabase.storage.from("tourneo-media").getPublicUrl(chemin);
-          setPodiumPhotoUrl(data.publicUrl);
+          setPodiumPhotoUrl(referencePhoto(chemin));
           setMessageCloud("Photo du podium synchronisée");
         } else {
           console.error("Upload photo podium :", error);
@@ -1236,7 +1235,7 @@ export default function TournoiPage() {
 
     if (podiumPhotoUrl) {
       try {
-        const img = await chargerImage(podiumPhotoUrl);
+        const img = await chargerImage(await urlPhotoPrivee(podiumPhotoUrl));
         const x = 70, y = 230, w = 900, h = 590;
         const ratio = Math.max(w / img.width, h / img.height);
         const sw = w / ratio, sh = h / ratio;
@@ -1621,11 +1620,11 @@ ${lienPartage}`,
     if (!tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)) return;
 
     async function synchroniserPalmares() {
-      const ids = equipes.map((equipe) => equipe.profilId??equipe.id).filter(Boolean);
+      const ids = equipes.map((equipe) => equipe.profilId??equipe.id).filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
       if (!ids.length) return;
 
-      const { data: profils } = await supabase.from("profiles").select("id").in("id", ids);
-      if (!profils?.length) return;
+      const { data: profils } = await supabase.rpc("tourneo_profils_publics", { p_ids: ids }).select("id");
+      if (!Array.isArray(profils) || !profils.length) return;
       const profilsIds = new Set(profils.map((profil) => profil.id));
 
       const rangElimination = (equipeId: string) => {
@@ -2840,7 +2839,7 @@ ${lienPartage}`,
 
                 {podiumPhotoUrl ? (
                   <>
-                    <img src={podiumPhotoUrl} alt="Photo des finalistes" style={styles.souvenirPhoto} />
+                    <PhotoPrivee src={podiumPhotoUrl} alt="Photo des finalistes" style={styles.souvenirPhoto} />
                     <span style={styles.photoCaption}>📷 Cliquer pour changer la photo</span>
                   </>
                 ) : (

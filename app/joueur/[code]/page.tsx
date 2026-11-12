@@ -16,8 +16,8 @@ export default function JoueurPublic(){
 
   useEffect(()=>{
     async function charger(){
-      const{data,error}=await supabase.from("profiles").select("id,display_name,player_code,avatar_url,favorite_color").eq("player_code",code.toUpperCase()).maybeSingle();
-      if(error||!data){setE("Profil introuvable");return;}
+      const{data,error}=await supabase.rpc("tourneo_profils_publics",{p_code:code.toUpperCase()}).select("id,display_name,player_code,avatar_url,favorite_color").maybeSingle();
+      if(error||!data){setE("Connectez-vous à Tourneo pour consulter ce profil.");return;}
       setP(data);
       const{data:rr}=await supabase.from("player_results").select("id,tournament_name,sport,placement,points,created_at").eq("profile_id",data.id).order("created_at",{ascending:false});
       setR((rr??[])as R[]);

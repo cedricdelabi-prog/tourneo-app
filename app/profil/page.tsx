@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/lib/supabase";
+import PhotoPrivee from "@/components/PhotoPrivee";
+import { referencePhoto } from "@/lib/media-prive";
 import TourneoNav from "@/components/TourneoNav";
 
 type Profil = {
@@ -137,13 +139,13 @@ export default function ProfilPage() {
       const bucket = supabase.storage.from("tourneo-media");
       const { error: uploadError } = await bucket.upload(path, file, { contentType: file.type, upsert: false });
       if (uploadError) throw uploadError;
-      const { data: url } = bucket.getPublicUrl(path);
+      const photo = referencePhoto(path);
       const { data: updated, error: saveError } = await supabase.from("profiles")
-        .update({ avatar_url: url.publicUrl, updated_at: new Date().toISOString() })
+        .update({ avatar_url: photo, updated_at: new Date().toISOString() })
         .eq("id", profil.id).select("*").single();
       if (saveError || !updated) throw saveError || new Error("Photo non enregistrée.");
       setProfil(updated as Profil);
-      setAvatar(url.publicUrl);
+      setAvatar(photo);
       setMessage("Photo de profil enregistrée ✓");
     } catch (error) {
       setMessage(error instanceof Error ? `Photo impossible : ${error.message}` : "Impossible d'enregistrer la photo.");
@@ -206,7 +208,7 @@ export default function ProfilPage() {
         <section style={s.hero}>
           <div style={s.avatarWrap}>
             <div style={{ ...s.avatar, background: couleur }}>
-              {avatar ? <img src={avatar} alt="" style={s.avatarImg} /> : <span>{(nom || "T").slice(0,1).toUpperCase()}</span>}
+              {avatar ? <PhotoPrivee src={avatar} alt="" style={s.avatarImg} /> : <span>{(nom || "T").slice(0,1).toUpperCase()}</span>}
             </div>
             <input ref={inputPhoto} hidden type="file" accept="image/*,image/gif" onChange={(e) => changerPhoto(e.target.files?.[0])} />
             <button style={s.secondary} disabled={photoEnCours || chargement} onClick={() => inputPhoto.current?.click()}>{photoEnCours ? "Envoi…" : "Photo / GIF"}</button>
