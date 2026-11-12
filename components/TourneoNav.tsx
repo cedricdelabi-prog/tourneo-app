@@ -9,7 +9,7 @@ import TourneoBrand from "@/components/TourneoBrand";
 const sections = [
   ["/dashboard", "Mes tournois"], ["/evenements", "Événements"],
   ["/groupes", "Groupes"], ["/activite", "Activité"],
-  ["/arbitrage", "Arbitrage"], ["/statistiques", "Statistiques"], ["/profil", "Mon profil"],
+  ["/outils", "Outils"], ["/olympiades", "Olympiades"], ["/arbitrage", "Arbitrage"], ["/statistiques", "Statistiques"], ["/profil", "Mon profil"],
 ] as const;
 type Active = "dashboard" | "tournoi" | "profil" | "aide" | "contact" | "none";
 
@@ -45,7 +45,8 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
       </div>
       {showBack && <div className="tourneo-context-bar"><TourneoRetour href={backHref}>{backLabel}</TourneoRetour>{contextLabel && <span className="tourneo-context-label">{contextLabel}</span>}</div>}
       <nav className="tourneo-desktop-nav" aria-label="Navigation principale">
-        {sections.map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{label}</Link>)}
+        {sections.filter(([href]) => ["/dashboard","/outils","/activite","/profil"].includes(href)).map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{label}</Link>)}
+        <details className="tourneo-desktop-more"><summary>Autres espaces</summary><div>{sections.filter(([href]) => !["/dashboard","/outils","/activite","/profil"].includes(href)).map(([href,label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{label}</Link>)}</div></details>
       </nav>
     </header>
     <nav className="tourneo-mobile-bottom-nav" aria-label="Navigation mobile">

@@ -14,7 +14,8 @@
     "test": "node tests/moteur.cjs",
     "test:db": "node tests/database.cjs",
     "test:purge": "node tests/purge-photos.cjs",
-    "test:parcours": "node tests/profil.cjs && node tests/impression.cjs && node tests/suivi.cjs && node tests/evenements.cjs && node tests/import-excel.cjs && node tests/annonces.cjs && node tests/appels-ui.cjs"
+    "test:parcours": "node tests/profil.cjs && node tests/impression.cjs && node tests/suivi.cjs && node tests/evenements.cjs && node tests/import-excel.cjs && node tests/annonces.cjs && node tests/appels-ui.cjs && node tests/synchronisation.cjs && node tests/outils.cjs && node tests/outils-ui.cjs",
+    "test:outils": "node tests/outils.cjs && node tests/outils-ui.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

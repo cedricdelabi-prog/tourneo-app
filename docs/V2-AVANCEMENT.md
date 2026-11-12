@@ -155,3 +155,14 @@ Navigation : composant de retour commun avec chevron, zone cliquable et focus cl
 - Les choix de terrain et l’ordre manuel sont conservés dans les sauvegardes. Le partage public reçoit le terrain sans ajouter de données privées.
 - Contrôles : TypeScript, moteur, parcours composants, sauvegardes, SQL local avec migrations et activation consolidée. Fonction de partage vérifiée sur la base V2 ; essais réels sur appareils encore nécessaires.
 - Suivi reconstitué : 77 développés, 2 partiels, 4 à tester et 2 à développer sur 85. Les points 86–87 recoupent des fonctions précédentes.
+
+
+## Outils, Olympiades et sauvegardes concurrentes — 12 novembre 2026
+
+- `/outils` : chronomètre et compte à rebours qui tiennent compte de la veille, compteur persistant avec annulation, roulette animée et équipes aux effectifs équilibrés. Transfert vers un tournoi ou des Olympiades ; copie et impression.
+- `/arbitrage` : compteur propre à chaque match, report explicite dans une proposition. Le compteur ne valide ni n’envoie de score à lui seul.
+- `/olympiades` : mêmes équipes sur plusieurs activités, mesures en points/secondes/distance/réussites, sens du classement par épreuve, égalités, validation, total commun, sauvegarde privée, import/export et impression. Partage volontaire en lecture seule des résultats validés, sans membres ni identifiants de compte.
+- Reprise réseau : comparaison atomique de révision avant chaque nouvelle sauvegarde sur l’écran tournoi. Une ancienne copie ne remplace pas la plus récente ; téléchargement et choix explicite en cas de conflit. Même protection pour les enregistrements d’Olympiades. Les écrans déjà ouverts avec un ancien code doivent être actualisés pour utiliser ce parcours.
+- Navigation allégée, gestion du tournoi regroupée et guide `/guides/outils-et-olympiades`.
+- Vérifications : TypeScript, compilation Next, moteurs, contrôles composants, SQL local avec RLS et projection publique. Métadonnées de la base V2 contrôlées après migration. Aucun test n’a envoyé de message réel ni modifié un tournoi utilisateur.
+- Les essais sur de vrais téléphones, deux comptes connectés et les coupures réseau réelles restent à confirmer. Les avertissements Supabase antérieurs ne sont pas tous supprimés ; aucun nouveau signal ne vise les fonctions ou tables ajoutées ici.

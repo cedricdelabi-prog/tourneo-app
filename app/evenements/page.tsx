@@ -75,7 +75,7 @@ export default function Evenements() {
   }, [retenus]);
   const evenement = evenements.find(e => e.id === selection);
   return <main className="v2-page"><div className="v2-shell"><TourneoNav/>
-    <section className="v2-card v2-event-editor"><h1>Événements et animations</h1><p>Regroupez plusieurs tournois pour suivre un programme de camping, une journée de club ou une compétition sur plusieurs disciplines.</p>
+    <section className="v2-card v2-event-editor"><h1>Événements et animations</h1><p><a href="/olympiades">Créer des Olympiades avec les mêmes équipes et plusieurs épreuves</a></p><p>Regroupez plusieurs tournois pour suivre un programme de camping, une journée de club ou une compétition sur plusieurs disciplines.</p>
       {erreur && <p role="alert" className="v2-alert">{erreur}<button type="button" disabled={occupe || chargement} onClick={() => void charger()}>Réessayer le chargement</button></p>}
       <form className="v2-form" onSubmit={creer}><label>Nouvel événement<input maxLength={100} required value={nom} disabled={occupe || chargement} onChange={e => setNom(e.target.value)}/></label><button disabled={occupe || chargement || !user || !nom.trim()}>{occupe ? 'Enregistrement…' : 'Créer l’événement'}</button></form>
       <label>Événement<select value={selection} disabled={occupe || chargement} onChange={e => { setSelection(e.target.value); setMessage(''); }}><option value="">Choisir…</option>{evenements.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}</select></label>

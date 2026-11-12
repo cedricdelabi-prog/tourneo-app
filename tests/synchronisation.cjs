@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
+const moduleSync={exports:{}};
+new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/synchronisation.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(require,moduleSync,moduleSync.exports);
+const {synchroniserTournoi,lireRevision}=moduleSync.exports;
+const initial={nom:'Test',sport:'petanque',donnees:{matchs:[{id:1,score1:'13',score2:'4'}]}};
+let row={...structuredClone(initial),id:'t',user_id:'u',revision:0,photos_expirent_at:null}, writes=0;
+const client={from(){let filters={},patch;return{update(v){patch=v;return this;},select(){return this;},eq(k,v){filters[k]=v;return this;},async maybeSingle(){if(Object.entries(filters).some(([k,v])=>row[k]!==v))return{data:null,error:null};if(patch){writes++;row={...row,...structuredClone(patch),revision:row.revision+1};}return{data:structuredClone(row),error:null};}};}};
+async function run(){
+ assert.equal(lireRevision('0'),0);for(const value of ['',null,undefined,-1,Infinity,'abc'])assert.equal(lireRevision(value),null);
+ const a=await synchroniserTournoi(client,'t','u',0,{...initial,nom:'Appareil A'});assert.equal(a.statut,'sauve');assert.equal(a.version.revision,1);
+ const b=await synchroniserTournoi(client,'t','u',0,{...initial,nom:'Ancienne copie B'});assert.equal(b.statut,'conflit');assert.equal(row.nom,'Appareil A');assert.equal(writes,1);
+ const unknown=await synchroniserTournoi(client,'t','u',null,initial);assert.equal(unknown.statut,'conflit');assert.equal(writes,1,'unknown baseline cannot write');
+ const lostAck=await synchroniserTournoi(client,'t','u',0,{donnees:{matchs:[{score2:'4',score1:'13',id:1}]},sport:'petanque',nom:'Appareil A'});assert.equal(lostAck.statut,'sauve','identical payload recovers a lost acknowledgement');assert.equal(writes,1);
+ row={...row,nom:'Appareil C',revision:2};
+ assert.equal((await synchroniserTournoi(client,'t','u',b.version.revision,initial)).statut,'conflit','third device invalidates an earlier conflict resolution');
+ await assert.rejects(()=>synchroniserTournoi(client,'t','other',2,initial),/inaccessible/);assert.equal(writes,1);
+ assert.equal((await synchroniserTournoi(client,'t','u',2,initial)).statut,'sauve');assert.equal(row.revision,3);
+ const broken={from(){return{update(){return this;},eq(){return this;},select(){return this;},async maybeSingle(){return{error:new Error('offline'),data:null};}};}};
+ await assert.rejects(()=>synchroniserTournoi(broken,'t','u',3,initial),/offline/);
+ console.log('Synchronisation : base inconnue, copies concurrentes, troisième appareil, réponse perdue et accès propriétaire : OK');
+}run().catch(e=>{console.error(e);process.exitCode=1;});

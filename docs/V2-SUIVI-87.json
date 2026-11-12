@@ -790,8 +790,8 @@
       "theme": "Priorités supplémentaires",
       "evolution": "Priorité hors connexion puis synchronisation",
       "statut": "Partiellement développée",
-      "preuve": "components/OfflineV2.tsx ; public/sw-v2.js ; app/tournoi/[id]/page.tsx",
-      "reste": "Données locales et reprise réseau présentes. Exige un premier chargement ; modules en ligne et conflits multi-appareils restent limités. Essai réel de coupure à terminer.",
+      "preuve": "lib/synchronisation.ts ; tests/synchronisation.cjs ; supabase/tests/synchronisation_v2.sql ; components/OfflineV2.tsx",
+      "reste": "Copie locale, reprise réseau et refus atomique d’une base obsolète ; résolution explicite des versions. Pas de fusion automatique des résultats contradictoires. Premier chargement et essais de coupure sur appareils réels restent nécessaires.",
       "origine": "Numéro fourni par le récapitulatif utilisateur"
     },
     {

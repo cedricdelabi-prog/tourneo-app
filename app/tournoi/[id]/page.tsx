@@ -32,6 +32,8 @@ import { OPTIONS_V2, normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v
 import { classementCSV, prochaineRondeSuisse, resultatSerie } from "@/lib/formats-avances";
 import type { Equipe, Match } from "@/types";
 import { supabase } from "@/lib/supabase";
+import { nomsPourTirage, type EquipeTiree } from "@/lib/outils-arbitre";
+import { synchroniserTournoi, lireRevision, type VersionTournoi } from "@/lib/synchronisation";
 import TourneoBrand from "@/components/TourneoBrand";
 import TourneoNav from "@/components/TourneoNav";
 
@@ -160,6 +162,12 @@ export default function TournoiPage() {
   }, [params.id]);
   const [revisionConnexion, setRevisionConnexion] = useState(0);
   const fileSynchronisation = useRef<Promise<void>>(Promise.resolve());
+  const generationSync = useRef(0);
+  const revisionCloud = useRef<number | null>(null);
+  const premiereSauvegarde = useRef(true);
+  const derniereSignature = useRef('');
+  const suspendreSync = useRef(false);
+  const [conflitCloud,setConflitCloud] = useState<VersionTournoi | null>(null);
 
   useEffect(() => {
     const reconnecter = () => {
@@ -185,6 +193,7 @@ export default function TournoiPage() {
   const [tournoiId, setTournoiId] = useState("");
   const cacheKey = `${CLE}:${tournoiId || params.id}`;
   const pendingKey = `${cacheKey}:pending`;
+  const revisionKey = `${cacheKey}:revision`;
   useEffect(()=>{
     if(!tournoiId||!userId)return;
     const minuterie=window.setInterval(()=>{try{if(navigator.onLine&&localStorage.getItem(pendingKey))setRevisionConnexion(v=>v+1);}catch{}},15000);
@@ -222,11 +231,15 @@ export default function TournoiPage() {
   const scannerStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
+    let actif = true;
     if (typeof window !== "undefined") {
       setLienPartage(`${window.location.origin}/partage/${params.id}`);
     }
 
     async function initialiser() {
+      const generation = ++generationSync.current; setPret(false); revisionCloud.current = null; premiereSauvegarde.current = true;
+      derniereSignature.current = ''; suspendreSync.current = false; setConflitCloud(null);
+      try { revisionCloud.current = lireRevision(localStorage.getItem(revisionKey)); premiereSauvegarde.current = !localStorage.getItem(pendingKey); } catch {}
       if (params.id === "nouveau") {
         localStorage.removeItem(CLE);
         setNomTournoi("");
@@ -302,6 +315,7 @@ export default function TournoiPage() {
           new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 2500)),
         ]);
 
+        if (!actif || generation !== generationSync.current) return;
         const user = sessionResult?.data?.session?.user;
 
         if (!user) {
@@ -318,6 +332,15 @@ export default function TournoiPage() {
         setUserId(user.id);
 
         if (params.id === "nouveau") {
+          if (new URLSearchParams(window.location.search).get('equipes') === 'tirage') {
+            try {
+              const tirage=JSON.parse(localStorage.getItem('tourneo-tirage-equipes:v1')||'null');
+              if(tirage?.version!==1||!Number.isFinite(tirage.date)||Date.now()-tirage.date>86400000||!Array.isArray(tirage.equipes)||tirage.equipes.length<2||tirage.equipes.length>32)throw new Error('Tirage absent ou expiré.');
+              const noms=nomsPourTirage(tirage.equipes.map((e:EquipeTiree)=>e.nom).join('\n'));
+              const importees=tirage.equipes.map((e:EquipeTiree,i:number)=>{if(!Array.isArray(e.joueurs)||e.joueurs.length>256||e.joueurs.some(n=>typeof n!=='string'||n.length>100))throw new Error('Liste de membres invalide.');return{id:crypto.randomUUID(),nom:noms[i],joueurs:e.joueurs,emoji:'🏅',couleur:'#3B82F6'};});
+              setEquipes(importees);setMessageCloud('Équipes du tirage ajoutées. Choisissez votre discipline puis démarrez.');
+            }catch{setMessageCloud('Impossible de reprendre ce tirage. Revenez à la boîte à outils.');}
+          }
           const groupe = new URLSearchParams(window.location.search).get("groupe");
           if (groupe && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupe)) {
             const r = await supabase.from("tourneo_groupe_participants").select("id,nom").eq("groupe_id", groupe).order("created_at").order("id").limit(256);
@@ -334,13 +357,14 @@ export default function TournoiPage() {
         const cloudResult = await Promise.race([
           supabase
             .from("tournois")
-            .select("id, nom, sport, donnees, photos_expirent_at")
+            .select("id, nom, sport, donnees, photos_expirent_at, revision")
             .eq("user_id", user.id)
             .eq("id", params.id)
             .maybeSingle(),
           new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 4000)),
         ]);
 
+        if (!actif || generation !== generationSync.current) return;
         if (!cloudResult) {
           setMessageCloud(localCharge ? "Mode local · cloud lent" : "Cloud indisponible");
           setPret(true);
@@ -364,6 +388,8 @@ export default function TournoiPage() {
         if (localCharge && localStorage.getItem(pendingKey)) {
           setMessageCloud("Modifications locales · synchronisation en attente");
         } else if (tournoiCloud) {
+          revisionCloud.current = lireRevision(tournoiCloud.revision);
+          try { localStorage.setItem(revisionKey,String(tournoiCloud.revision)); } catch {}
           const donnees = tournoiCloud.donnees ?? {};
 
           setTournoiId(tournoiCloud.id);
@@ -391,11 +417,12 @@ export default function TournoiPage() {
         console.error(error);
         setMessageCloud(localCharge ? "Mode local" : "Impossible de charger le tournoi");
       } finally {
-        setPret(true);
+        if (actif && generation === generationSync.current) setPret(true);
       }
     }
 
     initialiser();
+    return () => { actif = false; };
   }, [params.id]);
 
   useEffect(() => {
@@ -411,11 +438,7 @@ export default function TournoiPage() {
   useEffect(() => {
     if (!pret) return;
 
-    let copieLocale = true;
-    try {
-    localStorage.setItem(
-      cacheKey,
-      JSON.stringify({
+    const copie = {
         nomTournoi,
         sport,
         equipes,
@@ -433,25 +456,31 @@ export default function TournoiPage() {
         podiumPhotoUrl,
         photosExpirentAt,
         optionsV2,
-      })
-    );
-
-    } catch {
+    };
+    const signature = JSON.stringify(copie);
+    if (premiereSauvegarde.current) { premiereSauvegarde.current = false; derniereSignature.current = signature; }
+    let copieLocale = true;
+    try { localStorage.setItem(cacheKey,signature); } catch {
       copieLocale = false;
       setMessageCloud("Sauvegarde locale indisponible · espace de stockage insuffisant");
     }
 
     if (!tournoiId || !userId) return;
+    let enAttente = true;
+    try { enAttente = Boolean(localStorage.getItem(pendingKey)); } catch {}
+    if (signature === derniereSignature.current && !enAttente) return;
     try { localStorage.setItem(pendingKey, "1"); } catch {}
+    if (conflitCloud || suspendreSync.current) return;
     if (!navigator.onLine) {
       setMessageCloud(copieLocale ? "Hors connexion · résultats conservés sur cet appareil" : "Hors connexion · sauvegarde impossible : exportez vos résultats avant de quitter.");
       return;
     }
 
     let annule = false;
+    const generation = generationSync.current;
     const minuterie = window.setTimeout(() => {
       fileSynchronisation.current = fileSynchronisation.current.catch(()=>{}).then(async()=>{
-      if(annule)return;
+      if(annule || suspendreSync.current || generation !== generationSync.current)return;
       setMessageCloud("Synchronisation…");
 
       const classementSync = classementTournoi(formatTournoi,equipes,matchs,optionsV2);
@@ -464,9 +493,7 @@ export default function TournoiPage() {
         couleur: ligne.equipe.couleur || "#3B82F6",
       }));
 
-      const { data: sauvegarde, error } = await supabase
-        .from("tournois")
-        .update({
+      const resultat = await synchroniserTournoi(supabase,tournoiId,userId,revisionCloud.current,{
           nom: nomTournoi.trim() || "Tournoi sans nom",
           sport,
           donnees: {
@@ -487,18 +514,21 @@ export default function TournoiPage() {
             termine: termineSync,
             podiumFinal: podiumFinalSync,
           },
-        })
-        .eq("id", tournoiId)
-        .eq("user_id", userId).select("id,photos_expirent_at").maybeSingle();
-
+      });
+      if (generation !== generationSync.current) return;
+      if (resultat.statut === 'sauve') {
+        revisionCloud.current = resultat.version.revision;
+        try { localStorage.setItem(revisionKey,String(resultat.version.revision)); } catch {}
+        derniereSignature.current = signature;
+      }
       if (annule) return;
-      if (error || !sauvegarde) {
-        console.error(error);
-        setMessageCloud(copieLocale ? "Synchronisation en attente · résultats conservés sur cet appareil" : "Sauvegarde impossible · exportez vos résultats avant de quitter.");
+      if (resultat.statut === 'conflit') {
+        setConflitCloud(resultat.version);
+        setMessageCloud("Deux versions à comparer · votre copie locale est conservée");
       } else {
         try { localStorage.removeItem(pendingKey); } catch {}
-        setPhotosExpirentAt(sauvegarde.photos_expirent_at || "");
-        if (sauvegarde.photos_expirent_at && Date.parse(sauvegarde.photos_expirent_at) <= Date.now()) setPodiumPhotoUrl("");
+        setPhotosExpirentAt(resultat.version.photos_expirent_at || "");
+        if (resultat.version.photos_expirent_at && Date.parse(resultat.version.photos_expirent_at) <= Date.now()) setPodiumPhotoUrl("");
         setMessageCloud("Synchronisé");
       }
       }).catch(()=>{if(!annule)setMessageCloud("Synchronisation interrompue · nouvelle tentative automatique.");});
@@ -507,6 +537,7 @@ export default function TournoiPage() {
     return () => { annule = true; window.clearTimeout(minuterie); };
   }, [
     revisionConnexion,
+    conflitCloud,
     nomTournoi,
     sport,
     equipes,
@@ -802,8 +833,9 @@ export default function TournoiPage() {
     if (operationTournoi) return;
     if (!nomTournoi.trim()) { alert("Ajoute un nom au tournoi."); return; }
     if (!userId) { window.location.href = "/login"; return; }
-    setOperationTournoi(true);
+    setOperationTournoi(true); suspendreSync.current = true;
     try {
+      await fileSynchronisation.current.catch(() => {});
       let participants = equipes;
       if (tournoiId) {
         const { data: demandes, error } = await supabase.from("tourneo_inscriptions").select("id,nom,joueurs,user_id,type_participant").eq("tournoi_id", tournoiId).eq("statut", "accepte");
@@ -826,17 +858,23 @@ export default function TournoiPage() {
       if (id) {
         const { error } = await supabase.rpc("tourneo_demarrer", { p_tournoi: id, p_donnees: donnees, p_nom: nomTournoi.trim(), p_sport: sport });
         if (error) throw error;
+        try { localStorage.removeItem(pendingKey); localStorage.removeItem(cacheKey); localStorage.removeItem(revisionKey); } catch {}
+        window.location.assign(`/tournoi/${id}`);
+        return;
       } else {
-        const { data, error } = await supabase.from("tournois").insert({ nom: nomTournoi.trim(), sport, user_id: userId, donnees }).select("id").single();
+        const { data, error } = await supabase.from("tournois").insert({ nom: nomTournoi.trim(), sport, user_id: userId, donnees }).select("id,revision").single();
         if (error) throw error;
         id = data.id;
+        revisionCloud.current = lireRevision(data.revision);
       }
+      try { localStorage.setItem(`${CLE}:${id}:revision`,String(revisionCloud.current)); } catch {}
+      suspendreSync.current = false;
       setOptionsV2(optionsInitiales); setEquipes(participants); setPoules(nouvellesPoules); setMatchs(nouveauxMatchs);
       setTournoiId(id); setCree(true); setOnglet("matchs");
       setLienPartage(`${window.location.origin}/partage/${id}`);
       window.history.replaceState({}, "", `/tournoi/${id}`);
       setMessageCloud("Synchronisé");
-    } catch (erreur) { setMessageCloud("Démarrage interrompu"); alert(erreur && typeof erreur === "object" && "message" in erreur ? String(erreur.message) : "Impossible de démarrer le tournoi."); }
+    } catch (erreur) { suspendreSync.current = false; setMessageCloud("Démarrage interrompu"); alert(erreur && typeof erreur === "object" && "message" in erreur ? String(erreur.message) : "Impossible de démarrer le tournoi."); }
     finally { setOperationTournoi(false); }
   }
 
@@ -2337,10 +2375,21 @@ ${lienPartage}`,
               {equipes.length} participants · {joues}/{totalMatchsTheorique || matchs.length} matchs terminés
             </p>
             {messageCloud && <div style={styles.syncBadge}><span style={styles.syncDot} />{messageCloud}</div>}
+            {conflitCloud && <section className="tourneo-sync-conflict" aria-label="Comparer les versions" role="status"><strong>Une autre version existe en ligne</strong><p>Cette copie contient {matchsValides.length} résultat(s) validé(s). La version en ligne en contient {Array.isArray(conflitCloud.donnees?.matchsValides) ? conflitCloud.donnees.matchsValides.length : 0}. Aucun remplacement automatique n’a été fait.</p><div><button type="button" onClick={sauvegarderFichier}>Télécharger ma copie locale</button><button type="button" onClick={() => {
+              if (!window.confirm("Charger la version en ligne ? Une sauvegarde de cette copie locale sera téléchargée avant le rechargement.")) return;
+              sauvegarderFichier(); suspendreSync.current = true;
+              localStorage.removeItem(pendingKey); localStorage.removeItem(cacheKey); localStorage.removeItem(revisionKey); window.location.reload();
+            }}>Charger la version en ligne</button><button type="button" onClick={() => {
+              if (!window.confirm("Publier cette copie locale à la place de la version en ligne ? Les résultats de l’autre version seront remplacés.")) return;
+              revisionCloud.current = conflitCloud.revision;
+              setConflitCloud(null); setRevisionConnexion(v => v+1);
+            }}>Publier cette copie locale</button></div></section>}
           </div>
 
           <div className="tourneo-header-actions" style={styles.headerActions}>
             <button style={styles.secondaryButton} onClick={partagerTournoi}>Partager</button>
+            <a className="tourneo-header-tool-link" href="/outils">Outils arbitre</a>
+            <details className="tourneo-tournament-more"><summary>Gérer le tournoi</summary><div>
             <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>Inscriptions / pointage</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>QR code</button>
             <button style={styles.secondaryButton} onClick={exporterPDF}>Imprimer / PDF</button>
@@ -2351,6 +2400,8 @@ ${lienPartage}`,
               <button style={styles.secondaryButton} onClick={() => setOnglet("participants")}>Modifier</button>
             )}
             <button style={styles.primarySmall} onClick={() => (window.location.href = "/tournoi/nouveau")}>Nouveau tournoi</button>
+            <a href="/guides/outils-et-olympiades">Guide des outils et des Olympiades</a>
+            </div></details>
           </div>
         </section>
 

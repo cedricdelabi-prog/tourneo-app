@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata = { title:"Guides Tourneo | Organiser un tournoi facilement", description:"Guides pratiques pour organiser un tournoi, calculer les matchs, estimer la durée, gérer les égalités et préparer différents sports." };
 
 const guides=[
+["/guides/outils-et-olympiades","🎲","Outils arbitre et Olympiades","Chrono, points, tirage des équipes et journée avec plusieurs activités."],
 ["/guides/organiser-tournoi","🏆","Organiser un tournoi de A à Z","Les étapes essentielles, de la préparation jusqu'au classement final."],
 ["/guides/nombre-matchs","🧮","Calculer le nombre de matchs","Estimer rapidement le nombre de rencontres selon le format."],
 ["/guides/duree-tournoi","⏱️","Estimer la durée","Construire un planning réaliste avec les terrains et les rotations."],
