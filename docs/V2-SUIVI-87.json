@@ -672,7 +672,7 @@
       "evolution": "E-mails sportifs et notifications téléphone application fermée",
       "statut": "Partiellement développée",
       "preuve": "components/AlertesExternes.tsx ; supabase/functions/notifications-tourneo ; supabase/tests/alertes_externes_v2.sql ; tests/notifications-externes.cjs",
-      "reste": "Code Web Push et e-mail intégré et contrôlé localement. Activation SQL/worker non confirmée (confirmation expirée). Expéditeur e-mail vérifié et secrets à configurer. Push natif APK et essais téléphone réel non réalisés.",
+      "reste": "Web Push intégré, migration V2 appliquée et worker déployé. Expéditeur e-mail vérifié et secrets à configurer. Push natif APK et essais téléphone réel non réalisés.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {

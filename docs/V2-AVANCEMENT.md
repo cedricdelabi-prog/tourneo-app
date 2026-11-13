@@ -182,3 +182,5 @@ Navigation : composant de retour commun avec chevron, zone cliquable et focus cl
 Code d’activation par appareil et consentement e-mail dans le profil, statuts organisateur, transport Web Push chiffré, file avec reprises et permissions dédiées. Tests locaux SQL et parcours réussis. Voir V2-ALERTES-EXTERNES.md : migration et worker non activés (confirmation technique expirée), e-mail sans expéditeur configuré. Le push natif APK reste hors du module Web Push. Aucun message réel de test envoyé.
 
 Compteur : 80 développés, 4 à tester, 1 partiellement développé. La V1 et main ne sont pas modifiés.
+
+Activation confirmée ensuite le 13 novembre : migration 20261113072840 appliquée, worker notifications-tourneo ACTIVE v1, clés publiques prêtes et planificateur actif. Aucune clé privée accessible aux comptes, aucun message réel envoyé. Le canal e-mail reste désactivé faute d’expéditeur configuré.

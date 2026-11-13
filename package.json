@@ -18,7 +18,7 @@
     "test:outils": "node tests/outils.cjs && node tests/outils-ui.cjs",
     "test:i18n": "node tests/i18n.cjs",
     "test:browser": "node tests/mobile-browser.cjs",
-    "test:alertes": "node tests/notifications-externes.cjs"
+    "test:alertes": "node tests/notifications-externes.cjs && node tests/alertes-ui.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
