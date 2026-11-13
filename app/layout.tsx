@@ -1,3 +1,4 @@
+import AlertesAndroidCompte from '@/components/AlertesAndroidCompte';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -47,7 +48,7 @@ export default function RootLayout({
 
         <AccessibiliteCompte />
         <OfflineV2 />
-        <LangueCompte />
+        <LangueCompte /><AlertesAndroidCompte />
         {children}
       </body>
     </html>

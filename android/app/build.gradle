@@ -55,11 +55,15 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
+// Firebase setup is optional for test builds. Reject a V1 application configuration.
+def servicesJSON = file('google-services.json')
+if (servicesJSON.exists()) {
+    def services = new groovy.json.JsonSlurper().parse(servicesJSON)
+    def clients = services.client ?: []
+    if (!clients.any { it.client_info?.android_client_info?.package_name == 'com.cedricdelabi.tourneo.v2' }) {
+        throw new GradleException('Firebase : configuration Tourneo V2 requise (com.cedricdelabi.tourneo.v2).')
     }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+    apply plugin: 'com.google.gms.google-services'
+} else {
+    logger.lifecycle('Tourneo V2 : Firebase absent, notifications Android désactivées.')
 }

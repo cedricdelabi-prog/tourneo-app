@@ -14,6 +14,8 @@ export async function couperPushLocal() {
 
 export async function deconnecterTourneo() {
   const { supabase } = await import('@/lib/supabase');
+  const { estAndroid, desactiverAndroid } = await import('@/lib/android-push');
+  if (estAndroid()) await desactiverAndroid().catch(() => {});
   try {
     const registration = await navigator.serviceWorker?.getRegistration('/');
     const subscription = await registration?.pushManager.getSubscription();

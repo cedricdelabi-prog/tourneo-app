@@ -30,4 +30,6 @@ export const traductionsAlertes: Record<string, { en: string; nl: string }> = {
  'Transmission annulée': {en:'Sending cancelled',nl:'Verzending geannuleerd'},
  'Échec de transmission': {en:'Sending failed',nl:'Verzending mislukt'},
  'E-mail sportif activé': {en:'Sports email enabled',nl:'Sportmail ingeschakeld'},
+ 'Notifications Android': {en:'Android notifications',nl:'Android-meldingen'},
+ 'Les notifications Android ne sont pas encore configurées.': {en:'Android notifications are not configured yet.',nl:'Android-meldingen zijn nog niet ingesteld.'},
 };

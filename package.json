@@ -18,12 +18,13 @@
     "test:outils": "node tests/outils.cjs && node tests/outils-ui.cjs",
     "test:i18n": "node tests/i18n.cjs",
     "test:browser": "node tests/mobile-browser.cjs",
-    "test:alertes": "node tests/notifications-externes.cjs && node tests/alertes-ui.cjs"
+    "test:alertes": "node tests/notifications-externes.cjs && node tests/alertes-ui.cjs && node tests/android-transport.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
+    "@capacitor/push-notifications": "8.1.3",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
     "next": "16.2.11",

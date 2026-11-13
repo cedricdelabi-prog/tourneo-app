@@ -6,7 +6,7 @@ do $$begin if exists(select 1 from public.tourneo_envois)then raise exception 'E
 set local role authenticated;
 select set_config('request.jwt.claim.sub','61000000-0000-4000-8000-000000000001',true);
 do $$begin
- if has_function_privilege('authenticated','public.tourneo_worker_prendre(boolean)','execute')then raise exception 'Worker public';end if;
+ if has_function_privilege('authenticated','public.tourneo_worker_prendre(boolean,boolean)','execute')then raise exception 'Worker public';end if;
  begin perform 1 from tourneo_private.notifications_config;raise exception 'Secret accessible';exception when insufficient_privilege then null;end;
  begin insert into public.tourneo_push_abonnements(endpoint,p256dh,auth)values('https://127.0.0.1/internal',repeat('A',87),repeat('A',22));raise exception 'Endpoint arbitraire';exception when check_violation then null;end;
 end$$;

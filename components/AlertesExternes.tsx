@@ -1,5 +1,6 @@
 "use client";
 
+import AlertesAndroid from '@/components/AlertesAndroid';
 import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
@@ -11,6 +12,7 @@ type Config = { push?: boolean; cle?: string; email?: boolean };
 export default function AlertesExternes() {
   useLangue();
   const [user, setUser] = useState('');
+  const [android, setAndroid] = useState(false);
   const [config, setConfig] = useState<Config>({});
   const [actif, setActif] = useState(false);
   const [email, setEmail] = useState(false);
@@ -35,6 +37,7 @@ export default function AlertesExternes() {
         ]);
         if (!present || version !== generation) return;
         if (cfg.error || prefs.error) throw new Error();
+        setAndroid(Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android');
         const support = !Capacitor.isNativePlatform() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
         let inscrit = false;
         if (support) {
@@ -131,12 +134,12 @@ export default function AlertesExternes() {
   return <section className="v2-card">
     <h2>{tr('Alertes sur mes appareils')}</h2>
     <p>{tr('Recevez les informations de vos tournois. Ces choix sont distincts des communications promotionnelles.')}</p>
-    <div className="v2-entry">
+    {android ? <AlertesAndroid /> : <div className="v2-entry">
       <h3>{tr('Notifications du téléphone')}</h3>
       <p>{tr(actif ? 'Cet appareil est enregistré.' : compatible ? 'Cet appareil n’est pas encore enregistré.' : 'Pour les alertes quand Tourneo est fermé, utilisez la version web. Sur iPhone, ajoutez-la à l’écran d’accueil.')}</p>
       <button type="button" disabled={!pret || occupe || (!actif && (!compatible || !config.push || !sport))} onClick={() => void appareil()}>{tr(actif ? 'Désactiver cet appareil' : 'Activer sur cet appareil')}</button>
       {!sport && <p>{tr('Activez d’abord les informations sportives dans vos préférences.')}</p>}
-    </div>
+    </div>}
     <div className="v2-entry">
       <h3>{tr('Alertes sportives par e-mail')}</h3>
       <button type="button" disabled={!pret || occupe || (!email && (!config.email || !sport))} onClick={() => void changerEmail()}>{tr(email ? 'Désactiver les e-mails sportifs' : 'Activer les e-mails sportifs')}</button>
