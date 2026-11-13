@@ -327,3 +327,26 @@ body {
 .tourneo-visitor-language .tourneo-language-trigger{min-width:52px;min-height:42px;padding:6px 10px;border:1px solid #49617f;border-radius:11px;background:#102039;color:#fff;font-size:22px}
 .tourneo-visitor-language .tourneo-language-list button{display:block;width:100%;text-align:left;padding:12px;border:0;border-radius:8px;background:#102039;color:#eaf4ff}
 @media(max-width:650px){.tourneo-visitor-language{top:8px;right:8px}.tourneo-visitor-language .tourneo-language-trigger{min-width:44px;min-height:38px;font-size:20px}}
+.tourneo-free-badge{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid #287c70;border-radius:12px;background:#10352f;color:#a5efd5;font-size:14px}
+.tourneo-admin-period,.tourneo-admin-search{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:20px 0}
+.tourneo-admin-period label,.tourneo-admin-search label{display:grid;gap:8px;min-width:0}
+.tourneo-admin-search label{flex:1;min-width:180px}
+.tourneo-admin-period input,.tourneo-admin-search input{min-height:46px;padding:10px 12px;box-sizing:border-box;border:1px solid #49617f;border-radius:12px;background:#0a162a;color:#edf4ff;font:inherit;max-width:100%}
+.tourneo-admin-breakdown{list-style:none;padding:0;display:grid;gap:10px}
+.tourneo-admin-breakdown li{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid #30445f}
+.tourneo-admin-account{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0}
+.tourneo-admin-account p{overflow-wrap:anywhere;line-height:1.5;color:#b8c9e0}
+.tourneo-admin-modal{width:min(620px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;box-sizing:border-box;color:#eaf3ff;background:#101d32;border:1px solid #506885;border-radius:20px;margin:auto}
+.tourneo-admin-modal::backdrop{background:#020712ce;backdrop-filter:blur(5px)}
+@media(max-width:500px){.tourneo-admin-period>label{width:100%}.tourneo-admin-period input{width:100%}.tourneo-admin-modal{padding:18px}.tourneo-admin-account>div{min-width:0;max-width:100%}}
+
+/* Universal poster editor: settings first on phones, preview alongside on desktop. */
+.tourneo-poster-page{max-width:1240px;margin:0 auto;padding:32px 20px;display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:32px;align-items:start}
+.tourneo-poster-controls h1{font-size:2rem;margin:24px 0 8px}.tourneo-poster-controls>p{color:#bdcce1;line-height:1.6}
+.tourneo-poster-models{display:grid;gap:8px;margin:22px 0}.tourneo-poster-models button[aria-pressed=true]{background:#173d5a;border:1px solid #36d6f5;color:white}
+.tourneo-poster-controls .v2-form{display:grid;gap:14px}.tourneo-poster-controls label{display:grid;gap:7px}.tourneo-poster-controls input,.tourneo-poster-controls select{width:100%;min-width:0}
+.tourneo-poster-download{display:inline-flex;background:#25436d;border:1px solid #41608b;color:white;border-radius:12px;padding:14px 18px;text-decoration:none}.tourneo-poster-download[aria-disabled=true]{opacity:.45;pointer-events:none}
+.tourneo-poster-preview{background:#081325;box-shadow:0 15px 60px #0005;border-radius:8px;overflow:hidden}.tourneo-poster-preview img{display:block;width:100%;height:auto}
+@media(max-width:760px){.tourneo-poster-page{grid-template-columns:minmax(0,1fr);padding:22px 16px;gap:24px}}
+
+.tourneo-rule-search{display:grid;gap:8px;margin:12px 0}.tourneo-rule-search input{max-width:100%;width:100%}

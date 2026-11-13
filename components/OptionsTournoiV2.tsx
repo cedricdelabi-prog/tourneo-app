@@ -11,8 +11,7 @@ export default function OptionsTournoiV2({ value, onChange, disabled = false }: 
     const [message, setMessage] = useState('');
     const changer = (cle: keyof OptionsV2, v: unknown) => onChange(normaliserOptionsV2({ ...value, [cle]: v }));
     return <fieldset disabled={disabled} className="v2-settings"><legend>{tr("Organisation et r\u00E8gles")}</legend>
-    <label>{tr("Mode")}<select value={value.mode} onChange={e => changer('mode', e.target.value)}><option value="simple">{tr("Simple")}</option><option value="expert">{tr("Expert")}</option><option value="camping">{tr("Camping / Animation")}</option></select></label>
-    {value.mode === 'camping' && <p>{tr("Sessions courtes, planning des terrains et feuille papier disponibles. Les r\u00E9sultats restent enregistr\u00E9s sur cet appareil en cas de coupure.")}</p>}
+    <label>{tr("Mode")}<select value={value.mode} onChange={e => changer('mode', e.target.value)}><option value="simple">{tr("Simple")}</option><option value="expert">{tr("Expert")}</option></select></label>
     <label>{tr("Comptage du r\u00E9sultat")}<select value={value.score} onChange={e => changer('score', e.target.value)}><option value="points">{tr("Points / buts")}</option><option value="sets">{tr("Sets / manches gagnantes")}</option></select></label>
     {value.score === 'sets' && <label>{tr("Nombre de sets gagnants")}<input type="number" min={1} max={5} value={value.setsGagnants} onChange={e => changer('setsGagnants', Number(e.target.value))}/></label>}
     <details open={value.mode !== 'simple'} className="v2-regles-detail"><summary>{tr("R\u00E9glages du tirage, du classement et du planning")}</summary>

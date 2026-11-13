@@ -1,4 +1,5 @@
 "use client";
+import ReglesSport from '@/components/ReglesSport';
 import ChoixSport from '@/components/ChoixSport';
 import {libellesSports as LIBELLES_SPORT} from '@/lib/catalogue-sports';
 import AlbumTournoi from '@/components/AlbumTournoi';
@@ -775,7 +776,7 @@ export default function TournoiPage() {
         setEquipeAModifier(null);
     }
     const [operationTournoi, setOperationTournoi] = useState(false);
-    async function preparerInscriptions() {
+    async function preparerSupport(destination: 'inscriptions' | 'affiche' = 'inscriptions') {
         if (operationTournoi)
             return;
         if (!nomTournoi.trim()) {
@@ -798,7 +799,7 @@ export default function TournoiPage() {
                     throw error;
                 id = data.id;
             }
-            window.location.href = `/tournoi/${id}/inscriptions`;
+            window.location.href = `/tournoi/${id}/${destination}`;
         }
         catch (erreur) {
             alert(erreur instanceof Error ? erreur.message : "Impossible de préparer les inscriptions.");
@@ -1791,7 +1792,8 @@ ${lienPartage}`,
                     }} onSupprimer={() => setEquipes((actuelles) => actuelles.filter((item) => item.id !== equipe.id))}/>)))}
                 </div>
 
-                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={preparerInscriptions}>{tournoiId ? tr("Gérer les inscriptions et le pointage") : tr("Préparer les inscriptions par lien / QR")}</button>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('inscriptions')}>{tournoiId ? tr("Gérer les inscriptions et le pointage") : tr("Préparer les inscriptions par lien / QR")}</button>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
                 <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
                 <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
                 {tr(messageCloud) && <div style={styles.statusLine}>{tr(messageCloud)}</div>}
@@ -2180,6 +2182,7 @@ ${lienPartage}`,
             <details className="tourneo-tournament-more"><summary>{tr("G\u00E9rer le tournoi")}</summary><div>
             <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>{tr("Inscriptions / pointage")}</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>{tr("QR code")}</button>
+            <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/affiche`; }}>{tr('Créer une affiche')}</button>
             <button style={styles.secondaryButton} onClick={exporterPDF}>{tr("Imprimer / PDF")}</button>
             <button style={styles.secondaryButton} onClick={exporterClassement}>{tr("Classement CSV")}</button>
             <button style={styles.secondaryButton} onClick={sauvegarderFichier}>{tr("Sauvegarder les r\u00E9sultats")}</button>
@@ -2339,6 +2342,7 @@ ${lienPartage}`,
             </div>
           </section>)}
 
+        {onglet === "matchs" && <ReglesSport key={sport} sport={sport}/>}
         {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs} valides={matchsValides} titreTour={titreJournee} detailsTour={journee => optionsV2.exemptions.filter(e => e.ronde === journee).map(e => <p key={e.id} style={styles.muted}>{tr("Exempt : ")}{trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire}{tr(" pts)")}</p>)} renderMatch={(match, reperes) => {
                 const equipe1 = trouverEquipe(match.equipe1Id);
                 const equipe2 = trouverEquipe(match.equipe2Id);
@@ -2429,7 +2433,8 @@ ${lienPartage}`,
                           </div>);
                     })}
                     </div>
-                    <button style={{ ...styles.primaryButton, marginTop: 16 }} onClick={() => setSouvenirOuvert(true)}>{tr("Cr\u00E9er l\u2019affiche souvenir")}</button>
+                    <button style={{ ...styles.primaryButton, marginTop: 16 }} onClick={() => { window.location.href = `/tournoi/${tournoiId}/affiche`; }}>{tr('Créer l’affiche des résultats')}</button>
+                    <button style={{ ...styles.secondaryButton, marginTop: 16 }} onClick={() => setSouvenirOuvert(true)}>{tr("Cr\u00E9er l\u2019affiche souvenir")}</button>
                   </section>)}
 
                 <section style={styles.card}>

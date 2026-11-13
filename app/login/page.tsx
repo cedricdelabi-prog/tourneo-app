@@ -15,6 +15,7 @@ export default function LoginPage() {
     const [nom, setNom] = useState("");
     const [pseudo, setPseudo] = useState("");
     const [ville, setVille] = useState("");
+    const [structure,setStructure]=useState('');
     const [message, setMessage] = useState("");
     const [chargement, setChargement] = useState(false);
     const [googleDisponible, setGoogleDisponible] = useState(false);
@@ -98,7 +99,7 @@ export default function LoginPage() {
             if (mode === "inscription") {
                 const { data, error } = await supabase.auth.signUp({ email: email.trim(), password,
                     options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: {
-                            first_name: prenom.trim(), last_name: nom.trim(), display_name: pseudo.trim() || `${prenom.trim()} ${nom.trim()}`, city: ville.trim(),
+                            first_name: prenom.trim(), last_name: nom.trim(), display_name: pseudo.trim() || `${prenom.trim()} ${nom.trim()}`, city: ville.trim(),structure:structure.trim()||undefined,
                         } },
                 });
                 if (error)
@@ -198,13 +199,14 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <label style={s.label}>{tr("Pseudo Tourneo ")}<span style={s.optional}>{tr("facultatif")}</span>
+            <details className="tourneo-optional-panel"><summary>{tr('Informations facultatives')}</summary>            <label style={s.label}>{tr("Pseudo Tourneo ")}<span style={s.optional}>{tr("facultatif")}</span>
             </label>
             <input style={s.input} value={pseudo} onChange={(e) => setPseudo(e.target.value)} placeholder={tr("Ex. Cedric62")}/>
 
             <label style={s.label}>{tr("Ville ")}<span style={s.optional}>{tr("facultatif")}</span>
             </label>
             <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} autoComplete="address-level2" placeholder={tr("Ex. Calais")}/>
+            <label style={s.label}>{tr('Nom de la structure')}<input style={s.input} value={structure} maxLength={150} onChange={e=>setStructure(e.target.value)} autoComplete="organization"/></label><p style={s.optional}>{tr('Ces champs sont facultatifs. Tourneo V2 reste gratuit, y compris le mode Expert.')}</p></details>
           </>)}
 
         <label htmlFor="auth-email" style={s.label}>E-mail</label>

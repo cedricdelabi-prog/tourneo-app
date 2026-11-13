@@ -1,6 +1,6 @@
 export type OptionsV2 = {
   tirage: 'aleatoire' | 'equilibre' | 'manuel';
-  mode: 'simple' | 'expert' | 'camping';
+  mode: 'simple' | 'expert';
   score: 'points' | 'sets';
   setsGagnants: number;
   cibleManche:number;
@@ -23,7 +23,7 @@ export function normaliserOptionsV2(value: Partial<OptionsV2> | undefined): Opti
   const entier = (v: unknown, min:number,max:number,defaut:number) => typeof v==='number' && Number.isInteger(v)&&v>=min&&v<=max ? v : defaut;
   return {...OPTIONS_V2,
     tirage:source.tirage==='equilibre'||source.tirage==='manuel'?source.tirage:'aleatoire',
-    mode: ['simple','expert','camping'].includes(String(source.mode)) ? source.mode! : 'simple',
+    mode: source.mode === 'expert' ? 'expert' : 'simple',
     score: source.score === 'sets' ? 'sets' : 'points',
     cibleManche:entier(source.cibleManche,0,1000,0),ecartManche:entier(source.ecartManche,1,10,1),plafondManche:entier(source.plafondManche,0,1000,0),cibleDecisive:entier(source.cibleDecisive,0,1000,0),
     setsGagnants:entier(source.setsGagnants,1,5,2), pointsVictoire:entier(source.pointsVictoire,0,100,3),pointsNul:entier(source.pointsNul,0,100,1),pointsDefaite:entier(source.pointsDefaite,0,100,0),
