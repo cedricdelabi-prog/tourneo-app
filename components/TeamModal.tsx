@@ -1,6 +1,7 @@
 "use client";
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useRef, useState } from "react";
+import {capitaineEquipe} from '@/lib/equipe-capitaine';
 import type { Equipe } from "@/types";
 const EMOJIS = ["⚽", "🏀", "🎾", "🏐", "🏓", "🎯", "⭐", "⚡", "👑", "🔥"];
 const COULEURS = ["#3B82F6", "#22D3EE", "#7C5CFF", "#16A34A", "#E11D48", "#F59E0B", "#14B8A6", "#F97316"];
@@ -53,6 +54,7 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
     const [poule, setPoule] = useState(0);
     const [joueurs, setJoueurs] = useState("");
     const [nom, setNom] = useState("");
+    const [capitaine,setCapitaine]=useState(''),[erreurEquipe,setErreurEquipe]=useState('');
     const [emoji, setEmoji] = useState("⚽");
     const [couleur, setCouleur] = useState("#3B82F6");
     const [photo, setPhoto] = useState("");
@@ -64,6 +66,7 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
         if (!ouvert)
             return;
         setNom(equipeAModifier?.nom ?? "");
+        setCapitaine(equipeAModifier?.capitaine||'');setErreurEquipe('');
         setNiveau(equipeAModifier?.niveau ?? 1);
         setPosition(equipeAModifier?.position ?? 1);
         setPoule(equipeAModifier?.poule ?? 0);
@@ -114,9 +117,12 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
             inputNom.current?.focus();
             return;
         }
+        const membres=joueurs.split("\n").map(j=>j.trim()).filter(Boolean).slice(0,12);
+        let chef:string|undefined;try{chef=capitaineEquipe(capitaine,membres);}catch(e){setErreurEquipe(e instanceof Error?e.message:'Capitaine invalide.');return;}
         onAjouter({
             id: equipeAModifier?.id ?? crypto.randomUUID(),
             nom: propre,
+            capitaine:chef,
             emoji,
             couleur,
             photo: photo || undefined,
@@ -137,9 +143,11 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
         <label style={s.label}>{tr("Nom")}</label>
         <input ref={inputNom} style={s.input} maxLength={100} value={nom} onChange={(e) => setNom(e.target.value)} placeholder={tr("Ex. Les Lions ou Cédric")} onKeyDown={(e) => e.key === "Enter" && enregistrer()}/>
 
-        <div style={s.two}><label style={s.label}>{tr("Niveau (1 d\u00E9butant, 5 confirm\u00E9)")}<input style={s.input} type="number" min={1} max={5} disabled={enCours} value={niveau} onChange={e => setNiveau(Math.max(1, Math.min(5, Number(e.target.value))))}/></label><label style={s.label}>{tr("Position dans le tirage manuel")}<input style={s.input} type="number" min={1} max={256} disabled={enCours} value={position} onChange={e => setPosition(Math.max(1, Math.min(256, Number(e.target.value))))}/></label><label style={s.label}>{tr("Poule manuelle (0 = automatique)")}<input style={s.input} type="number" min={0} max={128} disabled={enCours} value={poule} onChange={e => setPoule(Math.max(0, Math.min(128, Number(e.target.value))))}/></label></div>
+        <details className="tourneo-optional-panel"><summary>{tr("Niveau et placement avancés")}</summary>        <div style={s.two}><label style={s.label}>{tr("Niveau (1 d\u00E9butant, 5 confirm\u00E9)")}<input style={s.input} type="number" min={1} max={5} disabled={enCours} value={niveau} onChange={e => setNiveau(Math.max(1, Math.min(5, Number(e.target.value))))}/></label><label style={s.label}>{tr("Position dans le tirage manuel")}<input style={s.input} type="number" min={1} max={256} disabled={enCours} value={position} onChange={e => setPosition(Math.max(1, Math.min(256, Number(e.target.value))))}/></label><label style={s.label}>{tr("Poule manuelle (0 = automatique)")}<input style={s.input} type="number" min={0} max={128} disabled={enCours} value={poule} onChange={e => setPoule(Math.max(0, Math.min(128, Number(e.target.value))))}/></label></div>
+</details>
         <label style={s.label}>{tr("Joueurs de l\u2019\u00E9quipe (pseudos, un par ligne)")}<textarea style={s.input} rows={3} maxLength={1212} value={joueurs} onChange={e => setJoueurs(e.target.value)}/></label>
-        <div style={s.two}>
+        <label style={s.label}>{tr('Capitaine d’équipe (facultatif)')}<input style={s.input} list="tourneo-capitaines" value={capitaine} maxLength={100} onChange={e=>{setCapitaine(e.target.value);setErreurEquipe('');}} placeholder={tr('Nom ou pseudo du capitaine')}/></label><datalist id="tourneo-capitaines">{joueurs.split('\n').map(j=>j.trim()).filter(Boolean).slice(0,12).map((j,i)=><option key={i} value={j}/>)}</datalist>{erreurEquipe&&<p role="alert">{tr(erreurEquipe)}</p>}
+        <details className="tourneo-optional-panel"><summary>{tr("Photo et apparence de l’équipe")}</summary>        <div style={s.two}>
           <div>
             <label style={s.label}>{tr("Photo")}</label>
             <input ref={inputPhoto} hidden type="file" accept="image/*" onChange={(e) => void lirePhoto(e.target.files?.[0])}/>
@@ -167,6 +175,7 @@ export default function TeamModal({ ouvert, equipeAModifier, onFermer, onAjouter
             </div>
           </>)}
 
+</details>
         <button type="button" style={{ ...s.primary, opacity: traitementPhoto ? 0.6 : 1 }} disabled={traitementPhoto} onClick={enregistrer}>
           {traitementPhoto ? tr("Préparation de la photo…") : equipeAModifier ? tr("Enregistrer les modifications") : tr("Ajouter le participant")}
         </button>

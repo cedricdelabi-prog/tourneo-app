@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import TourneoRetour from "@/components/TourneoRetour";
 import TourneoBrand from "@/components/TourneoBrand";
+import SelecteurLangue from '@/components/SelecteurLangue';
 import SelecteurEspace from '@/components/SelecteurEspace';
 import {liensEspace, type Espace} from '@/lib/espace';
 const sections = [
@@ -51,7 +52,7 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
     <header className="tourneo-top-nav">
       <div className="tourneo-nav-heading">
         <Link href={accueil[0]} className="tourneo-brand-link" aria-label={tr("Tourneo — mes tournois")}><TourneoBrand compact/></Link>
-        <div className="tourneo-nav-utilities"><SelecteurEspace onEspace={setEspace}/>
+        <div className="tourneo-nav-utilities"><SelecteurLangue/><SelecteurEspace onEspace={setEspace}/>
           <Link href="/aide" aria-current={selected("/aide") ? "page" : undefined}>{tr("Aide")}</Link>
           <Link href="/contact" aria-current={selected("/contact") ? "page" : undefined}>{tr("Contact")}</Link>
           {onLogout && <button type="button" onClick={() => void onLogout()}>{tr("D\u00E9connexion")}</button>}

@@ -11,7 +11,7 @@ type Preferences = {
     animations_reduites: boolean;
 };
 export default function PreferencesCompte() {
-    useLangue();
+    const langueCourante=useLangue();
     const [user, setUser] = useState("");
     const [prefs, setPrefs] = useState<Preferences>({ langue: "fr", notifications_sportives: true, communications_tourneo: false, texte_agrandi: false, animations_reduites: false });
     const [message, setMessage] = useState("");
@@ -36,6 +36,7 @@ export default function PreferencesCompte() {
         })();
         return () => { actif = false; };
     }, []);
+    useEffect(()=>setPrefs(p=>({...p,langue:langueCourante})),[langueCourante]);
     async function enregistrer() {
         setOccupe(true);
         setMessage("");

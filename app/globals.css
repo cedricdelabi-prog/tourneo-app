@@ -290,3 +290,40 @@ body {
 .tourneo-score-fields label{display:flex;flex-direction:column;justify-content:space-between;gap:10px}
 .tourneo-score-fields input{height:60px;flex:0 0 60px}
 .tourneo-referee-links a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;box-sizing:border-box;border:1px solid #49617f;border-radius:12px;color:#e5f0ff;background:#16304b;text-decoration:none}
+
+/* Compact language switch, searchable disciplines and optional setup sections. */
+.tourneo-language{position:relative;flex:none}
+.tourneo-top-nav .tourneo-language-trigger{display:flex;align-items:center;gap:5px;min-width:54px;min-height:42px;padding:6px 9px;border:1px solid #49617f;border-radius:11px;background:#102039;color:#fff;font-size:22px}
+.tourneo-language-code{font-size:10px;font-weight:700}
+.tourneo-language-list{position:absolute;right:0;top:calc(100% + 8px);z-index:120;min-width:165px;padding:7px;border:1px solid #49617f;border-radius:14px;background:#0d1c31;box-shadow:0 16px 35px #0008}
+.tourneo-top-nav .tourneo-language-list button{display:block;width:100%;text-align:left;padding:11px;border:0;border-radius:8px;color:#eaf4ff;background:transparent;white-space:nowrap}
+.tourneo-top-nav .tourneo-language-list button[aria-pressed=true]{background:#274b77}
+.tourneo-language-message{position:absolute;right:0;top:100%;z-index:125;min-width:220px;padding:12px;border:1px solid #49617f;border-radius:12px;background:#13243e;color:#eaf4ff;font-size:12px}
+.tourneo-sport-picker{min-width:0;margin:14px 0}
+.tourneo-sport-picker>label{display:block;margin:0 0 8px;font-weight:700;color:#b7c9df}
+.tourneo-sport-selection{margin:8px 0 12px;line-height:1.5}
+.tourneo-sport-picker>input{width:100%;box-sizing:border-box;min-height:48px;padding:12px 14px;border:1px solid #49617f;border-radius:12px;background:#0a162a;color:#f0f5ff;font:inherit}
+.tourneo-sport-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:290px;overflow:auto;list-style:none;padding:4px 2px;margin:10px 0}
+.tourneo-sport-results li{min-width:0}
+.tourneo-sport-results button{display:flex;flex-direction:column;gap:4px;width:100%;min-height:60px;box-sizing:border-box;text-align:left;padding:9px 11px;border:1px solid #334c6b;border-radius:11px;background:#102039;color:#eaf4ff;font:inherit;cursor:pointer}
+.tourneo-sport-results button[aria-pressed=true]{border-color:#66daf5;background:#1d3b56}
+.tourneo-sport-results small{font-size:11px;color:#a7bfd9}
+.tourneo-sport-all{margin:4px 0 10px;min-height:40px;padding:8px 12px;border:1px solid #49617f;border-radius:10px;background:#16304b;color:#dff5ff;cursor:pointer}
+.tourneo-sport-rules,.tourneo-optional-panel{margin:14px 0;padding:13px 16px;border:1px solid #354b68;border-radius:14px;background:#0b192b}
+.tourneo-sport-rules>summary,.tourneo-optional-panel>summary{cursor:pointer;min-height:30px;align-content:center;font-weight:650;color:#d7e7fa}
+.tourneo-sport-rules li{margin:10px 0;line-height:1.65}
+.tourneo-sport-rules a{display:inline-block;margin:6px 16px 6px 0;color:#70d7f6}
+.tourneo-optional-panel>form{margin-top:16px}
+.tourneo-optional-panel .tourneo-player-profile-box{margin:0!important;border:0!important;background:transparent!important;padding:14px 0 0!important}
+.tourneo-captain{display:flex;gap:5px;align-items:center;font-size:13px;color:#7ee1ec;margin:6px 0}
+.tourneo-tennis-board{display:grid;gap:4px;padding:12px;border:1px solid #3e627b;border-radius:16px;background:#08182a}
+.tourneo-tennis-player,.tourneo-tennis-labels{display:grid;grid-template-columns:minmax(0,1fr) 42px 42px 62px;gap:8px;align-items:center;min-height:58px}
+.tourneo-tennis-labels{font-size:11px;color:#a4bad6;min-height:30px}
+.tourneo-tennis-player>strong{overflow-wrap:anywhere;font-size:15px}
+.tourneo-tennis-player>span{font-size:22px;text-align:center;font-variant-numeric:tabular-nums}
+.tourneo-tennis-player>output{font-size:30px;font-weight:800;text-align:center;color:#78e4e5;font-variant-numeric:tabular-nums}
+@media(max-width:480px){.tourneo-sport-results{grid-template-columns:1fr}.tourneo-tennis-player,.tourneo-tennis-labels{grid-template-columns:minmax(0,1fr) 30px 30px 44px;gap:5px}.tourneo-tennis-board{padding:8px}.tourneo-tennis-player>output{font-size:24px}.tourneo-top-nav .tourneo-language-trigger{min-width:45px;font-size:20px}.tourneo-optional-panel{padding:11px 12px}}
+.tourneo-visitor-language{position:fixed;top:12px;right:16px;z-index:120}
+.tourneo-visitor-language .tourneo-language-trigger{min-width:52px;min-height:42px;padding:6px 10px;border:1px solid #49617f;border-radius:11px;background:#102039;color:#fff;font-size:22px}
+.tourneo-visitor-language .tourneo-language-list button{display:block;width:100%;text-align:left;padding:12px;border:0;border-radius:8px;background:#102039;color:#eaf4ff}
+@media(max-width:650px){.tourneo-visitor-language{top:8px;right:8px}.tourneo-visitor-language .tourneo-language-trigger{min-width:44px;min-height:38px;font-size:20px}}

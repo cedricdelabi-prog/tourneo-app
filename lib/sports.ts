@@ -1,6 +1,7 @@
 import type { OptionsV2 } from '@/lib/options-v2';
 export function reglesPourSport(sport:string):Partial<OptionsV2>{
  const commun={score:'points' as const,cibleManche:0,ecartManche:1,plafondManche:0,cibleDecisive:0};
+ if(sport==='badminton15')return{...commun,score:'sets',setsGagnants:2,cibleManche:15,ecartManche:2,plafondManche:21};
  if(sport==='badminton')return{...commun,score:'sets',setsGagnants:2,cibleManche:21,ecartManche:2,plafondManche:30};
  if(sport==='ping-pong')return{...commun,score:'sets',setsGagnants:3,cibleManche:11,ecartManche:2};
  if(sport==='volley')return{...commun,score:'sets',setsGagnants:3,cibleManche:25,ecartManche:2,cibleDecisive:15};

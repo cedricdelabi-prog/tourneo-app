@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import ChampMotDePasse from "@/components/ChampMotDePasse";
+import SelecteurLangue from '@/components/SelecteurLangue';
 import TourneoBrand from "@/components/TourneoBrand";
 export default function LoginPage() {
     useLangue();
@@ -149,7 +150,7 @@ export default function LoginPage() {
             terminer();
         }
     }
-    return (<main style={s.page}>
+    return (<main style={s.page}><div className="tourneo-visitor-language"><SelecteurLangue/></div>
       <div style={s.glow1}/>
       <div style={s.glow2}/>
 

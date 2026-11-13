@@ -11,6 +11,7 @@ import { scoreValide } from "@/lib/formats-avances";
 import { passagesJoueur, notifierPassage } from "@/lib/suivi-matchs";
 import { heureCreneau, planifierMatchs } from "@/lib/planning";
 import type { Equipe as EquipeMoteur, Match as MatchMoteur } from "@/types";
+import SelecteurLangue from '@/components/SelecteurLangue';
 import TourneoBrand from "@/components/TourneoBrand";
 type Equipe = {
     id?: string;
@@ -258,7 +259,7 @@ export default function PartagePage() {
     const matchsTries = useMemo(() => [...matchs].sort((a, b) => (a.journee ?? Number.MAX_SAFE_INTEGER) -
         (b.journee ?? Number.MAX_SAFE_INTEGER)), [matchs]);
     if (erreur && !tournoi) {
-        return (<main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
+        return (<main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}><div className="tourneo-visitor-language"><SelecteurLangue/></div>
         <div style={s.shell}>
           <TourneoBrand />
           <section style={s.errorCard}>
@@ -270,14 +271,14 @@ export default function PartagePage() {
       </main>);
     }
     if (chargement || !tournoi) {
-        return (<main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
+        return (<main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}><div className="tourneo-visitor-language"><SelecteurLangue/></div>
         <div style={s.shell}>
           <TourneoBrand />
           <p style={s.muted}>{tr("Chargement du tournoi\u2026")}</p>
         </div>
       </main>);
     }
-    return (<main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}>
+    return (<main className={ecranGeant ? "tourneo-ecran-geant" : undefined} style={s.page}><div className="tourneo-visitor-language"><SelecteurLangue/></div>
       <div style={s.shell}>
         <header style={s.header}>
           <TourneoBrand compact/>

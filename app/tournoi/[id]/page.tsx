@@ -1,4 +1,6 @@
 "use client";
+import ChoixSport from '@/components/ChoixSport';
+import {libellesSports as LIBELLES_SPORT} from '@/lib/catalogue-sports';
 import AlbumTournoi from '@/components/AlbumTournoi';
 import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
@@ -66,36 +68,6 @@ const EXPLICATIONS_FORMAT: Record<FormatTournoi, string> = {
     poules: "Les participants sont répartis en groupes avec un classement par poule.",
     elimination: "Une défaite élimine. Les vainqueurs avancent jusqu’à la finale.",
     poulesFinale: "Phase de poules puis qualification automatique vers une phase finale.",
-};
-const LIBELLES_SPORT: Record<string, string> = {
-    multisport: "Multisport",
-    football: "Football",
-    futsal: "Futsal",
-    basket: "Basket-ball",
-    handball: "Handball",
-    volley: "Volley-ball",
-    rugby7: "Rugby à 7 / Touch rugby",
-    hockey: "Hockey",
-    tennis: "Tennis",
-    padel: "Padel",
-    badminton: "Badminton",
-    squash: "Squash",
-    "ping-pong": "Tennis de table",
-    petanque: "Pétanque",
-    flechettes: "Fléchettes",
-    bowling: "Bowling",
-    billard: "Billard",
-    babyfoot: "Baby-foot",
-    cornhole: "Cornhole",
-    palets: "Palets",
-    molkky: "Mölkky",
-    spikeball: "Roundnet / Spikeball",
-    esport: "E-sport",
-    echecs: "Échecs",
-    dames: "Jeu de dames",
-    cartes: "Jeux de cartes",
-    jeuxsociete: "Jeux de société compétitifs",
-    autre: "Autre sport / jeu",
 };
 function capitaliserNom(valeur: string) {
     return valeur.replace(/(^|\s|[-’'])\p{L}/gu, (lettre) => lettre.toUpperCase());
@@ -1723,10 +1695,7 @@ ${lienPartage}`,
 
                 <div style={styles.twoColumns}>
                   <div>
-                    <label style={styles.label}>{tr("Sport")}</label>
-                    <select disabled={cree && !modificationParticipantsAutorisee} style={styles.input} value={sport} onChange={(event) => changerSport(event.target.value)}>
-                      {Object.entries(LIBELLES_SPORT).map(([value, label]) => (<option value={value} key={value}>{tr(label)}</option>))}
-                    </select>
+                    <ChoixSport value={sport} onChange={changerSport} disabled={cree && !modificationParticipantsAutorisee}/>
                   </div>
 
                   <div>
@@ -1779,6 +1748,7 @@ ${lienPartage}`,
                     setModalOuvert(true);
                 }}>{tr("+ Ajouter un joueur sans profil")}</button>
 
+                <details className="tourneo-optional-panel"><summary>{tr("Importer une liste de participants")}</summary>
                 <label style={{ ...styles.secondaryButton, display: "block", cursor: "pointer" }}>{tr("Importer des participants (Excel / CSV / texte)")}<input type="file" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" disabled={importEnCours} onChange={importerParticipants} style={{ display: "block", marginTop: 8 }}/>
                   <small>{tr("Excel .xlsx : premi\u00E8re feuille, colonne Nom ou premi\u00E8re colonne. CSV/texte : un nom par ligne. 500 Ko et 256 participants maximum. Doublons ignor\u00E9s.")}</small>
                 </label>
@@ -1790,6 +1760,7 @@ ${lienPartage}`,
                   <button type="button" style={styles.secondaryButton} onClick={() => { setNomsImportes([]); setMessageImport("Import annulé."); }}>{tr("Annuler l\u2019import")}</button>
                 </div>}
 
+</details>
                 <div style={styles.selfAddLine}>
                   <span style={styles.selfAddHint}>{tr("Votre propre profil ?")}</span>
                   <button className="tourneo-add-self" style={styles.selfAddButton} disabled={ajoutMoiEnCours} onClick={ajouterMonProfil}>
@@ -1797,9 +1768,9 @@ ${lienPartage}`,
                   </button>
                 </div>
 
-                <div className="tourneo-player-profile-box" style={styles.playerCodeBox}>
+                <details className="tourneo-optional-panel"><summary>{tr("Ajouter un joueur avec son profil Tourneo")}</summary><div className="tourneo-player-profile-box" style={styles.playerCodeBox}>
                   <div style={{ display: "grid", gap: 5 }}>
-                    <strong>{tr("Ajouter un joueur avec son profil Tourneo")}</strong>
+                    
                     <span style={styles.muted}>{tr("Saisissez son code joueur ou scannez directement le QR affich\u00E9 sur son profil.")}</span>
                   </div>
 
@@ -1811,7 +1782,7 @@ ${lienPartage}`,
                   <button className="tourneo-scan-player" style={styles.scanButton} onClick={ouvrirScanner}>{tr("\u2317 Scanner le QR du joueur")}</button>
 
                   {tr(messageCodeJoueur) && <span style={styles.statusLine}>{tr(messageCodeJoueur)}</span>}
-                </div>
+                </div></details>
 
                 <div style={styles.teamList}>
                   {equipes.length === 0 ? (<div style={styles.emptyState}>{tr("Ajoutez au moins deux participants pour commencer.")}</div>) : (equipes.map((equipe) => (<TeamCard key={equipe.id} equipe={equipe} onModifier={() => {
@@ -2273,10 +2244,7 @@ ${lienPartage}`,
               </div>
 
               <div>
-                <label style={styles.label}>{tr("Sport")}</label>
-                <select disabled={cree && !modificationParticipantsAutorisee} style={styles.input} value={sport} onChange={(event) => changerSport(event.target.value)}>
-                  {Object.entries(LIBELLES_SPORT).map(([value, label]) => (<option value={value} key={value}>{tr(label)}</option>))}
-                </select>
+                <ChoixSport value={sport} onChange={changerSport} disabled={cree && !modificationParticipantsAutorisee}/>
               </div>
             </div>
 
@@ -2311,8 +2279,8 @@ ${lienPartage}`,
             }}>{tr("Ajouter")}</button>
             </div>
 
-            <div style={styles.playerCodeBox}>
-              <strong>{tr("Ajouter un joueur avec son profil Tourneo")}</strong>
+            <details className="tourneo-optional-panel"><summary>{tr("Ajouter un joueur avec son profil Tourneo")}</summary><div className="tourneo-player-profile-box" style={styles.playerCodeBox}>
+              
               <span style={styles.muted}>{tr("Par code joueur ou en scannant son QR personnel.")}</span>
               <div style={styles.playerCodeActions}>
                 <input style={{ ...styles.input, margin: 0 }} value={codeJoueur} onChange={(event) => setCodeJoueur(event.target.value)} placeholder={tr("Code joueur")}/>
@@ -2320,7 +2288,7 @@ ${lienPartage}`,
               </div>
               <button style={styles.scanButton} onClick={ouvrirScanner}>{tr("\u2317 Scanner le QR du joueur")}</button>
               {tr(messageCodeJoueur) && <span style={styles.statusLine}>{tr(messageCodeJoueur)}</span>}
-            </div>
+            </div></details>
 
             </fieldset>
             <div style={styles.teamList}>
@@ -2507,7 +2475,7 @@ ${lienPartage}`,
               </>)}
           </>)}
 
-        {onglet === "arbitrage" && <ArbitresTournoi id={tournoiId} equipes={equipes} matchs={matchs} valides={matchsValides} onImporter={(id, score1, score2) => { setMatchs(actuels => actuels.map(m => m.id === id && !matchsValides.includes(id) ? { ...m, score1, score2 } : m)); setOnglet("matchs"); setTimeout(() => document.getElementById(`match-${id}`)?.scrollIntoView({behavior:"smooth",block:"center"}),100); }}/>}
+        {onglet === "arbitrage" && <ArbitresTournoi id={tournoiId} equipes={equipes} matchs={matchs} valides={matchsValides} onImporter={(id, score1, score2, manches) => { setMatchs(actuels => actuels.map(m => m.id === id && !matchsValides.includes(id) ? { ...m, score1, score2, manches } : m)); setOnglet("matchs"); setTimeout(() => document.getElementById(`match-${id}`)?.scrollIntoView({behavior:"smooth",block:"center"}),100); }}/>}
 
         {onglet === "photos" && <AlbumTournoi id={tournoiId} userId={userId || ""}/>}
 

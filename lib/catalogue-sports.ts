@@ -1,0 +1,18 @@
+// A sport label does not imply that every federation's scoring variant is automated.
+export type SportCatalogue={code:string;nom:string;categorie:string;aliases:string};
+const groupes:[string,[string,string,string?][]][]=[
+ ['Sports collectifs', [['football','Football','soccer foot'],['futsal','Futsal','foot salle'],['foot5','Football à 5','five'],['basket','Basket-ball','basketball basketball'],['basket3x3','Basket 3 × 3','3x3 streetball'],['handball','Handball'],['volley','Volley-ball','volleyball'],['beachvolley','Beach-volley','beach volleyball plage'],['rugby7','Rugby à 7 / Touch rugby','rugby sevens'],['rugby15','Rugby à XV','rugby quinze'],['hockey','Hockey'],['hockeysalle','Hockey en salle','indoor hockey'],['ultimate','Ultimate frisbee','disque'],['waterpolo','Water-polo'],['baseball','Baseball'],['softball','Softball']]],
+ ['Sports de raquette', [['tennis','Tennis'],['padel','Padel'],['badminton','Badminton'],['badminton15','Badminton (15 points)','badminton france ffbad'],['squash','Squash'],['ping-pong','Tennis de table','ping pong tafeltennis table tennis'],['pickleball','Pickleball'],['beachtennis','Beach tennis','tennis plage'],['speedbadminton','Crossminton','speedminton']]],
+ ['Adresse et plein air', [['petanque','Pétanque','boules petanque'],['flechettes','Fléchettes','darts flechette cible'],['flechettes-electroniques','Fléchettes électroniques','soft tip darts'],['bowling','Bowling'],['billard','Billard','billiards pool'],['babyfoot','Baby-foot','foosball tafelvoetbal'],['cornhole','Cornhole'],['palets','Palets'],['palets-bretons','Palets bretons'],['molkky','Mölkky','molkky quilles finlandaises'],['kubb','Kubb','echecs vikings'],['spikeball','Roundnet / Spikeball'],['airhockey','Air hockey'],['carrom','Carrom'],['quilles','Jeux de quilles','skittles']]],
+ ['Jeux de réflexion', [['echecs','Échecs','chess schaken'],['dames','Jeu de dames','draughts checkers dammen'],['puissance4','Puissance 4','connect four vier op een rij'],['backgammon','Backgammon'],['dominos','Dominos'],['scrabble','Scrabble'],['mahjong','Mah-jong','mahjong']]],
+ ['Cartes et jeux de société', [['cartes','Jeux de cartes','cards kaarten'],['belote','Belote'],['tarot','Tarot'],['uno','UNO'],['jeuxsociete','Jeux de société compétitifs','board games bordspellen']]],
+ ['Jeux vidéo', [['esport','E-sport','gaming jeux video'],['efootball','Football sur console','fifa ea fc pes'],['ebasket','Basket sur console','nba 2k']]],
+ ['Autres activités', [['multisport','Multisport','olympiade multi sport'],['autre','Autre sport / jeu','other anders']]],
+];
+export const CATALOGUE_SPORTS:SportCatalogue[]=groupes.flatMap(([categorie,sports])=>sports.map(([code,nom,aliases=''])=>({code,nom,categorie,aliases})));
+export const libellesSports:Record<string,string>=Object.fromEntries(CATALOGUE_SPORTS.map(s=>[s.code,s.nom]));
+export const normaliserRechercheSport=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+export function chercherSports(recherche:string,traduire:(s:string)=>string=s=>s):SportCatalogue[]{
+ const mots=normaliserRechercheSport(recherche).split(/\s+/).filter(Boolean);
+ return CATALOGUE_SPORTS.filter(s=>mots.every(m=>normaliserRechercheSport([s.nom,traduire(s.nom),s.code,s.aliases,s.categorie,traduire(s.categorie)].join(' ')).includes(m))).sort((a,b)=>{const q=normaliserRechercheSport(recherche),debutA=normaliserRechercheSport(traduire(a.nom)).startsWith(q)?0:1,debutB=normaliserRechercheSport(traduire(b.nom)).startsWith(q)?0:1;return debutA-debutB||traduire(a.nom).localeCompare(traduire(b.nom));});
+}

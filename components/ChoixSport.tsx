@@ -1,0 +1,9 @@
+"use client";
+import {useId,useState}from'react';
+import {CATALOGUE_SPORTS,chercherSports,libellesSports}from'@/lib/catalogue-sports';
+import ReglesSport from'@/components/ReglesSport';
+import {tr,useLangue,trModele}from'@/lib/langue';
+const favoris=['petanque','football','tennis','flechettes','badminton','ping-pong','volley','molkky'];
+export default function ChoixSport({value,onChange,disabled=false}:{value:string;onChange:(s:string)=>void;disabled?:boolean}){useLangue();const ident=useId(),[recherche,setRecherche]=useState(''),[tous,setTous]=useState(false);const resultats=recherche.trim()||tous?chercherSports(recherche,tr):favoris.map(code=>CATALOGUE_SPORTS.find(s=>s.code===code)!);
+ return <section className="tourneo-sport-picker"><label htmlFor={ident}>{tr('Sport ou activité')}</label><p className="tourneo-sport-selection">{tr('Sélectionné')} : <strong>{tr(libellesSports[value]||value)}</strong></p>{!disabled&&<><input id={ident} type="search" autoComplete="off" value={recherche} placeholder={tr('Rechercher un sport : tennis, fléchettes…')} onChange={e=>setRecherche(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')setRecherche('');}}/><ul className="tourneo-sport-results" aria-label={tr('Sports disponibles')}>{resultats.map(s=><li key={s.code}><button type="button" aria-pressed={value===s.code} onClick={()=>{if(s.code!==value)onChange(s.code);setRecherche('');setTous(false);}}><span>{tr(s.nom)}</span><small>{tr(s.categorie)}</small></button></li>)}</ul>{!resultats.length&&<p>{tr('Aucun sport trouvé. Essayez un autre nom ou choisissez Autre sport / jeu.')}</p>}<button type="button" className="tourneo-sport-all" onClick={()=>{setRecherche('');setTous(v=>!v);}}>{tous?tr('Afficher les sports courants'):trModele('Voir les {0} sports et activités',CATALOGUE_SPORTS.length)}</button></>}<ReglesSport sport={value}/></section>;
+}

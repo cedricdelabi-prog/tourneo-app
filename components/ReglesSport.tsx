@@ -1,0 +1,5 @@
+"use client";
+import {REGLES_SPORTS}from'@/lib/regles-sports';
+import {libelleSport}from'@/lib/libelles-sports';
+import {tr,useLangue}from'@/lib/langue';
+export default function ReglesSport({sport}:{sport:string}){useLangue();const fiche=REGLES_SPORTS[sport];return <details className="tourneo-sport-rules" key={sport}><summary>{tr('Règles et installation')} · {tr(libelleSport(sport))}</summary>{fiche?<><h4>{tr(fiche.titre)}</h4><ul>{fiche.reperes.map(p=><li key={p}>{tr(p)}</li>)}</ul>{fiche.sources.map(s=><a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">{tr(s.nom)} ↗</a>)}</>:<p>{tr('Définissez avec les participants le nombre de joueurs, le terrain, la durée, le barème et le départage. Une fiche officielle détaillée n’est pas encore disponible pour cette discipline dans Tourneo.')}</p>}<p className="tourneo-tool-note">{tr('Ces repères aident à préparer l’animation. Le règlement annoncé par l’organisateur et les règles de sa fédération restent la référence.')}</p></details>;}

@@ -21,6 +21,7 @@ export default function TeamCard({ equipe, onModifier, onSupprimer, suppressionA
 
         {equipe.joueurs && equipe.joueurs.length > 0 && (<div style={{ color: "#cbd5e1", fontSize: 13, marginTop: 4 }}>
             {equipe.joueurs.length}{tr(" joueur(s)")}</div>)}
+        {equipe.capitaine&&<p className="tourneo-captain"><span aria-hidden="true">Ⓒ</span> {tr('Capitaine')} : {equipe.capitaine}</p>}
         {!!equipe.historique?.length && <details><summary>{tr("Historique de l\u2019\u00E9quipe")}</summary>{equipe.historique.map((h, i) => <p key={i}>{new Date(h.date).toLocaleString(localeFormat())} · {h.nom}{h.joueurs.length ? trModele(" \u00B7 {0}", h.joueurs.join(', ')) : ''}</p>)}</details>}
       </div>
 
