@@ -1,4 +1,5 @@
 "use client";
+import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent } from "react";
@@ -1204,7 +1205,7 @@ export default function TournoiPage() {
         }
     }
     async function seDeconnecter() {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await deconnecterTourneo();
         if (error) {
             alert("Impossible de se déconnecter pour le moment.");
             return;

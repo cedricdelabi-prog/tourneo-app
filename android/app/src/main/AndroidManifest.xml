@@ -22,7 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Ouvre les liens https://tourneo-v2-test.vercel.app/... directement dans Tourneo. -->
+            <!-- Ouvre les liens https://tourneo-v2-test-tourneo.vercel.app/... directement dans Tourneo. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

@@ -1,0 +1,33 @@
+begin;
+insert into auth.users(id,aud,role,email,email_confirmed_at)values('61000000-0000-4000-8000-000000000001','authenticated','authenticated','qa@example.invalid',now()),('61000000-0000-4000-8000-000000000002','authenticated','authenticated','qa2@example.invalid',null);
+insert into public.tourneo_preferences(user_id)values('61000000-0000-4000-8000-000000000001');
+insert into public.tourneo_notifications(user_id,type,message)values('61000000-0000-4000-8000-000000000001','score','Sans accord');
+do $$begin if exists(select 1 from public.tourneo_envois)then raise exception 'Envoi sans consentement';end if;end$$;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','61000000-0000-4000-8000-000000000001',true);
+do $$begin
+ if has_function_privilege('authenticated','public.tourneo_worker_prendre(boolean)','execute')then raise exception 'Worker public';end if;
+ begin perform 1 from tourneo_private.notifications_config;raise exception 'Secret accessible';exception when insufficient_privilege then null;end;
+ begin insert into public.tourneo_push_abonnements(endpoint,p256dh,auth)values('https://127.0.0.1/internal',repeat('A',87),repeat('A',22));raise exception 'Endpoint arbitraire';exception when check_violation then null;end;
+end$$;
+insert into public.tourneo_push_abonnements(endpoint,p256dh,auth)values('https://fcm.googleapis.com/qa-never-sent',repeat('A',87),repeat('A',22));
+update public.tourneo_preferences set notifications_push=true,notifications_email=true;
+reset role;
+insert into public.tourneo_notifications(user_id,type,message)values('61000000-0000-4000-8000-000000000001','score','Avec accord');
+do $$declare jobs jsonb; j jsonb;begin
+ if(select count(*)from public.tourneo_envois)<>2 then raise exception 'Canaux distincts';end if;
+ jobs:=public.tourneo_worker_prendre(true);if jsonb_array_length(jobs)<>2 then raise exception 'Prise incorrecte';end if;
+ if jsonb_array_length(public.tourneo_worker_prendre(true))<>0 then raise exception 'Double traitement';end if;
+ j:=jobs->0;perform public.tourneo_worker_finir((j->>'id')::uuid,gen_random_uuid(),true);
+ if not exists(select 1 from public.tourneo_envois where id=(j->>'id')::uuid and statut='traitement')then raise exception 'ACK non lié accepté';end if;
+ perform public.tourneo_worker_finir((j->>'id')::uuid,(j->>'bail')::uuid,true);
+ if not exists(select 1 from public.tourneo_envois where id=(j->>'id')::uuid and statut='transmis')then raise exception 'ACK perdu';end if;
+end$$;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','61000000-0000-4000-8000-000000000002',true);
+do $$begin if exists(select 1 from public.tourneo_envois)or exists(select 1 from public.tourneo_push_abonnements)then raise exception 'Accès autre utilisateur';end if;end$$;
+reset role;
+update public.tourneo_preferences set notifications_push=false,notifications_email=false;
+update public.tourneo_envois set bail_fin=now()-interval '1 minute';
+do $$begin if jsonb_array_length(public.tourneo_worker_prendre(true))<>0 then raise exception 'Retrait ignoré';end if;end$$;
+rollback;

@@ -1,5 +1,5 @@
 {
-  "date": "12 novembre 2026",
+  "date": "13 novembre 2026",
   "methode": "Grille reconstituée. Numérotation 1–74 proposée à partir des thèmes utilisateur et du périmètre déjà travaillé ; 75 retrouvé ; 76–87 fournis/retrouvés. Pas une reproduction de la liste initiale.",
   "definitions": {
     "Développée": "Fonction intégrée dans la V2, contrôlée dans le code ou par des tests locaux. Ce statut ne remplace pas tous les essais réels.",
@@ -10,13 +10,12 @@
   "compteur_85": {
     "Développée": 80,
     "À tester": 4,
-    "À développer": 1
+    "Partiellement développée": 1
   },
   "compteur_87": {
     "Développée": 81,
     "À tester": 4,
-    "À développer": 1,
-    "Partiellement développée": 1
+    "Partiellement développée": 2
   },
   "points": [
     {
@@ -671,9 +670,9 @@
       "numero": 73,
       "theme": "Expérience et accès",
       "evolution": "E-mails sportifs et notifications téléphone application fermée",
-      "statut": "À développer",
-      "preuve": "docs/V2-AVANCEMENT.md",
-      "reste": "Les messages internes et alertes locales existent. Les canaux e-mail et push fermé ne sont pas activés.",
+      "statut": "Partiellement développée",
+      "preuve": "components/AlertesExternes.tsx ; supabase/functions/notifications-tourneo ; supabase/tests/alertes_externes_v2.sql ; tests/notifications-externes.cjs",
+      "reste": "Code Web Push et e-mail intégré et contrôlé localement. Activation SQL/worker non confirmée (confirmation expirée). Expéditeur e-mail vérifié et secrets à configurer. Push natif APK et essais téléphone réel non réalisés.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {

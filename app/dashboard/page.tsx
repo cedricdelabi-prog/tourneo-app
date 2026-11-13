@@ -1,4 +1,5 @@
 "use client";
+import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
@@ -142,7 +143,7 @@ export default function DashboardPage() {
                 localStorage.removeItem(cacheCompte);
         }
         catch { }
-        await supabase.auth.signOut();
+        await deconnecterTourneo();
         window.location.href = "/login";
     }
     const stats = useMemo(() => {

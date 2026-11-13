@@ -1,4 +1,5 @@
 "use client";
+import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
@@ -6,6 +7,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/lib/supabase";
 import PhotoPrivee from "@/components/PhotoPrivee";
 import { referencePhoto } from "@/lib/media-prive";
+import AlertesExternes from '@/components/AlertesExternes';
 import PreferencesCompte from "@/components/PreferencesCompte";
 import TourneoNav from "@/components/TourneoNav";
 type Profil = {
@@ -209,7 +211,7 @@ export default function ProfilPage() {
         }
     }
     async function logout() {
-        await supabase.auth.signOut();
+        await deconnecterTourneo();
         window.location.href = "/login";
     }
     return (<main style={s.page}>
@@ -242,6 +244,7 @@ export default function ProfilPage() {
         </section>
 
         <PreferencesCompte />
+        <AlertesExternes />
         <section style={s.grid}>
           <article style={s.card}>
             <span style={s.eyebrow}>{tr("Identit\u00E9")}</span>

@@ -9,7 +9,7 @@ const stripExternalExtensions = sql => sql.replace(/^create extension if not exi
 const bootstrap = `
 create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
 create schema auth; create schema storage; create schema net; create schema cron;
-create table auth.users(id uuid primary key,aud text,role text);
+create table auth.users(id uuid primary key,aud text,role text,email text,email_confirmed_at timestamptz);
 create function auth.uid() returns uuid language sql stable as $$
  select coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid;
 $$;
@@ -32,7 +32,7 @@ async function verifier(consolide) {
     else for (const file of fs.readdirSync(path.join(root,'migrations')).filter(f=>f.endsWith('.sql')).sort()) {
       await db.exec(stripExternalExtensions(fs.readFileSync(path.join(root,'migrations',file),'utf8')));
     }
-    for (const file of ['integration_v2.sql','partage_public_v2.sql','groupes_v2.sql','conservation_photos_v2.sql','appels_v2.sql','synchronisation_v2.sql','olympiades_v2.sql']) {
+    for (const file of ['integration_v2.sql','partage_public_v2.sql','groupes_v2.sql','conservation_photos_v2.sql','appels_v2.sql','synchronisation_v2.sql','olympiades_v2.sql','alertes_externes_v2.sql']) {
       await db.exec(fs.readFileSync(path.join(root,'tests',file),'utf8'));
       assert.equal((await db.query('select count(*)::integer as n from auth.users')).rows[0].n,0,'Test data was not rolled back');
       console.log(`${consolide?'Activation consolidée':'Migrations ordonnées'} · ${file} : OK`);

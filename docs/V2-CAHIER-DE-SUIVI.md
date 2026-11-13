@@ -12,7 +12,7 @@ Les points 86 et 87 sont des priorités ajoutées qui recoupent plusieurs foncti
 |---|---:|
 | Développée | 80 |
 | Partiellement développée | 0 |
-| À développer | 1 |
+| Partiellement développée | 1 |
 | À tester | 4 |
 
 **Ces nombres mesurent la présente grille reconstituée. Ils ne certifient pas un nombre terminé dans une liste historique 1–75 que nous ne possédons pas intégralement.**
@@ -102,7 +102,7 @@ Source du périmètre : récapitulatif transmis par l’utilisateur dans cette c
 | 70 | Expérience et accès | Application gratuite et suppression des publicités | Développée | [app](../app) ; [components](../components) | Aucun paiement ou espace publicitaire dans la V2. Tous les modes restent gratuits selon la demande actuelle. |
 | 71 | Expérience et accès | Notifications internes liées à Tourneo | Développée | [app/activite/page.tsx](../app/activite/page.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 72 | Expérience et accès | Préférences sportives et consentement promotionnel distincts | Développée | [components/PreferencesCompte.tsx](../components/PreferencesCompte.tsx) ; [supabase/tests/integration_v2.sql](../supabase/tests/integration_v2.sql) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
-| 73 | Expérience et accès | E-mails sportifs et notifications téléphone application fermée | À développer | [docs/V2-AVANCEMENT.md](../docs/V2-AVANCEMENT.md) | Les messages internes et alertes locales existent. Les canaux e-mail et push fermé ne sont pas activés. |
+| 73 | Expérience et accès | E-mails sportifs et notifications téléphone application fermée | Partiellement développée | [docs/V2-ALERTES-EXTERNES.md](V2-ALERTES-EXTERNES.md) | Code intégré et testé localement. Activation serveur à confirmer, expéditeur e-mail à configurer ; push natif et essais appareils réels non réalisés. |
 | 74 | Expérience et accès | Traduction complète selon la langue du compte | Développée | [lib/langue.ts](../lib/langue.ts) ; [lib/traductions.ts](../lib/traductions.ts) ; [components/LangueCompte.tsx](../components/LangueCompte.tsx) ; [tests/i18n.cjs](../tests/i18n.cjs) ; [tests/mobile-browser.cjs](../tests/mobile-browser.cjs) | Choix FR/EN/NL enregistré dans le compte, interface et guides localisés, noms saisis conservés. Terminologie centrale relue ; relecture linguistique des longs textes à poursuivre. |
 | 75 | Impression | Impression personnalisable du tournoi | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | A4/A3, orientation, sections, grandes cases, couleurs, poules, tableaux et QR par match. Vérification d’une impression physique à poursuivre. |
 | 76 | Évolutions 76–85 | Écran géant | Développée | [app/partage/[id]/page.tsx](../app/partage/[id]/page.tsx) | Affichage et plein écran présents ; vérifier sur télévision ou vidéoprojecteur. |

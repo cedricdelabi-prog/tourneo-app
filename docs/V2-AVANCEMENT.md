@@ -176,3 +176,9 @@ Navigation : composant de retour commun avec chevron, zone cliquable et focus cl
 - Tests navigateur sur quatre largeurs, parcours photo/compression et conservation du score 13–6 ; essais de matériels réels encore à réaliser.
 - APK Android de test V2 compilé avec paquet séparé ; V1 inchangée. Les mots de passe de signature précédemment présents dans le fichier Gradle ont été retirés de cette branche. Les anciennes versions du dépôt peuvent toujours les contenir : renouvellement à prévoir avant une distribution de production.
 - Grille reconstituée à ce jalon : 80 développés, 4 à tester, 1 à développer. Les quatre points à tester ont déjà leur code ; ils ne sont pas des fonctionnalités encore absentes.
+
+## Jalon du 13 novembre 2026 — alertes externes
+
+Code d’activation par appareil et consentement e-mail dans le profil, statuts organisateur, transport Web Push chiffré, file avec reprises et permissions dédiées. Tests locaux SQL et parcours réussis. Voir V2-ALERTES-EXTERNES.md : migration et worker non activés (confirmation technique expirée), e-mail sans expéditeur configuré. Le push natif APK reste hors du module Web Push. Aucun message réel de test envoyé.
+
+Compteur : 80 développés, 4 à tester, 1 partiellement développé. La V1 et main ne sont pas modifiés.

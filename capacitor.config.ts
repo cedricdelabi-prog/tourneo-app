@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: "public",
 
   server: {
-    url: "https://tourneo-v2-test.vercel.app",
+    url: "https://tourneo-v2-test-tourneo.vercel.app",
     cleartext: false,
   },
 };

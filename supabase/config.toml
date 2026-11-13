@@ -3,3 +3,8 @@
 # No service-role key is sent in the scheduler's HTTP request.
 verify_jwt = false
 entrypoint = "./functions/purge-photos-v2/index.js"
+
+[functions.notifications-tourneo]
+# Le worker utilise un jeton privé, jamais envoyé au client.
+verify_jwt = false
+entrypoint = "./functions/notifications-tourneo/index.ts"

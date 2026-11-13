@@ -17,7 +17,8 @@
     "test:parcours": "node tests/profil.cjs && node tests/impression.cjs && node tests/suivi.cjs && node tests/evenements.cjs && node tests/import-excel.cjs && node tests/annonces.cjs && node tests/appels-ui.cjs && node tests/synchronisation.cjs && node tests/outils.cjs && node tests/outils-ui.cjs && node tests/i18n.cjs",
     "test:outils": "node tests/outils.cjs && node tests/outils-ui.cjs",
     "test:i18n": "node tests/i18n.cjs",
-    "test:browser": "node tests/mobile-browser.cjs"
+    "test:browser": "node tests/mobile-browser.cjs",
+    "test:alertes": "node tests/notifications-externes.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -42,6 +43,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "web-push": "3.6.7"
   }
 }

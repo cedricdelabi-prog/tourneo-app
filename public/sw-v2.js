@@ -1,5 +1,5 @@
 /* V2 only: cache app resources and visited page shells, never API/auth responses. */
-const CACHE='tourneo-v2-shell-20261109-1';
+const CACHE='tourneo-v2-shell-20261113-1';
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(['/offline-v2.html','/tourneo-icon.png','/tourneo-officiel.png'])));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('tourneo-v2-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{
@@ -18,7 +18,7 @@ self.addEventListener('notificationclick',event=>{
   let url;
   try {
     url=new URL(event.notification.data?.url,self.location.origin);
-    if(url.origin!==self.location.origin||!/^\/partage\/[^/]+$/.test(url.pathname)||!/^#match-\d+$/.test(url.hash))return;
+    if(!lienAlerte(url))return;
   } catch { return; }
   event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async windows=>{
     const ouvert=windows.find(client=>new URL(client.url).pathname===url.pathname);
@@ -32,3 +32,6 @@ self.addEventListener('message',event=>{
   const urls=event.data.urls.slice(0,200).filter(value=>{try{const u=new URL(value);return u.origin===self.location.origin&&!u.pathname.startsWith('/api/')&&!u.pathname.startsWith('/auth/');}catch{return false;}});
   event.waitUntil(caches.open(CACHE).then(cache=>Promise.allSettled(urls.map(url=>fetch(url,{credentials:'same-origin'}).then(response=>{if(response.ok)return cache.put(url,response);})))));
 });
+
+function lienAlerte(u){return u.origin===self.location.origin&&!u.search&&((u.pathname==='/activite'&&!u.hash)||(/^\/partage\/[^/]+$/.test(u.pathname)&&/^#match-\d+$/.test(u.hash)));}
+self.addEventListener('push',event=>{let p;try{p=event.data.json();}catch{return;}let u;try{u=new URL(p.url,self.location.origin);}catch{return;}if(!lienAlerte(u))return;event.waitUntil(self.registration.showNotification('Tourneo',{body:typeof p.body==='string'?p.body.slice(0,240):'Tourneo',icon:'/tourneo-icon.png',tag:typeof p.tag==='string'?p.tag.slice(0,64):'tourneo',data:{url:u.pathname+u.hash}}));});

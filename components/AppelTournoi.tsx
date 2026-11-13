@@ -8,6 +8,7 @@ type Appel = {
     nom: string;
     statut: Etat;
     created_at?: string | null;
+    canal_push?: boolean; canal_email?: boolean; envoi_push?: string; envoi_email?: string;
 };
 const LIBELLES: Record<Etat, string> = {
     sans_profil: 'À prévenir sur place · aucun profil lié',
@@ -69,9 +70,9 @@ export default function AppelTournoi({ tournoiId, matchId }: {
     }, [charger]);
     const disponible = participants.some(p => p.statut === 'disponible');
     return <section className="tourneo-digital-call"><h3>{tr("Appel dans Tourneo")}</h3>
-    <p>{tr("Ces messages apparaissent dans \u00AB Activit\u00E9 \u00BB du compte destinataire. Ils ne d\u00E9clenchent pas de SMS, d\u2019e-mail ou de notification t\u00E9l\u00E9phone quand l\u2019application est ferm\u00E9e.")}</p>
+    <p>{tr('Les appels apparaissent dans Activité. Les alertes externes dépendent des choix et de l’appareil du destinataire. Une transmission ne confirme pas la réception.')}</p>
     {!pret && !erreur && <p role="status">{tr("V\u00E9rification des destinataires\u2026")}</p>}
-    <ul>{participants.map(p => <li key={p.participant_id}><strong>{p.nom}</strong><span className={`tourneo-call-state is-${p.statut}`}>{tr(LIBELLES[p.statut]) || tr('État non vérifié')}</span></li>)}</ul>
+    <ul>{participants.map(p => <li key={p.participant_id}><strong>{p.nom}</strong><span className={`tourneo-call-state is-${p.statut}`}>{tr(LIBELLES[p.statut]) || tr('État non vérifié')}</span>{p.statut !== 'sans_profil' && <small>{tr(p.canal_push ? 'Appareil enregistré pour les alertes' : 'Aucune alerte téléphone enregistrée')}{p.envoi_push && <span> · {tr(({attente:'Transmission en attente',traitement:'Transmission en cours',transmis:'Transmis au service d’alerte',annule:'Transmission annulée',echec:'Échec de transmission'} as Record<string,string>)[p.envoi_push] || 'État non vérifié')}</span>}{p.canal_email && <span> · {tr('E-mail sportif activé')}</span>}</small>}</li>)}</ul>
     {tr(erreur) && <p role="alert">{tr(erreur)}</p>}{tr(message) && <p role="status">{tr(message)}</p>}
     <div><button type="button" disabled={occupe || !pret || !disponible || Boolean(erreur)} onClick={() => void charger(true)}>{envoi ? tr('Envoi…') : tr('Envoyer dans Tourneo')}</button><button type="button" disabled={occupe} onClick={() => void charger(false)}>{occupe && !envoi ? tr('Vérification…') : tr('Actualiser l’état')}</button></div>
     <small>{tr("Un seul appel par compte et par match. Les joueurs absents de Tourneo restent \u00E0 pr\u00E9venir sur place.")}</small>
