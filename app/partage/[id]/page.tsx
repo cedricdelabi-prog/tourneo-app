@@ -1,4 +1,5 @@
 "use client";
+import {LienAlbumPublic} from '@/components/AlbumPublic';
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
@@ -374,6 +375,7 @@ export default function PartagePage() {
           <button style={onglet === "participants" ? s.tabActive : s.tab} onClick={() => setOnglet("participants")}>{tr("Participants")}</button>
         </div>
 
+        <LienAlbumPublic id={tournoiId}/>
         {onglet === "matchs" && (<section style={s.list}>
             {matchsTries.length === 0 ? (<p style={s.empty}>{tr("Aucun match n\u2019est encore disponible.")}</p>) : (matchsTries.map((m, i) => (<article id={`match-${m.id ?? i}`} key={String(m.id ?? i)} style={{ ...s.match, scrollMarginTop: 24 }}>
                   <div style={s.teamBlock}>

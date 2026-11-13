@@ -1,0 +1,26 @@
+begin;
+insert into auth.users(id)values('c1000000-0000-4000-8000-000000000001'),('c1000000-0000-4000-8000-000000000002');
+insert into tourneo_private.administrateurs(user_id,role)values('c1000000-0000-4000-8000-000000000002','superadmin');
+insert into public.tournois(id,user_id,nom,sport,donnees)values('c2000000-0000-4000-8000-000000000001','c1000000-0000-4000-8000-000000000001','Album QA','petanque','{}');
+insert into storage.objects(bucket_id,name)values('tourneo-media','c1000000-0000-4000-8000-000000000001/tournois/c2000000-0000-4000-8000-000000000001/album-c3000000-0000-4000-8000-000000000001.jpg'),('tourneo-media','c1000000-0000-4000-8000-000000000001/tournois/c2000000-0000-4000-8000-000000000001/album-partage-c3000000-0000-4000-8000-000000000001.jpg');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','c1000000-0000-4000-8000-000000000001',true);
+insert into public.tourneo_album_photos(id,tournoi_id,user_id,path,legende)values('c3000000-0000-4000-8000-000000000001','c2000000-0000-4000-8000-000000000001',auth.uid(),'c1000000-0000-4000-8000-000000000001/tournois/c2000000-0000-4000-8000-000000000001/album-c3000000-0000-4000-8000-000000000001.jpg','Souvenir');
+insert into public.tourneo_album_config(tournoi_id,titre)values('c2000000-0000-4000-8000-000000000001','Album QA');
+insert into public.tourneo_album_partages(photo_id,tournoi_id,user_id,path)values('c3000000-0000-4000-8000-000000000001','c2000000-0000-4000-8000-000000000001',auth.uid(),'c1000000-0000-4000-8000-000000000001/tournois/c2000000-0000-4000-8000-000000000001/album-partage-c3000000-0000-4000-8000-000000000001.jpg');
+set local role anon;select set_config('request.jwt.claim.sub','',true);select set_config('storage.qa_operation','object.get_authenticated',true);
+do $$begin if(public.tourneo_album_public('c2000000-0000-4000-8000-000000000001')->>'actif')::boolean then raise exception 'Album partagé par défaut';end if;if exists(select 1 from storage.objects)then raise exception 'Image privée lisible';end if;begin select * from public.tourneo_album_config;raise exception 'Config exposée';exception when insufficient_privilege then null;end;end$$;
+set local role authenticated;select set_config('request.jwt.claim.sub','c1000000-0000-4000-8000-000000000002',true);
+do $$begin if public.tourneo_mon_role_admin()<>'superadmin'then raise exception 'Fixture superadmin manquante';end if;if exists(select 1 from public.tourneo_album_photos)then raise exception 'Superadmin voit les originaux privés';end if;if exists(select 1 from public.tourneo_album_config)then raise exception 'Config organisateur exposée';end if;begin insert into public.tourneo_album_config(tournoi_id,partage)values('c2000000-0000-4000-8000-000000000001',true);raise exception 'Étranger partage album';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claim.sub','c1000000-0000-4000-8000-000000000001',true);update public.tourneo_album_config set partage=true where tournoi_id='c2000000-0000-4000-8000-000000000001';
+set local role anon;select set_config('request.jwt.claim.sub','',true);
+do $$declare r jsonb;begin r:=public.tourneo_album_public('c2000000-0000-4000-8000-000000000001');if jsonb_array_length(r->'photos')<>1 then raise exception 'Partage non lisible';end if;if r::text like '%album-c300%'then raise exception 'Original exposé';end if;if(select count(*)from storage.objects)<>1 then raise exception 'Accès non limité à la version décorée';end if;end$$;
+select set_config('storage.qa_operation','object.list',true);do $$begin if exists(select 1 from storage.objects)then raise exception 'Liste Storage anonyme autorisée';end if;end$$;
+select set_config('storage.qa_operation','object.sign',true);do $$begin if exists(select 1 from storage.objects)then raise exception 'Création de lien signé autorisée';end if;end$$;
+set local role authenticated;select set_config('request.jwt.claim.sub','c1000000-0000-4000-8000-000000000001',true);update public.tourneo_album_config set partage=false where tournoi_id='c2000000-0000-4000-8000-000000000001';
+set local role anon;select set_config('request.jwt.claim.sub','',true);select set_config('storage.qa_operation','object.get_authenticated',true);do $$begin if exists(select 1 from storage.objects)then raise exception 'Retrait du partage sans effet';end if;end$$;
+reset role;
+-- Force an expired tournament without invoking the retention date trigger.
+alter table public.tournois disable trigger date_conservation_photos;update public.tournois set photos_expirent_at=now()-interval '1 day'where id='c2000000-0000-4000-8000-000000000001';alter table public.tournois enable trigger date_conservation_photos;update public.tourneo_album_config set partage=true where tournoi_id='c2000000-0000-4000-8000-000000000001';
+set local role anon;do $$begin if(public.tourneo_album_public('c2000000-0000-4000-8000-000000000001')->>'actif')::boolean or exists(select 1 from storage.objects)then raise exception 'Album expiré encore lisible';end if;end$$;
+reset role;rollback;

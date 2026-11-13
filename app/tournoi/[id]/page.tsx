@@ -777,7 +777,7 @@ export default function TournoiPage() {
         setEquipeAModifier(null);
     }
     const [operationTournoi, setOperationTournoi] = useState(false);
-    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' = 'inscriptions') {
+    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' = 'inscriptions') {
         if (operationTournoi)
             return;
         if (!nomTournoi.trim()) {
@@ -1810,6 +1810,7 @@ ${lienPartage}`,
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('inscriptions')}>{tournoiId ? tr("Gérer les inscriptions et le pointage") : tr("Préparer les inscriptions par lien / QR")}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('photos')}>{tr('Préparer les photos')}</button>
                 <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
                 <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
                 {tr(messageCloud) && <div style={styles.statusLine}>{tr(messageCloud)}</div>}
@@ -2499,7 +2500,7 @@ ${lienPartage}`,
 
         {onglet === "arbitrage" && <ArbitresTournoi id={tournoiId} equipes={equipes} matchs={matchs} valides={matchsValides} onImporter={(id, score1, score2, manches) => { setMatchs(actuels => actuels.map(m => m.id === id && !matchsValides.includes(id) ? { ...m, score1, score2, manches } : m)); setOnglet("matchs"); setTimeout(() => document.getElementById(`match-${id}`)?.scrollIntoView({behavior:"smooth",block:"center"}),100); }}/>}
 
-        {onglet === "photos" && <AlbumTournoi id={tournoiId} userId={userId || ""}/>}
+        {onglet === "photos" && <AlbumTournoi id={tournoiId} userId={userId || ""} nom={nomTournoi} date={optionsV2.depart} organisateur={optionsV2.organisateur}/>}
 
         {onglet === "statistiques" && (<>
             <section style={styles.statsGrid}>

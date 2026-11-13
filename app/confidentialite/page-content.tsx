@@ -12,7 +12,7 @@ export default function ConfidentialitePage() {
         <header style={s.hero}>
           <span style={s.eyebrow}>{tr("Tourneo")}</span>
           <h1 style={s.title}>{tr("Politique de confidentialit\u00E9")}</h1>
-          <p style={s.subtitle}>{tr("Derni\u00E8re mise \u00E0 jour : 30 ao\u00FBt 2026")}</p>
+          <p style={s.subtitle}>{tr("Dernière mise à jour : 13 novembre 2026")}</p>
         </header>
 
         <section style={s.card}>
@@ -66,6 +66,18 @@ export default function ConfidentialitePage() {
           <p style={s.text}>{tr("Les organisateurs peuvent cr\u00E9er des tournois et enregistrer des informations telles que le nom du tournoi, les participants, les \u00E9quipes, les matchs, les scores, les r\u00E9sultats et les classements.")}</p>
 
           <p style={s.text}>{tr("Certaines informations li\u00E9es \u00E0 un tournoi peuvent \u00EAtre accessibles via une page publique de partage lorsque l\u2019organisateur utilise la fonctionnalit\u00E9 de partage ou de QR code pr\u00E9vue par Tourneo.")}</p>
+        </section>
+
+        <section style={s.card} id="photos">
+          <h2 style={s.heading}>{tr('5 bis. Photos du tournoi et accès')}</h2>
+          <p style={s.text}>{tr('Les photos ajoutées au tournoi sont réservées par défaut à son organisateur. Les originaux ne sont pas publiés sur la page des joueurs.')}</p>
+          <p style={s.text}>{tr('L’organisateur peut activer le partage des versions avec bandeau : toute personne disposant du lien du tournoi pourra alors les consulter et les télécharger. Le bandeau peut afficher le logo Tourneo, le logo de l’organisateur, le nom du tournoi et sa date.')}</p>
+          <p style={s.text}>{tr('Le rôle administrateur ou super administrateur dans l’application ne donne pas accès aux albums privés des autres organisateurs. L’écran d’administration ne propose pas de consultation globale de ces photos. Les prestataires techniques hébergent les fichiers selon les conditions décrites ci-dessous.')}</p>
+          <p style={s.text}>{tr('L’organisateur peut retirer le partage ou supprimer une photo depuis son album. Ce retrait bloque les nouvelles récupérations dans Tourneo, mais ne supprime pas les copies déjà enregistrées par des tiers.')}</p>
+          <p style={s.text}>{tr('Après la fin du tournoi, l’accès aux photos expire au bout de 15 jours en mode Simple et de 90 jours en mode Expert. Le nettoyage automatique supprime ensuite les fichiers concernés. En l’absence de fin de tournoi, ce délai ne commence pas encore.')}</p>
+          <p style={s.text}>{tr('Avant de publier des photos de personnes reconnaissables, l’organisateur doit les informer de l’usage prévu et recueillir les autorisations nécessaires, notamment pour les mineurs. La possibilité technique de partager ne vaut pas autorisation de diffuser ou de vendre une image.')}</p>
+          <p style={s.text}>{tr('Pour demander le retrait d’une photo, contactez l’organisateur du tournoi ou Tourneo depuis la page Contact en indiquant le tournoi et la photo concernés.')}</p>
+          <Link href="/contact" style={s.button}>{tr('Demander le retrait d’une photo')}</Link>
         </section>
 
         <section style={s.card}>
