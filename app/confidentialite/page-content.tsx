@@ -80,6 +80,14 @@ export default function ConfidentialitePage() {
           <Link href="/contact" style={s.button}>{tr('Demander le retrait d’une photo')}</Link>
         </section>
 
+        <section style={s.card} id="bilans">
+          <h2 style={s.heading}>{tr('5 ter. Alertes et bilan de fin de tournoi')}</h2>
+          <p style={s.text}>{tr('Lorsque l’organisateur diffuse le bilan final, Tourneo informe les comptes liés au tournoi : participants identifiés, arbitres et organisateur. Les préférences d’alertes sportives sont respectées. Une personne inscrite sans compte ni adresse liée ne peut pas recevoir ce message automatiquement.')}</p>
+          <p style={s.text}>{tr('Si le service d’envoi est activé et les alertes e-mail autorisées dans le profil, un message individuel peut contenir l’affiche finale et le lien des résultats. Le lien des photos n’est ajouté que lorsque l’organisateur a activé leur partage. Les adresses des autres destinataires ne sont pas affichées.')}</p>
+          <p style={s.text}>{tr('Les préférences de notification se modifient depuis Mon profil. Une notification déposée dans Tourneo ou un e-mail accepté par le prestataire ne prouve pas sa lecture ni sa réception effective.')}</p>
+          <Link href="/profil" style={s.button}>{tr('Gérer mes alertes')}</Link>
+        </section>
+
         <section style={s.card}>
           <h2 style={s.heading}>{tr("6. Finalit\u00E9s du traitement")}</h2>
 

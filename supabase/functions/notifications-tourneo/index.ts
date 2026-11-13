@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
 import webpush from 'web-push';
+import {texteBilan,validerBilan,pngBase64}from'./bilan.ts';
 import {traiterEnvois} from './transport.ts';
 import {lireCompteFirebase,creerTransportAndroid} from './android.ts';
 const compteAndroid=lireCompteFirebase(Deno.env.get('FCM_SERVICE_ACCOUNT'));
@@ -7,7 +8,7 @@ const android=compteAndroid?creerTransportAndroid(compteAndroid):null;
 const url=Deno.env.get('SUPABASE_URL')||'';
 if(new URL(url).hostname!=='kmjfmjhdnokkaiolxiin.supabase.co')throw new Error('Projet V2 requis');
 const db=createClient(url,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'',{auth:{persistSession:false,autoRefreshToken:false}});
-const site='https://tourneo-v2-test-tourneo.vercel.app';
+const site='https://tourneo-v2-test.vercel.app';
 const emailActif=Boolean(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('TOURNEO_EMAIL_FROM'));
 async function initialiser(){const cles=webpush.generateVAPIDKeys();const r=await db.rpc('tourneo_worker_initialiser',{p_publique:cles.publicKey,p_privee:cles.privateKey,p_email:emailActif});if(r.error){console.error('notifications-init',r.error.code);throw r.error;}const a=await db.rpc('tourneo_worker_android',{p_projet:compteAndroid?.project_id||null});if(a.error){console.error('notifications-android-config',a.error.code);throw a.error;}return r.data;}
 let config:ReturnType<typeof initialiser>|undefined;
@@ -22,6 +23,7 @@ Deno.serve(async req=>{
    const d=webpush.generateRequestDetails({endpoint:s.endpoint,keys:s.keys},JSON.stringify(p),{TTL:300,topic:id.replaceAll('-','').slice(0,32)});const headers={...d.headers};delete headers['Content-Length'];
    const reponse=await fetch(d.endpoint,{method:'POST',headers,body:d.body,redirect:'error',signal:AbortSignal.timeout(10000)});return reponse.status;
   },async(j,lien)=>{
+   if(j.bilan){if(!validerBilan(j.bilan))return false;const fichier=await db.storage.from('tourneo-media').download(j.bilan.poster_path);if(fichier.error||!fichier.data)return false;const contenu=pngBase64(new Uint8Array(await fichier.data.arrayBuffer())),texte=texteBilan(j.bilan,site,j.langue);const resultat=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${Deno.env.get('RESEND_API_KEY')}`,'Content-Type':'application/json','Idempotency-Key':`tourneo-${j.id}`},body:JSON.stringify({from:Deno.env.get('TOURNEO_EMAIL_FROM'),to:[j.email],...texte,attachments:[{filename:'tourneo-resultats.png',content:contenu}]}),signal:AbortSignal.timeout(10000)});return resultat.ok;}
    const textes=j.langue==='en'?{titre:'Tourneo · Tournament update',texte:'A new update is waiting for you in Tourneo.',prefs:'Manage your sports alerts'}:j.langue==='nl'?{titre:'Tourneo · Toernooi-update',texte:'Er staat een nieuw bericht voor je klaar in Tourneo.',prefs:'Beheer je sportmeldingen'}:{titre:'Tourneo · Information sur votre tournoi',texte:'Une nouvelle information vous attend dans Tourneo.',prefs:'Gérer vos alertes sportives'};
    const reponse=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${Deno.env.get('RESEND_API_KEY')}`,'Content-Type':'application/json','Idempotency-Key':`tourneo-${j.id}`},body:JSON.stringify({from:Deno.env.get('TOURNEO_EMAIL_FROM'),to:[j.email],subject:textes.titre,text:`${textes.texte}\n\n${lien}\n\n${textes.prefs} : ${site}/profil`}),signal:AbortSignal.timeout(10000)});return reponse.ok;
   },async(j,ok,expires)=>{const fin=await db.rpc('tourneo_worker_finir',{p_id:j.id,p_bail:j.bail,p_ok:ok,p_expires:expires});if(fin.error)throw fin.error;},async(s,p,id)=>{if(!android||!s.jeton)throw new Error('Android indisponible');return android(s.jeton,p.body,p.url,id);});

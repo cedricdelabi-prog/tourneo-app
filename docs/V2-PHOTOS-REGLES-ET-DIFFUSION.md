@@ -16,8 +16,17 @@ TypeScript ; migrations et activation consolidée identiques ; tests d’accès 
 ## Demandé ensuite, encore à finaliser
 
 1. Cadre juridique complet : impossible de promettre une responsabilité nulle. L’identité/statut de l’éditeur et le contact à publier n’ont pas été confirmés (question de statut interrompue par l’utilisateur). Ne pas publier des mentions inventées ni l’e-mail privé du compte comme contact public sans instruction. Préparer CGU/mentions avec les éléments manquants identifiés et garder les droits légaux impératifs.
-2. Bilan automatique en fin de tournoi : destinataires uniques parmi comptes participants liés, arbitres et organisateur, consentements sportifs et e-mail respectés ; invités sans adresse non joignables. Résultats + affiche finale en pièce jointe, QR ou lien résultats, lien photos seulement si partage activé. Le service e-mail reste non configuré (expéditeur vérifié et secret fournisseur à installer hors conversation), aucune promesse d’e-mails envoyés.
-3. Partage à chaque étape : une action contextualisée pour inscription avant, résultats pendant, podium/photos autorisées après. Téléphone : feuille système avec fichier ; PC : téléchargement et texte/lien. Pas de publication automatique ni de traqueurs sociaux ajoutés.
+2. Service e-mail : expéditeur vérifié et secret fournisseur à installer hors conversation. Le circuit applicatif du bilan est développé et testé ; aucun e-mail réel n’a été envoyé et aucun succès de livraison n’est simulé.
+3. Essais réels iPhone/Android et réception par plusieurs comptes sur un vrai tournoi à poursuivre.
+
+## Bilan final et guidage organisateur
+
+- Bloc « Prochaine action » : propositions d’arbitres, résultats à valider, prochain match ou partage du bilan, sans répéter les réglages.
+- Bilan automatique facultatif pour les nouveaux tournois ; désactivé pour les tournois historiques tant que l’organisateur ne le demande pas.
+- Préparation après résultats enregistrés et validés, révision contrôlée en base, un seul bilan par tournoi. Comptes dédupliqués : participants liés, arbitres et organisateur ; préférences sportives et e-mail respectées. Les invités non identifiés ne sont pas contactables automatiquement.
+- Affiche finale privée en pièce jointe, lien écrit des résultats et lien photos uniquement si partage actif. Les réglages graphiques/sponsors de l’appareil finalisant sont repris ; sans personnalisation locale, modèle par défaut.
+- Suivi séparé des notifications déposées, e-mails en attente, échecs et acceptation par le fournisseur. Aucune affirmation de lecture ou livraison effective.
+- Tests SQL sur droits, révisions, idempotence et préférences ; navigateur avec API simulée sur génération d’affiche et absence de rediffusion au rechargement ; tests de contenu des e-mails et des pièces jointes.
 
 ## Références consultées pour les brouillons juridiques
 
@@ -33,3 +42,11 @@ Les points commerciaux, médiation, rétractation, facturation et obligations sp
 ## Sponsors et formats de lien
 
 Jusqu’à six logos de sponsors sont importés localement dans l’affiche, individuellement retirable, sous « Avec le soutien de ». Ils restent inclus dans les fichiers exportés et conservés sur cet appareil. Choix QR ou liens écrits ; un lien photos n’est ajouté à l’affiche de résultats que si l’album est effectivement partagé.
+
+## Idée suivante : jeu de pronostics du public (non développé)
+
+Option organisateur, gratuite, sans mise d’argent et sans récompense par défaut. Formats envisagés : vainqueur ; trio dans l’ordre ; cinq premiers dans l’ordre ou sans ordre. Classement des pronostiqueurs suffisant, éventuel cadeau externe décidé par l’organisateur et non condition de participation.
+
+Prévoir fermeture horodatée avant le début du tournoi, un pronostic par compte, règles de classement et d’égalité annoncées avant ouverture, pas de modification après fermeture, calcul après résultats validés. Garder un écran spectateur simple et une affiche dédiée avec QR code ; seul un petit rappel facultatif sur l’affiche du tournoi. Ne pas qualifier cette idée d’inédite et ne pas annoncer la fonction comme disponible.
+
+Références de cadrage France : https://www.anj.fr/professionnels/porteur-de-projet et https://www.economie.gouv.fr/dgccrf/les-fiches-pratiques/loterie-des-pratiques-commerciales-reglementees . L’absence de mise est un choix de conception, pas une garantie générale de conformité dans tous les pays.

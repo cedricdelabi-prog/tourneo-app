@@ -358,5 +358,30 @@ export const traductionsErgonomie:Record<string,{en:string;nl:string}>={
   "Ouvrez un tournoi pour le préparer ou le poursuivre. Le menu Mon espace donne accès à vos rôles de joueur, arbitre et organisateur.": {
     "en": "Open a tournament to prepare or continue it. My space gives access to your player, referee and organizer roles.",
     "nl": "Open een toernooi om het voor te bereiden of voort te zetten. Mijn omgeving geeft toegang tot uw rollen als speler, scheidsrechter en organisator."
-  }
+  },
+  "Prochaine action": {"en": "Next action", "nl": "Volgende actie"},
+  "Bilan de fin de tournoi": {"en": "End-of-tournament report", "nl": "Eindverslag van het toernooi"},
+  "Préparer automatiquement le bilan à la fin du tournoi": {"en": "Automatically prepare the report when the tournament ends", "nl": "Het eindverslag automatisch voorbereiden"},
+  "Après validation du dernier résultat, les comptes liés reçoivent le bilan dans Tourneo. Les e-mails dépendent de leur accord et de l’activation du service d’envoi.": {"en": "After the last result is validated, linked accounts receive the report in Tourneo. Emails depend on their preferences and the email service being enabled.", "nl": "Na bevestiging van het laatste resultaat ontvangen gekoppelde accounts het verslag in Tourneo. E-mails zijn afhankelijk van hun voorkeuren en de activering van de e-maildienst."},
+  "Préparation du bilan final…": {"en": "Preparing the final report…", "nl": "Eindverslag voorbereiden…"},
+  "notification(s) déposée(s) dans Tourneo.": {"en": "notification(s) added to Tourneo.", "nl": "melding(en) in Tourneo geplaatst."},
+  "Les e-mails sont traités selon les préférences des comptes.": {"en": "Emails are processed according to account preferences.", "nl": "E-mails worden verwerkt volgens de accountvoorkeuren."},
+  "E-mails non activés : le service d’envoi reste à configurer.": {"en": "Emails are disabled: the email service still needs to be configured.", "nl": "E-mails zijn niet geactiveerd: de verzenddienst moet nog worden ingesteld."},
+  "En attente d’envoi": {"en": "Waiting to send", "nl": "Wacht op verzending"},
+  "Échecs définitifs": {"en": "Failed deliveries", "nl": "Definitief mislukt"},
+  "e-mail(s) accepté(s) par le service d’envoi. La réception n’est pas garantie.": {"en": "email(s) accepted by the email service. Receipt is not guaranteed.", "nl": "e-mail(s) door de verzenddienst aanvaard. Ontvangst is niet gegarandeerd."},
+  "Préparez l’affiche finale et informez les comptes liés au tournoi, arbitres et organisateur compris.": {"en": "Prepare the final poster and notify accounts linked to the tournament, including referees and the organizer.", "nl": "Bereid de eindaffiche voor en informeer de gekoppelde accounts, inclusief scheidsrechters en organisator."},
+  "Préparation…": {"en": "Preparing…", "nl": "Voorbereiden…"},
+  "Actualiser le suivi": {"en": "Refresh status", "nl": "Status vernieuwen"},
+  "Préparer et diffuser le bilan": {"en": "Prepare and share the report", "nl": "Verslag voorbereiden en verspreiden"},
+  "Partager l’affiche finale": {"en": "Share the final poster", "nl": "Eindaffiche delen"},
+  "Le tournoi est terminé. Préparez votre affiche de résultats.": {"en": "The tournament has ended. Prepare your results poster.", "nl": "Het toernooi is afgelopen. Bereid de uitslagenaffiche voor."},
+  "Retrouvez le prochain match et ses outils.": {"en": "Find the next match and its tools.", "nl": "Bekijk de volgende wedstrijd en de hulpmiddelen."},
+  "Vérifier les propositions": {"en": "Review proposed scores", "nl": "Voorgestelde scores controleren"},
+  "Vérifier les résultats": {"en": "Review results", "nl": "Uitslagen controleren"},
+  "Partager le bilan": {"en": "Share the report", "nl": "Verslag delen"},
+  "Voir les matchs": {"en": "View matches", "nl": "Wedstrijden bekijken"},
+  "{0} proposition(s) d’arbitre à examiner": {"en": "{0} referee proposal(s) to review", "nl": "{0} scheidsrechtervoorstel(len) te controleren"},
+  "{0} résultat(s) à vérifier et valider": {"en": "{0} result(s) to review and validate", "nl": "{0} uitslag(en) te controleren en bevestigen"},
+  "Le tournoi est terminé. Les résultats et le bilan final sont disponibles.": {"en": "The tournament has ended. The results and final report are available.", "nl": "Het toernooi is afgelopen. De uitslagen en het eindverslag zijn beschikbaar."}
 };

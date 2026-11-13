@@ -1,9 +1,10 @@
+import type{BilanMail}from'./bilan.ts';
 export type Abonnement={id:string;endpoint:string;keys:{p256dh:string;auth:string}};
-export type Envoi={id:string;bail:string;canal:'push'|'email'|'android';lien:string;email:string|null;langue?:string;abonnements:(Abonnement & {jeton?:string})[]};
+export type Envoi={id:string;bail:string;canal:'push'|'email'|'android';lien:string;email:string|null;langue?:string;bilan?:BilanMail|null;abonnements:(Abonnement & {jeton?:string})[]};
 export async function traiterEnvois(jobs:Envoi[],site:string,envoyerPush:(s:Abonnement,p:Record<string,string>,id:string)=>Promise<number>,envoyerMail:(j:Envoi,url:string)=>Promise<boolean>,confirmer:(j:Envoi,ok:boolean,expires:string[])=>Promise<void>,envoyerAndroid?:(s:Abonnement & {jeton?:string},p:Record<string,string>,id:string)=>Promise<number>){
  let transmis=0,echecs=0;
  for(const j of jobs){let ok=false;const expires:string[]=[];try{
-  const lien=new URL(j.lien,site);if(lien.origin!==site||lien.search||!((lien.pathname==='/activite'&&!lien.hash)||(/^\/partage\/[^/]+$/.test(lien.pathname)&&/^#match-\d+$/.test(lien.hash))))throw new Error('Lien invalide');
+  const lien=new URL(j.lien,site);if(lien.origin!==site||lien.search||!((lien.pathname==='/activite'&&!lien.hash)||(/^\/partage\/[^/]+$/.test(lien.pathname)&&/^#match-\d+$/.test(lien.hash))||(j.bilan&&lien.pathname==='/partage/'+j.bilan.tournoi_id&&!lien.hash)))throw new Error('Lien invalide');
   if(j.canal==='push'||j.canal==='android'){
    const body=j.langue==='en'?'A new update is waiting for you in Tourneo.':j.langue==='nl'?'Er staat een nieuw bericht voor je klaar in Tourneo.':'Une nouvelle information vous attend dans Tourneo.';
    const resultats=await Promise.all(j.abonnements.map(async s=>{try{const transport=j.canal==='android'?envoyerAndroid:envoyerPush;if(!transport)throw new Error('Canal indisponible');const status=await transport(s,{title:'Tourneo',body,url:lien.pathname+lien.hash,tag:j.id},j.id);if(status===404||status===410)expires.push(s.id);return status>=200&&status<300;}catch{return false;}}));

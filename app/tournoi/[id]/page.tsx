@@ -1,4 +1,6 @@
 "use client";
+import ProchaineActionTournoi from '@/components/ProchaineActionTournoi';
+import BilanFinTournoi from '@/components/BilanFinTournoi';
 import {urlPubliqueTournoi} from '@/lib/url-publique';
 import ReglesSport from '@/components/ReglesSport';
 import ChoixSport from '@/components/ChoixSport';
@@ -2239,6 +2241,8 @@ ${lienPartage}`,
             </button>))}
         </nav>
 
+        {cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
+        {cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
         {onglet === "participants" && (<section style={styles.card}>
             <div style={styles.formHeader}>
               <div>

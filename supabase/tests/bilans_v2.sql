@@ -1,0 +1,22 @@
+begin;
+insert into auth.users(id,email,email_confirmed_at)values('e1000000-0000-4000-8000-000000000001','owner@example.invalid',now()),('e1000000-0000-4000-8000-000000000002','player@example.invalid',now()),('e1000000-0000-4000-8000-000000000003','ref@example.invalid',now()),('e1000000-0000-4000-8000-000000000004','quiet@example.invalid',now());
+insert into public.tournois(id,user_id,nom,sport,donnees)values('e2000000-0000-4000-8000-000000000001','e1000000-0000-4000-8000-000000000001','Bilan QA','petanque','{"cree":true,"termine":true,"equipes":[{"id":"a","profilId":"e1000000-0000-4000-8000-000000000002","nom":"Joueur"},{"id":"b","profilId":"e1000000-0000-4000-8000-000000000003","nom":"Arbitre joueur"},{"id":"c","profilId":"e1000000-0000-4000-8000-000000000004","nom":"Sans alerte"},{"id":"invite","nom":"Sans compte"}],"matchs":[{"id":1,"score1":"13","score2":"4"}],"matchsValides":[1]}');
+insert into public.tourneo_arbitres(tournoi_id,user_id)values('e2000000-0000-4000-8000-000000000001','e1000000-0000-4000-8000-000000000003');
+insert into public.tourneo_preferences(user_id,notifications_sportives,notifications_email)values('e1000000-0000-4000-8000-000000000002',true,true),('e1000000-0000-4000-8000-000000000004',false,true);
+insert into storage.objects(bucket_id,name)values('tourneo-media','e1000000-0000-4000-8000-000000000001/tournois/e2000000-0000-4000-8000-000000000001/bilan-e3000000-0000-4000-8000-000000000001.png');
+set local role authenticated;select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000002',true);
+do $$begin begin perform public.tourneo_bilan_etat('e2000000-0000-4000-8000-000000000001');raise exception 'Participant accède au suivi organisateur';exception when raise_exception then if sqlerrm not like 'Accès organisateur%'then raise;end if;end;end$$;
+select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000001',true);
+do $$declare revision bigint;r jsonb;begin select t.revision into revision from public.tournois t where id='e2000000-0000-4000-8000-000000000001';begin perform public.tourneo_publier_bilan('e2000000-0000-4000-8000-000000000001','e3000000-0000-4000-8000-000000000001',revision+1);raise exception 'Version concurrente acceptée';exception when raise_exception then if sqlerrm not like 'Le tournoi a changé%'then raise;end if;end;r:=public.tourneo_publier_bilan('e2000000-0000-4000-8000-000000000001','e3000000-0000-4000-8000-000000000001',revision);if(r->>'comptes_notifies')::int<>3 then raise exception 'Audience fin non dédupliquée ou choix non respectés';end if;perform public.tourneo_publier_bilan('e2000000-0000-4000-8000-000000000001','e3000000-0000-4000-8000-000000000001',revision);if(select count(*)from public.tourneo_bilans)<>1 then raise exception 'Bilan doublonné';end if;end$$;
+reset role;
+do $$begin if(select count(*)from public.tourneo_notifications where type='bilan')<>3 then raise exception 'Notifications finales répétées';end if;if(select count(*)from public.tourneo_envois where canal='email')<>1 then raise exception 'Consentement e-mail non respecté';end if;end$$;
+-- Reading the in-app result must not suppress the requested final email.
+update public.tourneo_notifications set lu=true where type='bilan';
+set local role service_role;
+do $$declare r jsonb;begin r:=public.tourneo_worker_prendre(true,false);if jsonb_array_length(r)<>1 or r->0->'bilan'->>'nom'<>'Bilan QA'or(r->0->'bilan'->>'photos')::boolean then raise exception 'Affiche ou liens de bilan manquants / photos privées exposées';end if;if r->0->>'email'<>'player@example.invalid'then raise exception 'Mauvais destinataire';end if;end$$;
+reset role;
+-- No publication before all matches are validated.
+insert into public.tournois(id,user_id,nom,sport,donnees)values('e2000000-0000-4000-8000-000000000002','e1000000-0000-4000-8000-000000000001','Non fini','petanque','{"cree":true,"termine":true,"matchs":[{"id":1}],"matchsValides":[]}');
+set local role authenticated;select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000001',true);
+do $$declare revision bigint;begin select t.revision into revision from public.tournois t where id='e2000000-0000-4000-8000-000000000002';begin perform public.tourneo_publier_bilan('e2000000-0000-4000-8000-000000000002','e3000000-0000-4000-8000-000000000001',revision);raise exception 'Bilan avant validation autorisé';exception when raise_exception then if sqlerrm<>'Tous les résultats doivent être validés'then raise;end if;end;end$$;
+reset role;rollback;

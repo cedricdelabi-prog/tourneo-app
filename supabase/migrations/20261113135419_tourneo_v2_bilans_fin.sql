@@ -1,0 +1,48 @@
+-- A single final report per tournament, generated only after organizer validation.
+alter table public.tourneo_notifications drop constraint tourneo_notifications_type_check;
+alter table public.tourneo_notifications add constraint tourneo_notifications_type_check check(type in('inscription','statut_inscription','arbitrage','score','bilan'));
+create unique index notification_bilan_unique on public.tourneo_notifications(tournoi_id,user_id)where type='bilan';
+create table public.tourneo_bilans(tournoi_id uuid primary key references public.tournois(id)on delete cascade,id uuid not null unique,user_id uuid not null references auth.users(id)on delete cascade,poster_path text not null unique,created_at timestamptz not null default now(),check(poster_path=user_id::text||'/tournois/'||tournoi_id::text||'/bilan-'||id::text||'.png'));
+alter table public.tourneo_bilans enable row level security;
+revoke all on public.tourneo_bilans from public,anon,authenticated;
+grant select on public.tourneo_bilans to authenticated;
+create policy bilan_lecture on public.tourneo_bilans for select to authenticated using(user_id=(select auth.uid()));
+create function tourneo_private.bilan_etat(p_tournoi uuid)returns jsonb language plpgsql stable security definer set search_path='' as $$declare t public.tournois;begin
+ select * into t from public.tournois where id=p_tournoi and user_id=(select auth.uid());if not found then raise exception 'Accès organisateur requis';end if;
+ return jsonb_build_object('existe',exists(select 1 from public.tourneo_bilans where tournoi_id=t.id),'termine',coalesce(t.donnees->>'termine','false')='true','revision',t.revision,'email_disponible',coalesce((select email_disponible from tourneo_private.notifications_config where singleton),false),'photos_partagees',exists(select 1 from public.tourneo_album_config where tournoi_id=t.id and partage and(t.photos_expirent_at is null or t.photos_expirent_at>now())),'comptes_notifies',(select count(*)from public.tourneo_notifications where tournoi_id=t.id and type='bilan'),'emails_en_attente',(select count(*)from public.tourneo_envois e join public.tourneo_notifications n on n.id=e.source_id where e.source='notification'and n.tournoi_id=t.id and n.type='bilan'and e.canal='email'and e.statut in('attente','traitement')),'emails_echecs',(select count(*)from public.tourneo_envois e join public.tourneo_notifications n on n.id=e.source_id where e.source='notification'and n.tournoi_id=t.id and n.type='bilan'and e.canal='email'and e.statut='echec'),'emails_acceptes',(select count(*)from public.tourneo_envois e join public.tourneo_notifications n on n.id=e.source_id where e.source='notification'and n.tournoi_id=t.id and n.type='bilan'and e.canal='email'and e.statut='transmis'));
+end$$;
+create function public.tourneo_bilan_etat(p_tournoi uuid)returns jsonb language sql stable security invoker set search_path='' as $$select tourneo_private.bilan_etat(p_tournoi)$$;
+create function tourneo_private.publier_bilan(p_tournoi uuid,p_bilan uuid,p_revision bigint)returns jsonb language plpgsql security definer set search_path='' as $$declare t public.tournois;ident uuid;dest uuid;chemin text;begin
+ perform pg_advisory_xact_lock(hashtext(p_tournoi::text));select * into t from public.tournois where id=p_tournoi and user_id=(select auth.uid())for update;if not found then raise exception 'Accès organisateur requis';end if;
+ if exists(select 1 from public.tourneo_bilans where tournoi_id=t.id)then return tourneo_private.bilan_etat(t.id);end if;
+ if t.revision is distinct from p_revision then raise exception 'Le tournoi a changé. Rechargez avant de diffuser le bilan.';end if;
+ if coalesce(t.donnees->>'termine','false')<>'true'or coalesce(t.donnees->>'cree','false')<>'true'or jsonb_array_length(coalesce(t.donnees->'matchs','[]'))=0 or exists(select 1 from jsonb_array_elements(t.donnees->'matchs')m where not coalesce(t.donnees->'matchsValides','[]')@>jsonb_build_array(m->'id'))then raise exception 'Tous les résultats doivent être validés';end if;
+ if(select count(*)from public.tourneo_bilans where user_id=auth.uid()and created_at>now()-interval '1 hour')>=10 then raise exception 'Diffusion temporairement limitée. Réessayez plus tard.';end if;
+ chemin:=auth.uid()::text||'/tournois/'||t.id::text||'/bilan-'||p_bilan::text||'.png';if p_bilan is null or not exists(select 1 from storage.objects where bucket_id='tourneo-media'and name=chemin)then raise exception 'Affiche finale non transférée';end if;
+ insert into public.tourneo_bilans(tournoi_id,id,user_id,poster_path)values(t.id,p_bilan,auth.uid(),chemin);
+ for dest in select distinct u.id from auth.users u where u.email_confirmed_at is not null and u.id in(
+ select t.user_id union select a.user_id from public.tourneo_arbitres a where a.tournoi_id=t.id union select i.user_id from public.tourneo_inscriptions i where i.tournoi_id=t.id and i.statut='accepte'and i.user_id is not null union select case when coalesce(e->>'profilId',e->>'id')~*'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'then coalesce(e->>'profilId',e->>'id')::uuid end from jsonb_array_elements(coalesce(t.donnees->'equipes','[]'))e
+ )and coalesce((select notifications_sportives from public.tourneo_preferences where user_id=u.id),true)loop
+ insert into public.tourneo_notifications(user_id,tournoi_id,type,message)values(dest,t.id,'bilan','Le tournoi est terminé. Les résultats et le bilan final sont disponibles.')on conflict do nothing;
+ end loop;return tourneo_private.bilan_etat(t.id);
+end$$;
+create function public.tourneo_publier_bilan(p_tournoi uuid,p_bilan uuid,p_revision bigint)returns jsonb language sql security invoker set search_path='' as $$select tourneo_private.publier_bilan(p_tournoi,p_bilan,p_revision)$$;
+revoke all on function public.tourneo_bilan_etat(uuid),tourneo_private.bilan_etat(uuid),public.tourneo_publier_bilan(uuid,uuid,bigint),tourneo_private.publier_bilan(uuid,uuid,bigint)from public,anon;
+grant execute on function public.tourneo_bilan_etat(uuid),tourneo_private.bilan_etat(uuid),public.tourneo_publier_bilan(uuid,uuid,bigint),tourneo_private.publier_bilan(uuid,uuid,bigint)to authenticated;
+
+-- Claims carry final-report metadata; reading the in-app message does not cancel its email.
+create or replace function tourneo_private.worker_prendre(p_email boolean default false,p_android boolean default false)returns jsonb language plpgsql security definer set search_path='' as $$
+declare j public.tourneo_envois;p public.tourneo_preferences;contenu text;lu boolean;lien text;adresse text;sortie jsonb:='[]';abonnements jsonb;ident uuid;genre text;tid uuid;bilan jsonb;begin
+ delete from public.tourneo_envois where created_at<now()-interval '30 days';
+ for j in select * from public.tourneo_envois where statut in('attente','traitement')and reessayer_at<=now()and(bail_fin is null or bail_fin<now())and(canal='push'or(canal='email'and p_email)or(canal='android'and p_android))order by created_at limit 5 for update skip locked loop
+  select * into p from public.tourneo_preferences where user_id=j.user_id;contenu:=null;lu:=null;lien:='/activite';adresse:=null;genre:=null;tid:=null;bilan:=null;
+  if j.source='appel'then select a.message,a.lu,'/partage/'||a.tournoi_id::text||'#match-'||a.match_id::text into contenu,lu,lien from public.tourneo_appels a where a.id=j.source_id;else select n.message,n.lu,n.type,n.tournoi_id into contenu,lu,genre,tid from public.tourneo_notifications n where n.id=j.source_id;end if;
+  if genre='bilan'then select jsonb_build_object('tournoi_id',b.tournoi_id,'nom',t.nom,'poster_path',b.poster_path,'photos',exists(select 1 from public.tourneo_album_config c where c.tournoi_id=b.tournoi_id and c.partage and(t.photos_expirent_at is null or t.photos_expirent_at>now())))into bilan from public.tourneo_bilans b join public.tournois t on t.id=b.tournoi_id where b.tournoi_id=tid;lien:='/partage/'||tid::text;end if;
+  if contenu is null or(lu and(genre is distinct from 'bilan'or j.canal<>'email'))or(genre='bilan'and bilan is null)or not coalesce(p.notifications_sportives,true)or(j.canal='push'and not coalesce(p.notifications_push,false))or(j.canal='email'and not coalesce(p.notifications_email,false))or(j.canal='android'and not coalesce(p.notifications_android,false))or j.created_at<now()-(case when j.source='appel'then interval '15 minutes'else interval '1 day'end)then update public.tourneo_envois set statut='annule',bail=null,bail_fin=null where id=j.id;continue;end if;
+  if j.canal='email'then select email into adresse from auth.users where id=j.user_id and email_confirmed_at is not null;if adresse is null then update public.tourneo_envois set statut='annule'where id=j.id;continue;end if;end if;
+  select coalesce(jsonb_agg(jsonb_build_object('id',id,'endpoint',endpoint,'keys',jsonb_build_object('p256dh',p256dh,'auth',auth))),'[]')into abonnements from public.tourneo_push_abonnements where user_id=j.user_id;
+  if j.canal='android'then select coalesce(jsonb_agg(jsonb_build_object('id',id,'jeton',jeton)),'[]')into abonnements from public.tourneo_android_appareils where user_id=j.user_id;end if;
+  if j.canal in('push','android')and jsonb_array_length(abonnements)=0 then update public.tourneo_envois set statut='annule'where id=j.id;continue;end if;
+  ident:=gen_random_uuid();update public.tourneo_envois set statut='traitement',tentatives=tentatives+1,bail=ident,bail_fin=now()+interval '2 minutes'where id=j.id;
+  sortie:=sortie||jsonb_build_array(jsonb_build_object('id',j.id,'bail',ident,'canal',j.canal,'lien',lien,'email',adresse,'langue',coalesce(p.langue,'fr'),'abonnements',abonnements,'bilan',bilan));
+ end loop;return sortie;end $$;
