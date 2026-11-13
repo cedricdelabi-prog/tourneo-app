@@ -1,4 +1,6 @@
 "use client";
+import {assurerProfilCompte} from '@/lib/profil-compte';
+import {retourPronostics} from "@/lib/pronostics";
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
@@ -68,7 +70,7 @@ export default function LoginPage() {
         if (!commencer("google", "Redirection vers Google…"))
             return;
         try {
-            const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/dashboard` } });
+            const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}${retourPronostics(window.location.search)}` } });
             if (error)
                 throw error;
         }
@@ -88,8 +90,8 @@ export default function LoginPage() {
             notifier("Le mot de passe doit contenir au moins 6 caractères.", "erreur");
             return;
         }
-        if (mode === "inscription" && (!prenom.trim() || !nom.trim())) {
-            notifier("Renseignez votre prénom et votre nom.", "erreur");
+        if (mode === "inscription" && pseudo.trim().length < 2) {
+            notifier("Choisissez un pseudo Tourneo d’au moins 2 caractères.", "erreur");
             return;
         }
         if (!commencer(mode, mode === "inscription" ? "Création de votre compte en cours…" : "Connexion en cours…"))
@@ -98,27 +100,29 @@ export default function LoginPage() {
         try {
             if (mode === "inscription") {
                 const { data, error } = await supabase.auth.signUp({ email: email.trim(), password,
-                    options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: {
+                    options: { emailRedirectTo: `${window.location.origin}${retourPronostics(window.location.search)}`, data: {
                             first_name: prenom.trim(), last_name: nom.trim(), display_name: pseudo.trim() || `${prenom.trim()} ${nom.trim()}`, city: ville.trim(),structure:structure.trim()||undefined,
                         } },
                 });
                 if (error)
                     throw error;
                 if (data.session) {
+                    if(data.user)await assurerProfilCompte(data.user);
                     redirection = true;
                     notifier("Compte créé. Ouverture de votre espace…", "succes");
-                    window.location.href = "/dashboard";
+                    window.location.href = retourPronostics(window.location.search);
                 }
                 else
                     notifier("Demande prise en compte. Consultez vos e-mails pour confirmer votre adresse, puis connectez-vous.", "succes");
             }
             else {
-                const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+                const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
                 if (error)
                     throw error;
+                if(data.user)await assurerProfilCompte(data.user);
                 redirection = true;
                 notifier("Connexion réussie. Ouverture de votre espace…", "succes");
-                window.location.href = "/dashboard";
+                window.location.href = retourPronostics(window.location.search);
             }
         }
         catch (error) {
@@ -187,6 +191,10 @@ export default function LoginPage() {
         <form aria-busy={chargement} onSubmit={e => { e.preventDefault(); void envoyer(); }}>
         <fieldset disabled={chargement} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         {mode === "inscription" && (<>
+            <label htmlFor="auth-pseudo" style={s.label}>{tr('Pseudo Tourneo')}</label>
+            <input id="auth-pseudo" style={s.input} value={pseudo} minLength={2} maxLength={100} onChange={e=>setPseudo(e.target.value)} autoComplete="nickname" placeholder={tr('Ex. Cedric62')}/>
+            <p style={s.optional}>{tr('Ce nom sera visible dans les classements et les pronostics. Votre prénom, votre nom et votre structure sont facultatifs.')}</p>
+            <details className="tourneo-optional-panel"><summary>{tr('Informations facultatives')}</summary>
             <div style={s.two}>
               <div>
                 <label htmlFor="auth-first-name" style={s.label}>{tr("Pr\u00E9nom")}</label>
@@ -198,10 +206,6 @@ export default function LoginPage() {
                 <input style={s.input} id="auth-last-name" value={nom} onChange={(e) => setNom(e.target.value)} autoComplete="family-name"/>
               </div>
             </div>
-
-            <details className="tourneo-optional-panel"><summary>{tr('Informations facultatives')}</summary>            <label style={s.label}>{tr("Pseudo Tourneo ")}<span style={s.optional}>{tr("facultatif")}</span>
-            </label>
-            <input style={s.input} value={pseudo} onChange={(e) => setPseudo(e.target.value)} placeholder={tr("Ex. Cedric62")}/>
 
             <label style={s.label}>{tr("Ville ")}<span style={s.optional}>{tr("facultatif")}</span>
             </label>

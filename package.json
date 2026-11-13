@@ -22,7 +22,8 @@
     "test:espaces": "node tests/espaces-browser.cjs",
     "test:photos": "node tests/album-browser.cjs",
     "test:affiches": "node tests/affiche-donnees.cjs && node tests/affiche-browser.cjs",
-    "test:bilans": "node tests/bilan-mail.cjs && node tests/bilan-browser.cjs"
+    "test:bilans": "node tests/bilan-mail.cjs && node tests/bilan-browser.cjs",
+    "test:pronostics": "node tests/pronostics.cjs && node tests/pronostics-browser.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

@@ -47,7 +47,7 @@ export default function ConfidentialitePage() {
         <section style={s.card}>
           <h2 style={s.heading}>{tr("3. Cr\u00E9ation et gestion d\u2019un compte")}</h2>
 
-          <p style={s.text}>{tr("La cr\u00E9ation d\u2019un compte Tourneo repose actuellement sur une adresse e-mail et un mot de passe. Lors de l\u2019inscription, l\u2019utilisateur peut \u00E9galement fournir un pr\u00E9nom, un nom, un pseudonyme et une ville.")}</p>
+          <p style={s.text}>{tr("La création d’un compte Tourneo utilise une adresse e-mail, un mot de passe et un pseudo affiché. Le prénom, le nom, la ville et la structure sont facultatifs.")}</p>
 
           <p style={s.text}>{tr("Les informations d\u2019authentification sont g\u00E9r\u00E9es \u00E0 l\u2019aide du service Supabase Authentication.")}</p>
         </section>
@@ -78,6 +78,12 @@ export default function ConfidentialitePage() {
           <p style={s.text}>{tr('Avant de publier des photos de personnes reconnaissables, l’organisateur doit les informer de l’usage prévu et recueillir les autorisations nécessaires, notamment pour les mineurs. La possibilité technique de partager ne vaut pas autorisation de diffuser ou de vendre une image.')}</p>
           <p style={s.text}>{tr('Pour demander le retrait d’une photo, contactez l’organisateur du tournoi ou Tourneo depuis la page Contact en indiquant le tournoi et la photo concernés.')}</p>
           <Link href="/contact" style={s.button}>{tr('Demander le retrait d’une photo')}</Link>
+        </section>
+
+        <section style={s.card} id="pronostics">
+          <h2 style={s.heading}>{tr('Jeu de pronostics du public')}</h2>
+          <p style={s.text}>{tr('Un compte confirmé permet de participer une seule fois à chaque jeu. Les choix sont modifiables avant la clôture. Ils restent réservés à leur auteur ; le classement public après validation affiche uniquement le pseudo utilisé lors de la participation, les points et le rang. Les adresses e-mail et identifiants de compte ne sont pas publiés.')}</p>
+          <p style={s.text}>{tr('Les pronostics servent uniquement à cette animation gratuite, sans mise d’argent. La suppression du compte ou du tournoi supprime les participations correspondantes. Vous pouvez contacter Tourneo pour exercer vos droits. Aucun lot ni paiement n’est géré par cette fonctionnalité.')}</p>
         </section>
 
         <section style={s.card} id="bilans">

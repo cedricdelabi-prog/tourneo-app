@@ -1,4 +1,6 @@
 "use client";
+import AideInfo from '@/components/AideInfo';
+import PublicationPronostics from '@/components/PublicationPronostics';
 import ProchaineActionTournoi from '@/components/ProchaineActionTournoi';
 import BilanFinTournoi from '@/components/BilanFinTournoi';
 import {urlPubliqueTournoi} from '@/lib/url-publique';
@@ -779,7 +781,7 @@ export default function TournoiPage() {
         setEquipeAModifier(null);
     }
     const [operationTournoi, setOperationTournoi] = useState(false);
-    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' = 'inscriptions') {
+    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' | 'pronostics' = 'inscriptions') {
         if (operationTournoi)
             return;
         if (!nomTournoi.trim()) {
@@ -1708,8 +1710,8 @@ ${lienPartage}`,
             </div>
 
             {creationEtape === "configuration" ? (<>
-                <label style={styles.label}>{tr("Nom du tournoi")}</label>
-                <input style={styles.input} value={nomTournoi} onChange={(event) => setNomTournoi(capitaliserNom(event.target.value))} placeholder={tr("Ex. Tournoi été 2026")}/>
+                <div className="tourneo-field-label"><label htmlFor="tournoi-nom" style={styles.label}>{tr("Nom du tournoi")}</label><AideInfo titre="Nom du tournoi">{"Le titre visible par les participants. Il est repris sur les affiches et les pages de résultats."}</AideInfo></div>
+                <input id="tournoi-nom" style={styles.input} value={nomTournoi} onChange={(event) => setNomTournoi(capitaliserNom(event.target.value))} placeholder={tr("Ex. Tournoi été 2026")}/>
 
                 <div style={styles.twoColumns}>
                   <div>
@@ -1717,8 +1719,8 @@ ${lienPartage}`,
                   </div>
 
                   <div>
-                    <label style={styles.label}>{tr("Format")}</label>
-                    <select style={styles.input} value={formatTournoi} disabled={cree && !modificationParticipantsAutorisee} onChange={(event) => setFormatTournoi(event.target.value as FormatTournoi)}>
+                    <div className="tourneo-field-label"><label htmlFor="tournoi-format" style={styles.label}>{tr("Format")}</label><AideInfo titre="Format">{"Championnat : chacun rencontre les autres. Élimination : une défaite élimine. Poules puis finale : petits groupes suivis d’une phase finale. Suisse : adversaires selon les résultats. Choisissez Championnat si vous hésitez."}</AideInfo></div>
+                    <select id="tournoi-format" style={styles.input} value={formatTournoi} disabled={cree && !modificationParticipantsAutorisee} onChange={(event) => setFormatTournoi(event.target.value as FormatTournoi)}>
                       {Object.entries(LIBELLES_FORMAT).map(([value, label]) => (<option value={value} key={value}>{tr(label)}</option>))}
                     </select>
                     <div style={styles.formatExplanation}>
@@ -1729,24 +1731,24 @@ ${lienPartage}`,
                 </div>
 
                 {(formatTournoi === "poules" || formatTournoi === "poulesFinale") && (<div style={styles.configBox}>
-                    <label style={styles.label}>{tr("Organisation des poules")}</label>
-                    <select style={styles.input} value={modePoules} onChange={(event) => setModePoules(event.target.value as ModePoules)}>
+                    <div className="tourneo-field-label"><label htmlFor="tournoi-mode-poules" style={styles.label}>{tr("Organisation des poules")}</label><AideInfo titre="Organisation des poules">{"Répartissez les participants soit par nombre de poules, soit par taille de poule. Exemple : 12 joueurs dans 3 poules donnent 4 joueurs par poule."}</AideInfo></div>
+                    <select id="tournoi-mode-poules" style={styles.input} value={modePoules} onChange={(event) => setModePoules(event.target.value as ModePoules)}>
                       <option value="nombrePoules">{tr("Choisir le nombre de poules")}</option>
                       <option value="taillePoules">{tr("Choisir les participants par poule")}</option>
                     </select>
 
                     <div style={styles.twoColumns}>
                       <div>
-                        <label style={styles.label}>
+                        <div className="tourneo-field-label"><label htmlFor="tournoi-poules-quantite" style={styles.label}>
                           {modePoules === "nombrePoules" ? tr("Nombre de poules") : tr("Participants par poule")}
-                        </label>
+                        </label><AideInfo titre="Répartition des poules">{'Une poule est un petit groupe de participants. Choisissez combien de groupes créer ou combien de personnes placer dans chaque groupe. Tourneo répartit les participants.'}</AideInfo></div>
                         <input style={styles.input} type="number" min="2" value={modePoules === "nombrePoules" ? nombrePoules : taillePoules} onChange={(event) => modePoules === "nombrePoules"
                         ? setNombrePoules(Number(event.target.value))
                         : setTaillePoules(Number(event.target.value))}/>
                       </div>
                       {formatTournoi === "poulesFinale" && (<div>
-                          <label style={styles.label}>{tr("Qualifi\u00E9s par poule")}</label>
-                          <input style={styles.input} type="number" min="1" value={qualifiesParPoule} onChange={(event) => setQualifiesParPoule(Number(event.target.value))}/>
+                          <div className="tourneo-field-label"><label htmlFor="tournoi-qualifies" style={styles.label}>{tr("Qualifi\u00E9s par poule")}</label><AideInfo titre="Qualifiés par poule">{"Nombre de participants de chaque poule qui passent en phase finale. Exemple : 2 qualifiés dans 4 poules donnent 8 finalistes."}</AideInfo></div>
+                          <input id="tournoi-qualifies" style={styles.input} type="number" min="1" value={qualifiesParPoule} onChange={(event) => setQualifiesParPoule(Number(event.target.value))}/>
                         </div>)}
                     </div>
                   </div>)}
@@ -1813,6 +1815,7 @@ ${lienPartage}`,
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('photos')}>{tr('Préparer les photos')}</button>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('pronostics')}>{tr('Pronostics du public')}</button>
                 <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
                 <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
                 {tr(messageCloud) && <div style={styles.statusLine}>{tr(messageCloud)}</div>}
@@ -2201,7 +2204,7 @@ ${lienPartage}`,
             <details className="tourneo-tournament-more"><summary>{tr("G\u00E9rer le tournoi")}</summary><div>
             <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>{tr("Inscriptions / pointage")}</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>{tr("QR code")}</button>
-            <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
+            <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button><button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('pronostics')}>{tr('Pronostics du public')}</button>
             <button style={styles.secondaryButton} onClick={exporterPDF}>{tr("Imprimer / PDF")}</button>
             <button style={styles.secondaryButton} onClick={exporterClassement}>{tr("Classement CSV")}</button>
             <button style={styles.secondaryButton} onClick={sauvegarderFichier}>{tr("Sauvegarder les r\u00E9sultats")}</button>
@@ -2242,6 +2245,7 @@ ${lienPartage}`,
         </nav>
 
         {cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
+        {cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
         {cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
         {onglet === "participants" && (<section style={styles.card}>
             <div style={styles.formHeader}>
@@ -2257,8 +2261,8 @@ ${lienPartage}`,
             <OptionsTournoiV2 value={optionsV2} onChange={setOptionsV2} disabled={!modificationParticipantsAutorisee}/>
             <div style={styles.twoColumns}>
               <div>
-                <label style={styles.label}>{tr("Format")}</label>
-                <select style={styles.input} value={formatTournoi} disabled={cree && !modificationParticipantsAutorisee} onChange={(event) => {
+                <div className="tourneo-field-label"><label htmlFor="tournoi-format" style={styles.label}>{tr("Format")}</label><AideInfo titre="Format">{"Championnat : chacun rencontre les autres. Élimination : une défaite élimine. Poules puis finale : petits groupes suivis d’une phase finale. Suisse : adversaires selon les résultats. Choisissez Championnat si vous hésitez."}</AideInfo></div>
+                <select id="tournoi-format" style={styles.input} value={formatTournoi} disabled={cree && !modificationParticipantsAutorisee} onChange={(event) => {
                 setFormatTournoi(event.target.value as FormatTournoi);
                 setMatchs([]);
                 setPoules([]);
@@ -2273,8 +2277,8 @@ ${lienPartage}`,
             </div>
 
             {(formatTournoi === "poules" || formatTournoi === "poulesFinale") && (<div style={styles.configBox}>
-                <label style={styles.label}>{tr("Organisation des poules")}</label>
-                <select style={styles.input} value={modePoules} onChange={(event) => setModePoules(event.target.value as ModePoules)}>
+                <div className="tourneo-field-label"><label htmlFor="tournoi-mode-poules" style={styles.label}>{tr("Organisation des poules")}</label><AideInfo titre="Organisation des poules">{"Répartissez les participants soit par nombre de poules, soit par taille de poule. Exemple : 12 joueurs dans 3 poules donnent 4 joueurs par poule."}</AideInfo></div>
+                <select id="tournoi-mode-poules" style={styles.input} value={modePoules} onChange={(event) => setModePoules(event.target.value as ModePoules)}>
                   <option value="nombrePoules">{tr("Choisir le nombre de poules")}</option>
                   <option value="taillePoules">{tr("Choisir les participants par poule")}</option>
                 </select>
@@ -2286,8 +2290,8 @@ ${lienPartage}`,
                     : setTaillePoules(Number(event.target.value))}/>
                   </div>
                   {formatTournoi === "poulesFinale" && (<div>
-                      <label style={styles.label}>{tr("Qualifi\u00E9s par poule")}</label>
-                      <input style={styles.input} type="number" min="1" value={qualifiesParPoule} onChange={(event) => setQualifiesParPoule(Number(event.target.value))}/>
+                      <div className="tourneo-field-label"><label htmlFor="tournoi-qualifies" style={styles.label}>{tr("Qualifi\u00E9s par poule")}</label><AideInfo titre="Qualifiés par poule">{"Nombre de participants de chaque poule qui passent en phase finale. Exemple : 2 qualifiés dans 4 poules donnent 8 finalistes."}</AideInfo></div>
+                      <input id="tournoi-qualifies" style={styles.input} type="number" min="1" value={qualifiesParPoule} onChange={(event) => setQualifiesParPoule(Number(event.target.value))}/>
                     </div>)}
                 </div>
               </div>)}

@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),ts=require('typescript');
 const modules=new Map();function load(file){if(modules.has(file))return modules.get(file).exports;const m={exports:{}};modules.set(file,m);const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2020}}).outputText;new Function('require','module','exports',code)(id=>id.startsWith('@/')?load(id.slice(2)+'.ts'):require(id),m,m.exports);return m.exports;}
-const {tr,trModele,changerLangue}=load('lib/langue.ts');const {traductions}=load('lib/traductions.ts');
+const {tr,trModele,changerLangue}=load('lib/langue.ts');const traductions={...load('lib/traductions.ts').traductions,...load('lib/traductions-pronostics.ts').traductionsPronostics};
 assert.ok(Object.keys(traductions).length>1500);
 for(const [source,t]of Object.entries(traductions)){for(const lang of ['en','nl']){assert.ok(t[lang]?.trim(),source+' '+lang);assert.deepEqual([...source.matchAll(/\{\d+\}/g)].map(m=>m[0]),[...t[lang].matchAll(/\{\d+\}/g)].map(m=>m[0]),'Interpolation '+source);}}
 changerLangue('en');assert.equal(tr('Mes tournois'),'My tournaments');assert.equal(tr('Poules'),'Groups');assert.equal(trModele('Avatar {0}','Alice'),'Avatar Alice');assert.equal(tr('Alice — Bob'),'Alice — Bob');
