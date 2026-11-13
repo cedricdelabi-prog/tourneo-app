@@ -1,7 +1,8 @@
 import {useSyncExternalStore} from "react";
 import { traductions as base } from '@/lib/traductions';
 import { traductionsAlertes } from '@/lib/traductions-alertes';
-const traductions = {...base, ...traductionsAlertes};
+import {traductionsEspaces} from '@/lib/traductions-espaces';
+const traductions = {...base, ...traductionsAlertes, ...traductionsEspaces};
 export type Langue='fr'|'en'|'nl';
 let langue:Langue='fr';
 const ecouteurs=new Set<()=>void>();

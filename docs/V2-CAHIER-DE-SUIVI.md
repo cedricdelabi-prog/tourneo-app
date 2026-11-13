@@ -10,10 +10,10 @@ Les points 86 et 87 sont des priorités ajoutées qui recoupent plusieurs foncti
 
 | Statut | Nombre |
 |---|---:|
-| Développée | 80 |
+| Développée | 81 |
 | Partiellement développée | 0 |
 | Partiellement développée | 1 |
-| À tester | 4 |
+| À tester | 3 |
 
 **Ces nombres mesurent la présente grille reconstituée. Ils ne certifient pas un nombre terminé dans une liste historique 1–75 que nous ne possédons pas intégralement.**
 
@@ -95,7 +95,7 @@ Source du périmètre : récapitulatif transmis par l’utilisateur dans cette c
 | 63 | Résultats et partage | Export ou impression PDF des résultats | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 64 | Résultats et partage | Feuilles vierges et pointage papier | Développée | [app/tournoi/[id]/imprimer/page.tsx](../app/tournoi/[id]/imprimer/page.tsx) ; [tests/impression.cjs](../tests/impression.cjs) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
 | 65 | Résultats et partage | Historique des inscriptions, arbitrages et participations | Développée | [app/activite/page.tsx](../app/activite/page.tsx) | Code intégré ; contrôles locaux. Tests utilisateur complémentaires possibles. |
-| 66 | Expérience et accès | Affichage responsive smartphone, tablette et ordinateur | À tester | [app/globals.css](../app/globals.css) | Ordinateur validé par les essais utilisateur. Vérification complète sur petits écrans et tablette à terminer. |
+| 66 | Expérience et accès | Affichage responsive smartphone, tablette et ordinateur | Développée | [tests/espaces-browser.cjs](../tests/espaces-browser.cjs) | Chromium 320/390/768/1366 px : outils, statistiques, arbitrage, joueur et profil sans débordement. Essais physiques suivis aux points 46 et 67. |
 | 67 | Expérience et accès | Utilisation sur iPhone | À tester | [app/manifest.ts](../app/manifest.ts) ; [app/login/page.tsx](../app/login/page.tsx) | Parcours Safari/iPhone et installation écran d’accueil à vérifier sur appareil réel. |
 | 68 | Expérience et accès | Utilisation sur Android et distribution de la V2 | Développée | [capacitor.config.ts](../capacitor.config.ts) ; [android/app/build.gradle](../android/app/build.gradle) ; [android/app/src/main/AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml) | APK de test V2 compilé, identifiant distinct de la V1, caméra avec accord Android. Installation réelle à confirmer ; aucune publication Google Play annoncée. |
 | 69 | Expérience et accès | Navigation commune et retours cohérents | Développée | [components/TourneoNav.tsx](../components/TourneoNav.tsx) ; [components/TourneoRetour.tsx](../components/TourneoRetour.tsx) | Inclut la fusion planning/scores/appels en une fiche de match, demandée pendant les essais. |

@@ -8,13 +8,13 @@
     "À tester": "Code présent ; validation utilisateur ou appareil indispensable avant de considérer le point terminé."
   },
   "compteur_85": {
-    "Développée": 80,
-    "À tester": 4,
+    "Développée": 81,
+    "À tester": 3,
     "Partiellement développée": 1
   },
   "compteur_87": {
-    "Développée": 81,
-    "À tester": 4,
+    "Développée": 82,
+    "À tester": 3,
     "Partiellement développée": 2
   },
   "points": [
@@ -607,9 +607,9 @@
       "numero": 66,
       "theme": "Expérience et accès",
       "evolution": "Affichage responsive smartphone, tablette et ordinateur",
-      "statut": "À tester",
-      "preuve": "app/globals.css",
-      "reste": "Ordinateur validé par les essais utilisateur. Vérification complète sur petits écrans et tablette à terminer.",
+      "statut": "Développée",
+      "preuve": "tests/mobile-browser.cjs ; tests/espaces-browser.cjs",
+      "reste": "Contrôles Chromium sur 320, 390, 768 et 1366 px : outils, photo importée, statistiques, arbitrage, joueur et profil sans débordement. Les essais physiques caméra/iPhone sont suivis séparément aux points 46 et 67.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {
@@ -672,7 +672,7 @@
       "evolution": "E-mails sportifs et notifications téléphone application fermée",
       "statut": "Partiellement développée",
       "preuve": "components/AlertesExternes.tsx ; supabase/functions/notifications-tourneo ; supabase/tests/alertes_externes_v2.sql ; tests/notifications-externes.cjs",
-      "reste": "Web Push intégré, migration V2 appliquée et worker déployé. Expéditeur e-mail vérifié et secrets à configurer. Push natif APK et essais téléphone réel non réalisés.",
+      "reste": "Web Push actif. Code Android compilé et serveur déployé ; configuration Firebase du binaire V2 et compte de service à fournir, expéditeur e-mail vérifié à configurer. Essais de réception sur vrai téléphone non réalisés.",
       "origine": "Reconstituée à partir des thèmes validés"
     },
     {

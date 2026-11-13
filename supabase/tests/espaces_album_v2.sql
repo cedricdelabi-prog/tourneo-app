@@ -1,0 +1,23 @@
+begin;
+insert into auth.users(id,aud,role)values('81000000-0000-4000-8000-000000000001','authenticated','authenticated'),('81000000-0000-4000-8000-000000000002','authenticated','authenticated'),('81000000-0000-4000-8000-000000000003','authenticated','authenticated');
+insert into public.tournois(id,user_id,nom,sport,donnees)values('82000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001','Tournoi rôles','petanque','{"cree":true,"secret":"NE_PAS_TRANSMETTRE","equipes":[{"id":"a","profilId":"81000000-0000-4000-8000-000000000002","nom":"A","photo":"NE_PAS_TRANSMETTRE"},{"id":"b","nom":"B"},{"id":"c","nom":"C"}],"matchs":[{"id":1,"journee":1,"equipe1Id":"a","equipe2Id":"b","score1":"13","score2":"4","secret":"NE_PAS_TRANSMETTRE"},{"id":2,"journee":1,"equipe1Id":"b","equipe2Id":"c","score1":"13","score2":"6"}],"matchsValides":[]}');
+insert into storage.objects(bucket_id,name)values('tourneo-media','81000000-0000-4000-8000-000000000001/tournois/82000000-0000-4000-8000-000000000001/album-83000000-0000-4000-8000-000000000001.jpg');
+insert into storage.objects(bucket_id,name)values('tourneo-media','81000000-0000-4000-8000-000000000002/tournois/82000000-0000-4000-8000-000000000001/album-83000000-0000-4000-8000-000000000001.jpg');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000002',true);
+do $$declare r jsonb;begin
+ r:=public.tourneo_mes_participations();if jsonb_array_length(r)<>1 or jsonb_array_length(r->0->'matchs')<>1 then raise exception 'Vue joueur non limitée à ses matchs';end if;
+ if r::text like '%NE_PAS_TRANSMETTRE%'or r::text like '%profilId%'then raise exception 'Données privées dans vue joueur';end if;
+ if r->0->'matchs'->0->>'score1'is not null then raise exception 'Score non validé transmis au joueur';end if;
+ begin insert into public.tourneo_album_photos(id,tournoi_id,user_id,path)values('83000000-0000-4000-8000-000000000001','82000000-0000-4000-8000-000000000001',auth.uid(),'81000000-0000-4000-8000-000000000002/tournois/82000000-0000-4000-8000-000000000001/album-83000000-0000-4000-8000-000000000001.jpg');raise exception 'Joueur ajoute photo à album organisateur';exception when insufficient_privilege then null;when check_violation then null;when raise_exception then if sqlerrm<>'Photo non transférée'then raise;end if;end;
+end$$;
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000003',true);
+do $$begin if jsonb_array_length(public.tourneo_mes_participations())<>0 then raise exception 'Étranger voit participations';end if;end$$;
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000001',true);
+insert into public.tourneo_album_photos(id,tournoi_id,user_id,path,legende)values('83000000-0000-4000-8000-000000000001','82000000-0000-4000-8000-000000000001',auth.uid(),'81000000-0000-4000-8000-000000000001/tournois/82000000-0000-4000-8000-000000000001/album-83000000-0000-4000-8000-000000000001.jpg','Album privé');
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000002',true);
+do $$begin if exists(select 1 from public.tourneo_album_photos)then raise exception 'Album visible par joueur';end if;delete from public.tourneo_album_photos;end$$;
+select set_config('request.jwt.claim.sub','81000000-0000-4000-8000-000000000001',true);
+do $$begin if(select count(*)from public.tourneo_album_photos)<>1 then raise exception 'Étranger supprime album';end if;end$$;
+reset role;
+rollback;

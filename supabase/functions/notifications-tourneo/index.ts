@@ -9,7 +9,7 @@ if(new URL(url).hostname!=='kmjfmjhdnokkaiolxiin.supabase.co')throw new Error('P
 const db=createClient(url,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'',{auth:{persistSession:false,autoRefreshToken:false}});
 const site='https://tourneo-v2-test-tourneo.vercel.app';
 const emailActif=Boolean(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('TOURNEO_EMAIL_FROM'));
-async function initialiser(){const cles=webpush.generateVAPIDKeys();const r=await db.rpc('tourneo_worker_initialiser',{p_publique:cles.publicKey,p_privee:cles.privateKey,p_email:emailActif});if(r.error)throw r.error;const a=await db.rpc('tourneo_worker_android',{p_projet:compteAndroid?.project_id||null});if(a.error)throw a.error;return r.data;}
+async function initialiser(){const cles=webpush.generateVAPIDKeys();const r=await db.rpc('tourneo_worker_initialiser',{p_publique:cles.publicKey,p_privee:cles.privateKey,p_email:emailActif});if(r.error){console.error('notifications-init',r.error.code);throw r.error;}const a=await db.rpc('tourneo_worker_android',{p_projet:compteAndroid?.project_id||null});if(a.error){console.error('notifications-android-config',a.error.code);throw a.error;}return r.data;}
 let config:ReturnType<typeof initialiser>|undefined;
 function reponse(status:number,body:unknown){return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});}
 async function memeSecret(a:string,b:string){const e=new TextEncoder();const [x,y]=await Promise.all([crypto.subtle.digest('SHA-256',e.encode(a)),crypto.subtle.digest('SHA-256',e.encode(b))]);const yy=new Uint8Array(y);let difference=0;new Uint8Array(x).forEach((v,i)=>{difference|=v^yy[i];});return difference===0;}
@@ -26,5 +26,5 @@ Deno.serve(async req=>{
    const reponse=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${Deno.env.get('RESEND_API_KEY')}`,'Content-Type':'application/json','Idempotency-Key':`tourneo-${j.id}`},body:JSON.stringify({from:Deno.env.get('TOURNEO_EMAIL_FROM'),to:[j.email],subject:textes.titre,text:`${textes.texte}\n\n${lien}\n\n${textes.prefs} : ${site}/profil`}),signal:AbortSignal.timeout(10000)});return reponse.ok;
   },async(j,ok,expires)=>{const fin=await db.rpc('tourneo_worker_finir',{p_id:j.id,p_bail:j.bail,p_ok:ok,p_expires:expires});if(fin.error)throw fin.error;},async(s,p,id)=>{if(!android||!s.jeton)throw new Error('Android indisponible');return android(s.jeton,p.body,p.url,id);});
   return reponse(200,resultat);
- }catch{return reponse(503,{erreur:'Traitement temporairement indisponible'});}
+ }catch(e){const code=typeof e==='object'&&e&&'code'in e?String(e.code):'runtime';console.error('notifications-tourneo',/^[A-Z0-9_]{1,32}$/i.test(code)?code:'runtime');return reponse(503,{erreur:'Traitement temporairement indisponible'});}
 });

@@ -184,3 +184,7 @@ Code d’activation par appareil et consentement e-mail dans le profil, statuts 
 Compteur : 80 développés, 4 à tester, 1 partiellement développé. La V1 et main ne sont pas modifiés.
 
 Activation confirmée ensuite le 13 novembre : migration 20261113072840 appliquée, worker notifications-tourneo ACTIVE v1, clés publiques prêtes et planificateur actif. Aucune clé privée accessible aux comptes, aucun message réel envoyé. Le canal e-mail reste désactivé faute d’expéditeur configuré.
+
+## Retours du 13 novembre : espaces et album
+
+Voir V2-RETOUR-13-NOVEMBRE.md : navigation par rôle, joueur limité à ses matchs, arbitrage séparé des statistiques, outils dans la rencontre, transfert puis validation explicite, album privé du tournoi. Responsive vérifié sur quatre largeurs Chromium. Compteur : 81 développés, 3 à tester, 1 partiellement développé. Les ajouts de rôle et album complètent le périmètre initial sans inventer de nouveaux numéros.

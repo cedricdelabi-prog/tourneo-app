@@ -253,3 +253,40 @@ body {
 .tourneo-drawn-teams li,.tourneo-olympic-ranking strong { overflow-wrap:anywhere; min-width:0; }.tourneo-olympic-ranking strong>span { flex-shrink:0; }
 
 @media(max-width:600px){.tourneo-team-card{flex-wrap:wrap!important}.tourneo-team-card>div{min-width:120px;overflow-wrap:anywhere}}
+
+/* Role-specific spaces, referee handoff and private tournament album. */
+.tourneo-espace-select{display:flex;align-items:center;gap:8px;font-size:13px;color:#b6c6dd;white-space:nowrap}
+.tourneo-espace-select select{width:auto;min-height:42px;max-width:180px;padding:8px 30px 8px 12px;border:1px solid #49617f;border-radius:12px;background:#101c30;color:#f2f6ff;font:inherit}
+.tourneo-section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tourneo-section-heading h2,.tourneo-section-heading h3{margin:6px 0 12px}
+.tournoi-arbitrage{padding:clamp(18px,3vw,32px);display:grid;gap:22px}
+.tournoi-arbitrage>p{margin:0;color:#b6c6dd;line-height:1.6}
+.tourneo-proposals{display:grid;gap:12px}
+.tourneo-proposals h3{display:flex;gap:10px;align-items:center;margin:0}
+.tourneo-count-badge{padding:4px 10px;border-radius:20px;background:#2c4c79;font-size:14px}
+.tourneo-proposals .v2-entry h4{font-size:18px;line-height:1.7;margin:10px 0}
+.tourneo-proposals .v2-entry h4 strong{display:inline-block;padding:3px 12px;margin:0 8px;border-radius:10px;background:#162c48;white-space:nowrap}
+.tourneo-referee-settings{border-top:1px solid #354963;padding-top:20px}
+.tourneo-referee-settings summary{cursor:pointer;font-weight:700;min-height:44px}
+.tourneo-referee-form{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:18px 0}
+.tourneo-referee-form label{display:grid;gap:9px;flex:1;min-width:180px}
+.tourneo-referee-settings ul{padding:0;list-style:none}
+.tourneo-referee-settings li{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:12px 0;padding:12px;border-radius:12px;background:#10213a}
+.tourneo-referee-workspace{margin-top:18px;padding-top:18px;border-top:1px solid #354963}
+.tourneo-transfer-form{margin-top:18px;padding:20px;border:1px solid #406484;border-radius:18px;background:#0a172a}
+.tourneo-score-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.tourneo-score-fields label{display:grid;gap:8px;min-width:0;overflow-wrap:anywhere}
+.tourneo-score-fields input{font-size:24px;text-align:center;min-height:60px;width:100%;box-sizing:border-box}
+.tourneo-match-clock{padding:20px 0;text-align:center}
+.tourneo-match-clock output{font-variant-numeric:tabular-nums;font-size:clamp(32px,8vw,64px);font-weight:800}
+.tourneo-player-matches,.tourneo-album-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
+.tourneo-album-grid figure{margin:0;padding:12px;border:1px solid #354963;border-radius:16px;background:#0c182a;overflow:hidden}
+.tourneo-album-grid img{display:block;width:100%;height:220px;object-fit:cover;border-radius:10px}
+.tourneo-album-grid figcaption{margin:12px 0;overflow-wrap:anywhere;min-height:20px}
+.tournoi-album>label{display:grid;gap:8px;max-width:560px;margin:18px 0}
+.tournoi-album input,.tourneo-referee-form input{padding:12px 14px;min-height:46px;box-sizing:border-box;width:100%;border:1px solid #49617f;border-radius:12px;background:#0b1629;color:#edf4ff;font:inherit}
+.tourneo-referee-match{margin-top:14px}
+@media(max-width:650px){.tourneo-nav-heading{align-items:flex-start}.tourneo-nav-utilities{flex-wrap:wrap}.tourneo-espace-select{font-size:12px;flex-direction:column;align-items:flex-start;gap:4px}.tourneo-espace-select select{max-width:150px}.tourneo-tabs{overflow-x:auto;justify-content:flex-start!important}.tourneo-tabs>button{flex:0 0 auto!important;min-width:100px}.tourneo-score-fields{gap:10px}.tourneo-transfer-form{padding:14px}.tourneo-section-heading>button{min-height:44px}}
+.tourneo-score-fields label{display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.tourneo-score-fields input{height:60px;flex:0 0 60px}
+.tourneo-referee-links a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;box-sizing:border-box;border:1px solid #49617f;border-radius:12px;color:#e5f0ff;background:#16304b;text-decoration:none}

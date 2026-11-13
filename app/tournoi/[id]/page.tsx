@@ -1,4 +1,5 @@
 "use client";
+import AlbumTournoi from '@/components/AlbumTournoi';
 import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -37,7 +38,7 @@ const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
 type FormatTournoi = "rotation" | "suisse" | "doubleElimination" | "consolante" | "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
 type ModePoules = "nombrePoules" | "taillePoules";
-type Onglet = "matchs" | "classement" | "statistiques" | "participants";
+type Onglet = "matchs" | "classement" | "statistiques" | "participants" | "arbitrage" | "photos";
 type Poule = {
     id: string;
     nom: string;
@@ -1022,18 +1023,6 @@ export default function TournoiPage() {
         const nouveauxValides = [...new Set([...matchsValides, match.id])];
         setMatchsValides(nouveauxValides);
         setMatchs(avancerTournoiSiPossible(matchs, nouveauxValides));
-    }
-    function enregistrerScoreAutomatiquement(matchId: number) {
-        const match = matchs.find((item) => item.id === matchId);
-        if (!match || matchsValides.includes(matchId) || optionsV2.score === "sets")
-            return;
-        if (match.score1 === "" || match.score2 === "")
-            return;
-        if ((formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
-            Number(match.score1) === Number(match.score2)) {
-            return;
-        }
-        validerScore(match);
     }
     function corrigerScore(match: Match) {
         const toursSuivants = matchs.some((item) => item.journee > match.journee);
@@ -2249,6 +2238,8 @@ ${lienPartage}`,
             ["matchs", "Matchs"],
             ["classement", "Classement"],
             ["statistiques", "Statistiques"],
+            ["arbitrage", "Arbitrage"],
+            ["photos", "Photos"],
         ] as [
             Onglet,
             string
@@ -2403,11 +2394,11 @@ ${lienPartage}`,
                           <div className="tourneo-score-team-label"><strong>{equipe1?.nom ?? tr("Participant supprimé")}</strong><RepereParticipant id={match.equipe1Id} reperes={reperes}/></div>
                         </div>
 
-                        <input style={{ ...styles.scoreInput, ...(editable ? {} : styles.scoreLocked) }} type="number" aria-label={trModele("Score de {0}", equipe1?.nom ?? "participant 1")} min="0" value={match.score1} disabled={!editable || optionsV2.score === "sets"} onChange={(event) => changerScore(match.id, "score1", event.target.value)} onBlur={() => enregistrerScoreAutomatiquement(match.id)}/>
+                        <input style={{ ...styles.scoreInput, ...(editable ? {} : styles.scoreLocked) }} type="number" aria-label={trModele("Score de {0}", equipe1?.nom ?? "participant 1")} min="0" value={match.score1} disabled={!editable || optionsV2.score === "sets"} onChange={(event) => changerScore(match.id, "score1", event.target.value)}/>
 
                         <span style={styles.scoreSeparator}>–</span>
 
-                        <input style={{ ...styles.scoreInput, ...(editable ? {} : styles.scoreLocked) }} type="number" aria-label={trModele("Score de {0}", equipe2?.nom ?? "participant 2")} min="0" value={match.score2} disabled={!editable || optionsV2.score === "sets"} onChange={(event) => changerScore(match.id, "score2", event.target.value)} onBlur={() => enregistrerScoreAutomatiquement(match.id)}/>
+                        <input style={{ ...styles.scoreInput, ...(editable ? {} : styles.scoreLocked) }} type="number" aria-label={trModele("Score de {0}", equipe2?.nom ?? "participant 2")} min="0" value={match.score2} disabled={!editable || optionsV2.score === "sets"} onChange={(event) => changerScore(match.id, "score2", event.target.value)}/>
 
                         <div style={styles.teamRight}>
                           <div className="tourneo-score-team-label"><strong>{equipe2?.nom ?? tr("Participant supprimé")}</strong><RepereParticipant id={match.equipe2Id} reperes={reperes}/></div>
@@ -2418,6 +2409,7 @@ ${lienPartage}`,
                       {match.branche && <div style={styles.matchMeta}>{libelleBranche}</div>}
                       {optionsV2.score === "sets" && <SaisieManches match={match} gagnantes={optionsV2.setsGagnants} disabled={!editable} onChange={manches => changerManches(match, manches)}/>}
                       {nulInterdit && <div style={styles.inlineWarning}>{tr("Un vainqueur est requis pour poursuivre la phase finale.")}</div>}
+                      {!matchsValides.includes(match.id) && <div className="tourneo-score-actions"><button type="button" disabled={match.score1 === "" || match.score2 === ""} style={styles.secondaryButton} onClick={() => validerScore(match)}>{tr("Valider ce résultat")}</button></div>}
                       {matchsValides.includes(match.id) && (<div className="tourneo-score-actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                           <span style={{ ...styles.pill, color: "#9EF4C5" }}>{tr("Enregistr\u00E9")}</span>
                           <button style={styles.ghostButton} onClick={() => corrigerScore(match)}>{tr("Modifier le r\u00E9sultat")}</button>
@@ -2515,7 +2507,9 @@ ${lienPartage}`,
               </>)}
           </>)}
 
-        {onglet === "statistiques" && <ArbitresTournoi id={tournoiId} equipes={equipes} matchs={matchs} valides={matchsValides} onImporter={(id, score1, score2) => setMatchs(actuels => actuels.map(m => m.id === id && !matchsValides.includes(id) ? { ...m, score1, score2 } : m))}/>}
+        {onglet === "arbitrage" && <ArbitresTournoi id={tournoiId} equipes={equipes} matchs={matchs} valides={matchsValides} onImporter={(id, score1, score2) => { setMatchs(actuels => actuels.map(m => m.id === id && !matchsValides.includes(id) ? { ...m, score1, score2 } : m)); setOnglet("matchs"); setTimeout(() => document.getElementById(`match-${id}`)?.scrollIntoView({behavior:"smooth",block:"center"}),100); }}/>}
+
+        {onglet === "photos" && <AlbumTournoi id={tournoiId} userId={userId || ""}/>}
 
         {onglet === "statistiques" && (<>
             <section style={styles.statsGrid}>

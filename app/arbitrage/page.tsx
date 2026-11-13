@@ -1,39 +1,18 @@
 "use client";
-import {tr,trModele,useLangue} from "@/lib/langue";
-import { useEffect, useState } from 'react';
-import CompteurArbitre from '@/components/CompteurArbitre';
-import TourneoNav from '@/components/TourneoNav';
-import { supabase } from '@/lib/supabase';
-import { erreurInscriptions } from '@/lib/inscriptions';
-import { nomParticipant } from '@/lib/rotation';
-import type { Equipe, Match } from '@/types';
-type Arbitrage = {
-    id: string;
-    nom: string;
-    equipes: Equipe[];
-    matchs: Match[];
-    valides: number[];
-    score?: string;
-};
-export default function MesArbitrages() {
-    useLangue();
-    const [tournois, setTournois] = useState<Arbitrage[]>([]), [scores, setScores] = useState<Record<string, {
-        score1: string;
-        score2: string;
-    }>>({}), [message, setMessage] = useState(''), [occupe, setOccupe] = useState(false);
-    async function charger() { const auth = await supabase.auth.getUser(); if (!auth.data.user) {
-        window.location.href = '/login';
-        return;
-    } const r = await supabase.rpc('tourneo_mes_arbitrages'); if (r.error)
-        setMessage(erreurInscriptions(r.error.message));
-    else {
-        setTournois(r.data || []);
-        setMessage('');
-    } }
-    useEffect(() => { void charger(); }, []);
-    async function envoyer(t: Arbitrage, m: Match) { const s = scores[`${t.id}:${m.id}`]; if (!s || !/^\d+$/.test(s.score1) || !/^\d+$/.test(s.score2)) {
-        setMessage('Saisissez deux scores entiers positifs ou nuls.');
-        return;
-    } setOccupe(true); const r = await supabase.rpc('tourneo_proposer_score', { p_tournoi: t.id, p_match: m.id, p_score1: Number(s.score1), p_score2: Number(s.score2) }); setMessage(r.error ? erreurInscriptions(r.error.message) : 'Résultat proposé à l’organisateur pour validation.'); setOccupe(false); }
-    return <main className="v2-page"><div className="v2-shell"><TourneoNav /><section className="v2-card"><h1>{tr("Mes arbitrages")}</h1><p><a href="/outils">{tr("Ouvrir la bo\u00EEte \u00E0 outils : chrono, points et tirage des \u00E9quipes")}</a></p>{tr(message) && <p role="status">{tr(message)}</p>}<button disabled={occupe} onClick={charger}>{tr("Actualiser")}</button>{!tournois.length && <p>{tr("L\u2019organisateur peut vous ajouter comme arbitre avec votre code joueur Tourneo.")}</p>}</section>{tournois.map(t => <section className="v2-card" key={t.id}><h2>{t.nom}</h2>{t.score === 'sets' ? <p>{tr("L\u2019organisateur saisit les manches et valide le r\u00E9sultat.")}</p> : (t.matchs || []).filter(m => !(t.valides || []).includes(m.id)).map(m => { const cle = `${t.id}:${m.id}`; const s = scores[cle] || { score1: '', score2: '' }; return <article key={m.id} className="v2-entry"><h3>{nomParticipant(m.equipe1Id, t.equipes || [])} — {nomParticipant(m.equipe2Id, t.equipes || [])}</h3><details><summary>{tr("Compter les points pendant la partie")}</summary><CompteurArbitre cle={`tourneo-compteur:${cle}`} noms={[nomParticipant(m.equipe1Id, t.equipes || []), nomParticipant(m.equipe2Id, t.equipes || [])]} surCopie={(a, b) => setScores(v => ({ ...v, [cle]: { score1: String(a), score2: String(b) } }))}/></details><div className="v2-row">{(['score1', 'score2'] as const).map((champ, i) => <label key={champ}>{tr("Score ")}{i + 1}<input type="number" min={0} max={1000000} value={s[champ]} onChange={e => setScores(a => ({ ...a, [cle]: { ...s, [champ]: e.target.value } }))}/></label>)}<button disabled={occupe} onClick={() => envoyer(t, m)}>{tr("Proposer le r\u00E9sultat")}</button></div></article>; })}</section>)}</div></main>;
+import {useEffect,useRef,useState}from'react';
+import {tr,useLangue}from'@/lib/langue';
+import CompteurArbitre from'@/components/CompteurArbitre';
+import ChronoMatch from'@/components/ChronoMatch';
+import TourneoNav from'@/components/TourneoNav';
+import {supabase}from'@/lib/supabase';
+import {nomParticipant}from'@/lib/rotation';
+import type{Equipe,Match}from'@/types';
+type Arbitrage={id:string;nom:string;equipes:Equipe[];matchs:Match[];valides:number[];score?:string};
+type Proposition={tournoi_id:string;match_id:number;score1:number;score2:number;statut:string};
+export default function MesArbitrages(){
+ useLangue();const[tournois,setTournois]=useState<Arbitrage[]>([]),[propositions,setPropositions]=useState<Proposition[]>([]),[scores,setScores]=useState<Record<string,{score1:string;score2:string}>>({}),[message,setMessage]=useState(''),[occupe,setOccupe]=useState(false),[userId,setUserId]=useState(''),[active,setActive]=useState(''),[outil,setOutil]=useState<'points'|'chrono'|'manuel'>('points'),[pret,setPret]=useState(false);const verrou=useRef(false);
+ async function charger(){const auth=await supabase.auth.getUser();if(!auth.data.user){window.location.assign('/login');return;}const[t,p]=await Promise.all([supabase.rpc('tourneo_mes_arbitrages'),supabase.from('tourneo_scores_proposes').select('tournoi_id,match_id,score1,score2,statut').eq('user_id',auth.data.user.id)]);if(t.error||p.error)throw new Error();setUserId(auth.data.user.id);setTournois(t.data||[]);setPropositions(p.data||[]);setPret(true);}
+ useEffect(()=>{void charger().catch(()=>setMessage('Chargement impossible. Vérifiez la connexion et réessayez.'));},[]);
+ async function envoyer(t:Arbitrage,m:Match){if(verrou.current)return;const cle=`${t.id}:${m.id}`,s=scores[cle];if(!s||!/^\d+$/.test(s.score1)||!/^\d+$/.test(s.score2)||Number(s.score1)>1000000||Number(s.score2)>1000000){setMessage('Saisissez deux scores entiers positifs ou nuls.');return;}verrou.current=true;setOccupe(true);try{const r=await supabase.rpc('tourneo_proposer_score',{p_tournoi:t.id,p_match:m.id,p_score1:Number(s.score1),p_score2:Number(s.score2)});if(r.error)throw r.error;await charger();setMessage('Résultat transmis. L’organisateur doit encore le vérifier et le valider.');}catch{setMessage('Transfert non confirmé. Actualisez avant de réessayer.');}finally{verrou.current=false;setOccupe(false);}}
+ return <main className="v2-page"><div className="v2-shell"><TourneoNav/><section className="v2-card"><span className="v2-eyebrow">{tr('Espace arbitre')}</span><h1>{tr('Mes arbitrages')}</h1><p>{tr('Choisissez un match, utilisez les outils ou saisissez le score, puis transférez le résultat à l’organisateur.')}</p><div className="tourneo-tool-actions tourneo-referee-links"><button type="button" disabled={occupe} onClick={()=>void charger().catch(()=>setMessage('Actualisation impossible. Réessayez.'))}>{tr('Actualiser')}</button><a className="tourneo-nav-primary" href="/outils">{tr('Tous les outils')}</a><a href="/mes-matchs">{tr('Je suis aussi joueur')}</a></div>{message&&<p role="status">{tr(message)}</p>}{pret&&!tournois.length&&<p>{tr('Aucun arbitrage attribué. Donnez votre code joueur à l’organisateur.')}</p>}</section>{tournois.map(t=><section className="v2-card" key={t.id}><h2>{t.nom}</h2>{t.score==='sets'?<p>{tr('Les manches restent à saisir et à valider par l’organisateur.')}</p>:t.matchs.filter(m=>!(t.valides||[]).includes(m.id)).map(m=>{const cle=`${t.id}:${m.id}`,s=scores[cle]||{score1:'',score2:''},p=propositions.find(p=>p.tournoi_id===t.id&&p.match_id===m.id),a=nomParticipant(m.equipe1Id,t.equipes),b=nomParticipant(m.equipe2Id,t.equipes);return <article className="v2-entry tournoi-referee-match" key={m.id}><div className="tourneo-section-heading"><div><small>{tr('Match')} {m.id} · {tr('Tour')} {m.journee}{m.terrain?` · ${tr('Terrain')} ${m.terrain}`:''}</small><h3>{a} — {b}</h3>{p&&<p className="tourneo-call-state">{p.score1} – {p.score2} · {tr(p.statut==='propose'?'En attente de l’organisateur':p.statut==='importe'?'Reçu pour vérification':'Écarté par l’organisateur')}</p>}</div><button type="button" onClick={()=>{setActive(active===cle?'':cle);setOutil('points');}}>{tr(active===cle?'Fermer':'Arbitrer ce match')}</button></div>{active===cle&&<div className="tourneo-referee-workspace"><div className="tourneo-tool-tabs" role="group" aria-label={tr('Choisir un outil')}>{[['points','Compteur de points'],['chrono','Chrono'],['manuel','Saisie manuelle']].map(([id,label])=><button type="button" key={id} aria-pressed={outil===id} onClick={()=>setOutil(id as typeof outil)}>{tr(label)}</button>)}</div><div hidden={outil!=='points'}><CompteurArbitre cle={`tourneo-compteur:${userId}:${cle}`} noms={[a,b]} surCopie={(x,y)=>{setScores(v=>({...v,[cle]:{score1:String(x),score2:String(y)}}));setOutil('manuel');}}/></div><div hidden={outil!=='chrono'}><ChronoMatch cle={`tourneo-chrono:${userId}:${cle}`}/></div><form className="tourneo-transfer-form" onSubmit={e=>{e.preventDefault();void envoyer(t,m);}}><h4>{tr('Résultat à transmettre')}</h4><div className="tourneo-score-fields">{(['score1','score2']as const).map((champ,i)=><label key={champ}>{i===0?a:b}<input type="number" min={0} max={1000000} step={1} inputMode="numeric" required value={s[champ]} onChange={e=>setScores(v=>({...v,[cle]:{...s,[champ]:e.target.value}}))}/></label>)}</div><button type="submit" disabled={occupe||s.score1===''||s.score2===''}>{tr(occupe?'Transfert…':'Envoyer à l’organisateur')}</button><p className="tourneo-tool-note">{tr('Le transfert ne valide pas le match. L’organisateur garde la décision finale.')}</p></form></div>}</article>;})}{!t.matchs.some(m=>!(t.valides||[]).includes(m.id))&&<p>{tr('Tous les matchs ont été validés par l’organisateur.')}</p>}</section>)}</div></main>;
 }
