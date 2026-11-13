@@ -1,4 +1,6 @@
 "use client";
+import {urlPubliqueTournoi} from '@/lib/url-publique';
+import ChampDate from '@/components/ChampDate';
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -50,7 +52,7 @@ export default function GestionInscriptions() {
         setLignes(inscriptions.data || []);
         setErreur('');
     }
-    useEffect(() => { setLien(`${window.location.origin}/inscriptions/${id}`); void charger(); }, [id]);
+    useEffect(() => { setLien(urlPubliqueTournoi(id,'inscriptions')); void charger(); }, [id]);
     async function enregistrer(event: React.FormEvent) {
         event.preventDefault();
         setOccupe(true);
@@ -80,7 +82,7 @@ export default function GestionInscriptions() {
     {demarre && <p>{tr("Tournoi d\u00E9marr\u00E9 : inscriptions closes. Le pointage reste disponible.")}</p>}
     <details className="tourneo-optional-panel"><summary>{tr("Réglages et ouverture des inscriptions")}</summary><form onSubmit={enregistrer} className="v2-form"><label className="v2-check"><input type="checkbox" checked={ouvert} disabled={demarre} onChange={e => setOuvert(e.target.checked)}/>{tr("Ouvrir les inscriptions")}</label>
       <label>{tr("Nombre de places")}<input type="number" min={2} max={256} required value={capacite} onChange={e => setCapacite(Number(e.target.value))}/></label>
-      <label>{tr("\u00C9ch\u00E9ance (facultative)")}<input type="datetime-local" value={echeance} onChange={e => setEcheance(e.target.value)}/></label>
+      <label>{tr("\u00C9ch\u00E9ance (facultative)")}<ChampDate type="datetime-local" value={echeance} onChange={e => setEcheance(e.target.value)}/></label>
       <label className="v2-check"><input type="checkbox" checked={validation} onChange={e => setValidation(e.target.checked)}/>{tr("Valider manuellement les demandes")}</label><button disabled={occupe}>{tr("Enregistrer")}</button>
     </form></details>
     {lien && <details className="tourneo-optional-panel"><summary>{tr("Partager le lien ou le QR d’inscription")}</summary><div className="v2-qr"><QRCodeSVG value={lien} size={180} bgColor="#ffffff" fgColor="#000000" marginSize={4}/><p><a href={lien}>{lien}</a></p><button onClick={() => navigator.clipboard.writeText(lien).then(() => setMessage('Lien copié.')).catch(() => setMessage('Copiez le lien ci-dessus.'))}>{tr("Copier le lien")}</button><button onClick={() => window.print()}>{tr("Imprimer l\u2019affiche QR")}</button></div></details>}

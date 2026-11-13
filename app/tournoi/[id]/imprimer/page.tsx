@@ -1,4 +1,5 @@
 "use client";
+import {urlPubliqueTournoi} from '@/lib/url-publique';
 import {tr,trModele,useLangue} from "@/lib/langue";
 import TourneoRetour from '@/components/TourneoRetour';
 import { useEffect, useState } from 'react';
@@ -42,7 +43,7 @@ export default function FeuilleTournoi() {
         let actif = true;
         setContenu(null);
         setErreur('');
-        setLien(`${window.location.origin}/partage/${id}`);
+        setLien(urlPubliqueTournoi(id,'partage'));
         async function charger() {
             try {
                 try {

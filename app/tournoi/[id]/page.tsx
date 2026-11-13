@@ -1,4 +1,5 @@
 "use client";
+import {urlPubliqueTournoi} from '@/lib/url-publique';
 import ReglesSport from '@/components/ReglesSport';
 import ChoixSport from '@/components/ChoixSport';
 import {libellesSports as LIBELLES_SPORT} from '@/lib/catalogue-sports';
@@ -212,7 +213,7 @@ export default function TournoiPage() {
     useEffect(() => {
         let actif = true;
         if (typeof window !== "undefined") {
-            setLienPartage(`${window.location.origin}/partage/${params.id}`);
+            setLienPartage(urlPubliqueTournoi(params.id,'partage'));
         }
         async function initialiser() {
             const generation = ++generationSync.current;
@@ -394,7 +395,7 @@ export default function TournoiPage() {
                     setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
                     setMatchsValides(donnees.matchsValides ?? []);
                     setPodiumPhotoUrl(tournoiCloud.photos_expirent_at && Date.parse(tournoiCloud.photos_expirent_at) <= Date.now() ? "" : donnees.podiumPhotoUrl ?? "");
-                    setLienPartage(`${window.location.origin}/partage/${tournoiCloud.id}`);
+                    setLienPartage(urlPubliqueTournoi(tournoiCloud.id,'partage'));
                     setMessageCloud("Synchronisé");
                 }
                 else if (!localCharge) {
@@ -776,7 +777,7 @@ export default function TournoiPage() {
         setEquipeAModifier(null);
     }
     const [operationTournoi, setOperationTournoi] = useState(false);
-    async function preparerSupport(destination: 'inscriptions' | 'affiche' = 'inscriptions') {
+    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' = 'inscriptions') {
         if (operationTournoi)
             return;
         if (!nomTournoi.trim()) {
@@ -788,7 +789,9 @@ export default function TournoiPage() {
             return;
         }
         setOperationTournoi(true);
+        suspendreSync.current = true;
         try {
+            await fileSynchronisation.current.catch(() => {});
             let id = tournoiId;
             if (!id) {
                 const { data, error } = await supabase.from("tournois").insert({
@@ -799,10 +802,22 @@ export default function TournoiPage() {
                     throw error;
                 id = data.id;
             }
+            else {
+                const classementSupport = classementTournoi(formatTournoi, equipes, matchs, optionsV2);
+                const resultat = await synchroniserTournoi(supabase, id, userId, revisionCloud.current, {
+                    nom: nomTournoi.trim(), sport,
+                    donnees: {sport,equipes,matchs,cree,optionsV2,formatTournoi,modePoules,nombrePoules,taillePoules,qualifiesParPoule,poules,matchsPhaseFinale,matchsValides,podiumPhotoUrl,
+                        termine:tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides),podiumFinal:classementSupport.slice(0,3).map((l,i)=>({rang:i+1,nom:l.equipe.nom,points:l.pts,photo:l.equipe.photo||'',couleur:l.equipe.couleur||'#3B82F6'}))},
+                });
+                if(resultat.statut==='conflit'){setConflitCloud(resultat.version);throw new Error('Une autre version existe en ligne. Comparez les versions avant de continuer.');}
+                revisionCloud.current=resultat.version.revision;
+                try{localStorage.setItem(revisionKey,String(resultat.version.revision));localStorage.removeItem(pendingKey);}catch{}
+            }
             window.location.href = `/tournoi/${id}/${destination}`;
         }
         catch (erreur) {
-            alert(erreur instanceof Error ? erreur.message : "Impossible de préparer les inscriptions.");
+            alert(erreur instanceof Error ? erreur.message : "Impossible d’enregistrer le tournoi avant de continuer.");
+            suspendreSync.current = false;
             setOperationTournoi(false);
         }
     }
@@ -874,7 +889,7 @@ export default function TournoiPage() {
             setTournoiId(id);
             setCree(true);
             setOnglet("matchs");
-            setLienPartage(`${window.location.origin}/partage/${id}`);
+            setLienPartage(urlPubliqueTournoi(id,'partage'));
             window.history.replaceState({}, "", `/tournoi/${id}`);
             setMessageCloud("Synchronisé");
         }
@@ -1794,6 +1809,7 @@ ${lienPartage}`,
 
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('inscriptions')}>{tournoiId ? tr("Gérer les inscriptions et le pointage") : tr("Préparer les inscriptions par lien / QR")}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
                 <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
                 <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
                 {tr(messageCloud) && <div style={styles.statusLine}>{tr(messageCloud)}</div>}
@@ -2182,7 +2198,7 @@ ${lienPartage}`,
             <details className="tourneo-tournament-more"><summary>{tr("G\u00E9rer le tournoi")}</summary><div>
             <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>{tr("Inscriptions / pointage")}</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>{tr("QR code")}</button>
-            <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/affiche`; }}>{tr('Créer une affiche')}</button>
+            <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
             <button style={styles.secondaryButton} onClick={exporterPDF}>{tr("Imprimer / PDF")}</button>
             <button style={styles.secondaryButton} onClick={exporterClassement}>{tr("Classement CSV")}</button>
             <button style={styles.secondaryButton} onClick={sauvegarderFichier}>{tr("Sauvegarder les r\u00E9sultats")}</button>
@@ -2342,6 +2358,7 @@ ${lienPartage}`,
             </div>
           </section>)}
 
+        {onglet === "matchs" && <div className="tourneo-referee-shortcut"><div><strong>{tr('Arbitres et résultats proposés')}</strong><p>{tr('Désignez les arbitres du tournoi et vérifiez leurs transferts.')}</p></div><button type="button" onClick={() => setOnglet('arbitrage')}>{tr('Gérer les arbitres')}</button></div>}
         {onglet === "matchs" && <ReglesSport key={sport} sport={sport}/>}
         {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs} valides={matchsValides} titreTour={titreJournee} detailsTour={journee => optionsV2.exemptions.filter(e => e.ronde === journee).map(e => <p key={e.id} style={styles.muted}>{tr("Exempt : ")}{trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire}{tr(" pts)")}</p>)} renderMatch={(match, reperes) => {
                 const equipe1 = trouverEquipe(match.equipe1Id);
@@ -2433,7 +2450,7 @@ ${lienPartage}`,
                           </div>);
                     })}
                     </div>
-                    <button style={{ ...styles.primaryButton, marginTop: 16 }} onClick={() => { window.location.href = `/tournoi/${tournoiId}/affiche`; }}>{tr('Créer l’affiche des résultats')}</button>
+                    <button style={{ ...styles.primaryButton, marginTop: 16 }} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer l’affiche des résultats')}</button>
                     <button style={{ ...styles.secondaryButton, marginTop: 16 }} onClick={() => setSouvenirOuvert(true)}>{tr("Cr\u00E9er l\u2019affiche souvenir")}</button>
                   </section>)}
 

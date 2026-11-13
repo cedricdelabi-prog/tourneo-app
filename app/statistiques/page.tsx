@@ -1,4 +1,5 @@
 "use client";
+import ChampDate from '@/components/ChampDate';
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -98,8 +99,8 @@ export default function Statistiques() {
     return <main className="v2-page tournoi-statistiques"><div className="v2-shell"><TourneoNav />
     <header className="stats-page-heading"><div><span className="v2-eyebrow">{tr("Votre activit\u00E9 en chiffres")}</span><h1>{tr("Mes statistiques")}</h1><p>{tr("Un aper\u00E7u de vos tournois et des retours de vos participants.")}</p></div><div className="stats-actions"><button type="button" disabled={!pret || chargement || periodeInvalide || !retenus.length} onClick={exporter}>{tr("Exporter CSV")}</button><button type="button" disabled={!pret || chargement || periodeInvalide} onClick={() => window.print()}>{tr("Imprimer")}</button></div></header>
     <section className="v2-card stats-filter-card" aria-label={tr("Filtrer les statistiques")}><div className="stats-filters">
-      <label htmlFor="stats-du">{tr("Cr\u00E9\u00E9s \u00E0 partir du")}<input id="stats-du" type="date" value={du} max={au || undefined} onChange={e => setDu(e.target.value)}/></label>
-      <label htmlFor="stats-au">{tr("Jusqu\u2019au")}<input id="stats-au" type="date" min={du || undefined} value={au} onChange={e => setAu(e.target.value)}/></label>
+      <label htmlFor="stats-du">{tr("Cr\u00E9\u00E9s \u00E0 partir du")}<ChampDate id="stats-du" type="date" value={du} max={au || undefined} onChange={e => setDu(e.target.value)}/></label>
+      <label htmlFor="stats-au">{tr("Jusqu\u2019au")}<ChampDate id="stats-au" type="date" min={du || undefined} value={au} onChange={e => setAu(e.target.value)}/></label>
       <label htmlFor="stats-sport">{tr("Discipline")}<select id="stats-sport" value={sport} onChange={e => setSport(e.target.value)}><option value="">{tr("Toutes les disciplines")}</option>{[...new Set(tournois.map(t => t.sport))].sort((a, b) => libelleSport(a).localeCompare(libelleSport(b))).map(s => <option key={s} value={s}>{libelleSport(s)}</option>)}</select></label>
       <button type="button" className="stats-reset" disabled={!du && !au && !sport} onClick={() => { setDu(''); setAu(''); setSport(''); }}>{tr("R\u00E9initialiser")}</button>
     </div>{periodeInvalide && <p role="alert" className="v2-alert">{tr("La date de fin doit suivre la date de d\u00E9but.")}</p>}</section>
