@@ -23,3 +23,7 @@ SQL migrations et activation consolidée : permissions propriétaire/joueur/étr
 Les essais de caméra physique, Safari/iPhone et appel entre deux sessions réelles restent à faire. WebKit local indisponible faute de bibliothèques système.
 
 Compteur reconstitué : 81 développés, 3 à tester, 1 partiellement développé. E-mail/Firebase exigent une configuration du propriétaire ; aucun secret demandé en clair dans la conversation.
+
+Activation V2 confirmée : migrations Android 20261113080537, correction safe-update 20261113082255 et espaces/album 20261113082655 appliquées. Worker actif, contrôle signé HTTP 200, aucun envoi de test. RLS actif sur les appareils et l’album, vue joueur interdite à anon, configuration du serveur interdite aux comptes. Aucun nouvel avertissement sécurité sur les modules ajoutés.
+
+Une commande combinée CLI/build a été bloquée par le contrôle automatique pour télémétrie PostHog. Le build Next séparé avec NEXT_TELEMETRY_DISABLED=1 a réussi ; aucun accord d’envoi de télémétrie demandé.

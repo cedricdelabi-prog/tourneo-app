@@ -9,3 +9,5 @@ Pour activer : fournir la configuration Firebase du seul applicationId com.cedri
 Migration additive tourneo_v2_alertes_android et mise à jour du worker à appliquer ensemble. Le worker précédent reste compatible avec la nouvelle signature par défaut, mais ne traite pas les envois Android.
 
 Tests locaux : SQL consolidé et migrations, propriétaires, compte modifié, canal désactivé, expiration, retrait du dernier appareil, JWT/OAuth/reprises. Les tests sur vrai Android, Safari/iPhone et caméra physique restent à faire.
+
+Migration Android appliquée à la V2 (20261113080537) et worker mis à jour. Le correctif 20261113082255 borne la mise à jour du singleton pour la protection PostgREST safe-update. Worker vérifié HTTP 200 sans envoi, et Android reste désactivé en l’absence de configuration Firebase.

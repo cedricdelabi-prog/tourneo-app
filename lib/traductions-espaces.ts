@@ -230,5 +230,33 @@ export const traductionsEspaces:Record<string,{en:string;nl:string}>={
   "Remettre le chrono à zéro ?": {
     "en": "Reset the timer?",
     "nl": "De timer opnieuw instellen?"
+  },
+  "Trois espaces, un même compte": {
+    "en": "Three spaces, one account",
+    "nl": "Drie omgevingen, één account"
+  },
+  "Organisateur : créez le tournoi, désignez les arbitres et validez les résultats dans Matchs.": {
+    "en": "Organizer: create the tournament, assign referees and confirm results in Matches.",
+    "nl": "Organisator: maak het toernooi, wijs scheidsrechters toe en bevestig resultaten bij Wedstrijden."
+  },
+  "Arbitre : ouvrez Mes arbitrages, choisissez un match et utilisez les points, le chrono ou la saisie manuelle. Envoyez ensuite le résultat.": {
+    "en": "Referee: open My refereeing, choose a match and use points, the timer or manual entry. Then send the result.",
+    "nl": "Scheidsrechter: open je scheidsrechterstaken, kies een wedstrijd en gebruik de puntenteller, timer of handmatige invoer. Verstuur daarna het resultaat."
+  },
+  "Joueur : Mes matchs affiche uniquement vos rencontres et les résultats validés. Votre profil doit être lié avec votre code joueur.": {
+    "en": "Player: My matches shows only your fixtures and confirmed results. Your profile must be linked using your player code.",
+    "nl": "Speler: Mijn wedstrijden toont alleen jouw wedstrijden en bevestigde resultaten. Koppel je profiel met je spelerscode."
+  },
+  "Vous pouvez être arbitre et joueur. Le menu Mon espace permet de changer de vue ; il ne donne pas de nouveaux droits.": {
+    "en": "You can be a referee and a player. Use My space to switch views; this does not grant extra permissions.",
+    "nl": "Je kunt scheidsrechter en speler zijn. Wissel van weergave via Mijn omgeving; dit geeft geen extra rechten."
+  },
+  "Où retrouver les photos ?": {
+    "en": "Where can I find the photos?",
+    "nl": "Waar vind ik de foto’s?"
+  },
+  "L’organisateur ouvre son tournoi puis Photos. Prendre une photo ouvre la caméra ; Ajouter depuis mon appareil choisit une image existante. L’album reste privé.": {
+    "en": "The organizer opens the tournament, then Photos. Take a photo opens the camera; Add from my device selects an existing image. The album stays private.",
+    "nl": "De organisator opent het toernooi en daarna Foto’s. Een foto maken opent de camera; Toevoegen vanaf mijn apparaat selecteert een bestaande foto. Het album blijft privé."
   }
 };
