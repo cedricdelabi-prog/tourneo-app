@@ -82,7 +82,7 @@ export default function ConfidentialitePage() {
 
         <section style={s.card} id="pronostics">
           <h2 style={s.heading}>{tr('Jeu de pronostics du public')}</h2>
-          <p style={s.text}>{tr('Un compte confirmé permet de participer une seule fois à chaque jeu. Les choix sont modifiables avant la clôture. Ils restent réservés à leur auteur ; le classement public après validation affiche uniquement le pseudo utilisé lors de la participation, les points et le rang. Les adresses e-mail et identifiants de compte ne sont pas publiés.')}</p>
+          <p style={s.text}>{tr('Lorsque le jeu sans compte est disponible, un nom ou pseudo suffit. Un identifiant aléatoire conservé dans ce navigateur permet de retrouver, modifier ou supprimer sa participation. Le nom n’est pas une identité vérifiée : plusieurs appareils peuvent permettre plusieurs participations. Les choix restent privés ; après publication des résultats, seuls le nom ou pseudo, les points et le rang apparaissent. Aucun e-mail ni identifiant de compte ou de navigateur n’est publié.')}</p>
           <p style={s.text}>{tr('Les pronostics servent uniquement à cette animation gratuite, sans mise d’argent. La suppression du compte ou du tournoi supprime les participations correspondantes. Vous pouvez contacter Tourneo pour exercer vos droits. Aucun lot ni paiement n’est géré par cette fonctionnalité.')}</p>
         </section>
 

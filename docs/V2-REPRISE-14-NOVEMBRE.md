@@ -27,3 +27,25 @@ La migration désactive le partage d’anciens albums qui n’ont pas encore leu
 - Compatibilité avec la base précédente vérifiée séparément ; les nouveaux contrôles photo n’apparaissent pas sans activation.
 
 Les essais physiques iPhone/Android, les e-mails sans expéditeur et les autres limites précédentes restent ouverts. Aucun message réel envoyé. Aucune annonce 85/85 ou 87/87.
+
+## Suite — création, pronostics invités et affiche spectateurs
+
+- Le bouton d’aide général près des drapeaux est retiré ; les aides des champs sont conservées.
+- Configuration validée avant l’onglet Participants : nom, choix explicite d’activité, paramètres de format/planning/barème. Date et lieu restent facultatifs et annoncés comme tels. Les valeurs par défaut valides sont acceptées. Le choix de la même activité conserve les réglages personnalisés.
+- Les cinq modes de pronostic se choisissent avec des cartes radio. Un minimum de 2/3/5 participants est annoncé ; le manque d’effectif bloque l’enregistrement, pas la lecture des modes. Après un vote, une clôture ou le lancement, les restrictions sont expliquées. L’enregistrement ramène au tournoi et confirme le succès.
+- Migration `20261114181722_tourneo_v2_pronostics_invites.sql` **appliquée avec succès sur Supabase V2**. Vote sans compte : nom/pseudo obligatoire, jeton aléatoire privé par navigateur et tournoi, modification jusqu’à clôture, retrait de sa participation. Les anciens votes avec compte restent compatibles. Aucune garantie d’identité ni d’unicité par personne entre appareils. Table privée sans lecture/écriture directe anon ; RPC contrôlées. Publication des noms/points/rangs, jamais des jetons ou choix privés.
+- Nouvelle page organisateur `/tournoi/[id]/pronostics/affiche`, raccourcis visibles depuis la préparation du tournoi, sauvegarde de la configuration avant navigation. QR ouvrant directement `/partage/[id]/pronostics`. Affiche dédiée A4/A3/social : marque Tourneo, activité, titre, CTA, QR contrasté, accès sans compte, échéance, lieu/date, organisateur et six sponsors. Téléchargement et partage.
+- Bibliothèque `/regles` : les 57 entrées sont couvertes, avec recherche. 36 fiches pratiques, 13 variantes à préciser, 8 cadres de catégories générales. Sources et date de revue conservées, textes FR/EN/NL. Cette couverture ne signifie pas automatisation des décomptes spécialisés (bowling, tarot, mah-jong, jeux de plateau ou règles propres aux jeux vidéo).
+
+### Vérifications de cette suite
+
+- SQL : migrations ordonnées et script consolidé, invités anonymes, pseudo requis, isolation des jetons, modification, fermeture, classement mêlant comptes/invités, retrait, droits directs refusés ; tests annulés après exécution sur PostgreSQL local.
+- Supabase réel : activation confirmée ; exécution RPC accordée au rôle anon, lecture/écriture directe de la table privée refusées. Aucun tournoi utilisateur créé ou modifié pour le test.
+- Chromium 320/1366 px avec API simulée : les 57 fiches, recherche, configuration bloquante puis complète, modes radio, retour après sauvegarde, téléchargement de l’affiche, décodage réel des QR A4/A3/social, vote sans session de compte, modification puis clôture, classement. Stress affiche : titre long et six sponsors.
+- Tests moteur et parcours, traductions, TypeScript et compilation Next réussis. Vérification visuelle de l’export social.
+
+Les modules photo/compteur de la section précédente restent non activés ; cette migration de pronostics n’en dépend pas. Les essais physiques iPhone/Android et un parcours complet avec comptes réels restent à réaliser. Pas d’annonce de complétude globale 85/85.
+
+### Flyers d’inscription A6
+
+Nouveau format « A4 · 4 flyers A6 à découper » dans l’affiche d’inscription : feuille A4 2480 × 3508 px, quatre exemplaires identiques avec zones blanches, titre/activité/date/lieu/organisateur, logos et QR d’inscription. Deux lignes pointillées centrales. Export PNG, impression/PDF A4 à 100 %. Le QR n’est présent que si les inscriptions en ligne sont ouvertes et sélectionnées ; sinon le flyer indique l’inscription sur place. Le format est conservé sur cet appareil et revient à A4 quand on choisit les résultats. Contrôles navigateur 320/1366 px : décodage des quatre QR, lien vers la vraie route d’inscription, absence de QR après fermeture, persistance et PDF A4 d’une seule page.

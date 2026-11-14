@@ -1,7 +1,14 @@
 export const MODES_PRONOSTICS={vainqueur:'Trouver le vainqueur',podium_ordre:'Podium dans l’ordre',podium_libre:'Podium sans ordre',top5_ordre:'Cinq premiers dans l’ordre',top5_libre:'Cinq premiers sans ordre'}as const;
 export type ModePronostic=keyof typeof MODES_PRONOSTICS;
-export type EtatPronostics={actif:boolean;proprietaire?:boolean;demarre?:boolean;nom?:string;mode?:ModePronostic;equipes?:{id:string;nom:string}[];cloture_at?:string|null;ferme?:boolean;compatible?:boolean;publie?:boolean;nombre?:number;mon_choix?:string[]|null;classement?:{pseudo:string;points:number;rang:number}[];mon_rang?:{rang:number;points:number}|null};
+export type EtatPronostics={actif:boolean;invites_autorises?:boolean;mon_nom?:string|null;participation_compte?:boolean;proprietaire?:boolean;demarre?:boolean;nom?:string;mode?:ModePronostic;equipes?:{id:string;nom:string}[];cloture_at?:string|null;ferme?:boolean;compatible?:boolean;publie?:boolean;nombre?:number;mon_choix?:string[]|null;classement?:{pseudo:string;points:number;rang:number}[];mon_rang?:{rang:number;points:number}|null};
 export function nombrePronostics(mode:ModePronostic){return mode.startsWith('top5')?5:mode.startsWith('podium')?3:1;}
 export function reglePronostics(mode:ModePronostic){return mode.endsWith('_libre')?'1 point par participant présent dans le groupe de tête choisi. L’ordre ne compte pas.':'1 point par participant trouvé dans le groupe de tête, plus 2 points s’il est à la bonne place.';}
 export function retourPronostics(search:string){const p=new URLSearchParams(search).get('retour')||'';return /^\/partage\/[0-9a-f-]{36}\/pronostics$/.test(p)?p:'/dashboard';}
-export function erreurPronostics(e:unknown){const s=typeof e==='object'&&e&&'message'in e?String(e.message):'';return /^(Accès organisateur|Les pronostics|Choisissez|Le nombre|Des pronostics|Connectez-vous|Les participants|La capacité|Actualisez|Validez|Classement incompatible)/.test(s)?s:'Opération non confirmée. Vérifiez votre connexion et réessayez.';}
+export function erreurPronostics(e:unknown){const s=typeof e==='object'&&e&&'message'in e?String(e.message):'';return /^(Accès organisateur|Les pronostics|Choisissez|Le nombre|Des pronostics|Connectez-vous|Indiquez|Les participants|La capacité|Actualisez|Validez|Classement incompatible)/.test(s)?s:'Opération non confirmée. Vérifiez votre connexion et réessayez.';}
+
+export function clePronosticInvite(id:string){return `tourneo-pronostic-invite:${id}`;}
+export function jetonPronosticInvite(id:string,stockage:Pick<Storage,'getItem'|'setItem'>,generer:()=>string){
+ const cle=clePronosticInvite(id),ancien=stockage.getItem(cle);
+ if(ancien&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(ancien))return ancien;
+ const jeton=generer();stockage.setItem(cle,jeton);return jeton;
+}

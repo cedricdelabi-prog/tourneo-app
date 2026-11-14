@@ -1,4 +1,5 @@
-export type FicheRegles={titre:string;reperes:string[];sources:{nom:string;url:string}[]};
+import {REGLES_COMPLEMENTAIRES} from '@/lib/regles-complementaires';
+export type FicheRegles={titre:string;reperes:string[];sources:{nom:string;url:string}[];nature?:'fiche'|'variante'|'cadre';verifieLe?:string};
 // Concise paraphrases; tennis/volleyball additions checked 14 November 2026; variants remain the organizer's choice.
 export const REGLES_SPORTS:Record<string,FicheRegles>={
  tennis:{titre:'Tennis · format standard',reperes:["Service : deux essais pour envoyer la balle dans le carré diagonalement opposé. Après chaque point, alternez le côté de départ.","Double faute : deux services manqués sur le même point donnent le point à l’adversaire. Un pied sur la ligne de fond pendant la frappe constitue une faute de pied.","Let au service : si la balle touche le filet puis tombe dans le bon carré, rejouez ce service sans effacer une faute précédente.",'Points : 0, 15, 30, 40. À 40–40, il faut deux points consécutifs pour gagner le jeu (avantage puis jeu).','Un set se gagne à 6 jeux avec 2 jeux d’écart. À 6–6, le jeu décisif se compte en points ordinaires, jusqu’à 7 avec 2 points d’écart.','Tourneo propose ce compteur avec jeu décisif dans chaque set. Les formats courts, le point décisif sans avantage ou le super jeu décisif demandent un barème adapté.'],sources:[{nom:'LTA · service et comptage',url:'https://www.lta.org.uk/play/how-to-get-started/rules-scoring/'},{nom:'ITF · règles 2026',url:'https://www.itftennis.com/media/7221/2026-rules-of-tennis-english.pdf'}]},
@@ -29,4 +30,6 @@ export const REGLES_SPORTS:Record<string,FicheRegles>={
  'Temps : une minute pour jouer.',
  ],sources:[{nom:'FIPJP · règlement officiel, édition décembre 2020',url:'https://fipjp.org/images/pdf/reglements/REGLEMENT-OFFICIEL-SPORT-PETANQUE.pdf'}]},
 };
+Object.assign(REGLES_SPORTS,REGLES_COMPLEMENTAIRES);
 REGLES_SPORTS.badminton15=REGLES_SPORTS.badminton;
+for(const fiche of Object.values(REGLES_SPORTS)){fiche.nature??=fiche.sources.length?'fiche':'variante';fiche.verifieLe??='2026-11-14';}

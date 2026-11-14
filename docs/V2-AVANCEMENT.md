@@ -1,3 +1,5 @@
+Dernière suite : [reprise du 14 novembre](V2-REPRISE-14-NOVEMBRE.md), section création/pronostics invités/affiche et 57 fiches. La migration des pronostics invités est activée en V2 ; celle du compteur/photos reste en attente.
+
 # Tourneo V2 — état de reprise
 
 Branche exclusive : `tourneo-v2-dev`. `main` et la V1 restent hors du périmètre. Environnement prévu : Vercel et Supabase `tourneo-v2-test`.

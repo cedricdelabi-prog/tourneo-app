@@ -5,14 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import TourneoRetour from "@/components/TourneoRetour";
 import TourneoBrand from "@/components/TourneoBrand";
-import AideEcran from '@/components/AideEcran';
 import SelecteurLangue from '@/components/SelecteurLangue';
 import SelecteurEspace from '@/components/SelecteurEspace';
 import {liensEspace, type Espace} from '@/lib/espace';
 const sections = [
     ["/dashboard", "Mes tournois"], ["/evenements", "Événements"],
     ["/groupes", "Groupes"], ["/activite", "Activité"],
-    ["/outils", "Outils"], ["/olympiades", "Olympiades"], ["/arbitrage", "Arbitrage"], ["/statistiques", "Statistiques"], ["/profil", "Mon profil"],
+    ["/outils", "Outils"], ["/regles", "Règles des jeux"], ["/olympiades", "Olympiades"], ["/arbitrage", "Arbitrage"], ["/statistiques", "Statistiques"], ["/profil", "Mon profil"],
 ] as const;
 type Active = "dashboard" | "tournoi" | "profil" | "aide" | "contact" | "none";
 export default function TourneoNav({ active = "none", onLogout, primaryLabel, primaryHref, showBack = active === "tournoi", backHref = "/dashboard", backLabel = "Mes tournois", contextLabel }: {
@@ -53,7 +52,8 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
     <header className="tourneo-top-nav">
       <div className="tourneo-nav-heading">
         <Link href={accueil[0]} className="tourneo-brand-link" aria-label={tr("Tourneo — mes tournois")}><TourneoBrand compact/></Link>
-        <div className="tourneo-nav-utilities"><AideEcran/><SelecteurLangue/><SelecteurEspace onEspace={setEspace}/>
+        <div className="tourneo-nav-utilities"><SelecteurLangue/><SelecteurEspace onEspace={setEspace}/>
+          <Link href="/regles" aria-current={selected("/regles") ? "page" : undefined}>{tr("Règles des jeux")}</Link>
           <Link href="/aide" aria-current={selected("/aide") ? "page" : undefined}>{tr("Aide")}</Link>
           <Link href="/contact" aria-current={selected("/contact") ? "page" : undefined}>{tr("Contact")}</Link>
           {onLogout && <button type="button" onClick={() => void onLogout()}>{tr("D\u00E9connexion")}</button>}
@@ -74,6 +74,7 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
     </nav>
     {moreOpen && <div id="tourneo-mobile-more" ref={panel} className="tourneo-mobile-more" aria-label={tr("Autres rubriques")}>
       {(espace === "organisateur" ? sections.slice(1,-1) : principaux.filter(([href]) => href !== "/profil")).map(([href, label]) => <Link key={href} href={href} onClick={() => setMoreOpen(false)} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}
+      {espace!=="organisateur"&&<Link href="/regles" onClick={()=>setMoreOpen(false)}>{tr("Règles des jeux")}</Link>}
       <Link href="/aide" onClick={() => setMoreOpen(false)}>{tr("Aide & s\u00E9curit\u00E9")}</Link>
       <Link href="/contact" onClick={() => setMoreOpen(false)}>{tr("Contact")}</Link>
       {onLogout && <button type="button" onClick={() => { setMoreOpen(false); void onLogout(); }}>{tr("D\u00E9connexion")}</button>}

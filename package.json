@@ -24,7 +24,10 @@
     "test:affiches": "node tests/affiche-donnees.cjs && node tests/affiche-browser.cjs",
     "test:bilans": "node tests/bilan-mail.cjs && node tests/bilan-browser.cjs",
     "test:pronostics": "node tests/pronostics.cjs && node tests/pronostics-browser.cjs",
-    "test:reprise": "node tests/reprise-browser.cjs"
+    "test:reprise": "node tests/reprise-browser.cjs",
+    "test:regles": "node tests/regles.cjs && node tests/regles-browser.cjs",
+    "test:configuration": "node tests/configuration-creation.cjs",
+    "test:flyers": "node tests/flyers-browser.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -49,6 +52,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
+    "jsqr": "1.4.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "web-push": "3.6.7"
