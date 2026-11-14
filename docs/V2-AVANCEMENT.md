@@ -1,3 +1,5 @@
+Dernière vague : [expérience simple](V2-EXPERIENCE-SIMPLE.md) — assistant de formule, contrôle avant départ, imprévus avec aperçu, famille/favoris, QR évolutif et dossier jour J. La vidéo est exclue.
+
 Dernière suite : [reprise du 14 novembre](V2-REPRISE-14-NOVEMBRE.md), section création/pronostics invités/affiche et 57 fiches. La migration des pronostics invités est activée en V2 ; celle du compteur/photos reste en attente.
 
 # Tourneo V2 — état de reprise

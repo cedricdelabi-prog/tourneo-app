@@ -30,7 +30,7 @@ export default function AfficheTournoi(){
   const enligne=!c.error&&c.data?.ouvert&&!d.cree&&(!c.data.echeance||Date.parse(c.data.echeance)>Date.now());
   setPhotosPartagees(!a.error&&a.data?.partage===true);if(ancien?.modeLiens==='texte')setModeLiens('texte');
   setCle(stockage);setDefaut(base);setTexte(t);setModifications(m);setDonnees({sport:r.data.sport||d.sport||'autre',equipes:d.equipes||[],matchs:d.matchs||[],matchsValides:d.matchsValides||[],formatTournoi:d.formatTournoi||'complet',optionsV2:d.optionsV2});
-  setInscriptions(enligne?urlPubliqueTournoi(id,'inscriptions'):'');setSurPlace(ancien?.surPlace===true||!enligne);if(c.data?.capacite)setCapacite(c.data.capacite);
+  setInscriptions(enligne?urlPubliqueTournoi(id,'t'):'');setSurPlace(ancien?.surPlace===true||!enligne);if(c.data?.capacite)setCapacite(c.data.capacite);
   if(!p.error&&(Array.isArray(p.data)?p.data.length>0:!!p.data))setResultats(urlPubliqueTournoi(id,'partage'));
   if(ancien?.format==='A4'||ancien?.format==='A3'||ancien?.format==='social'||ancien?.format==='flyersA6')setFormat(ancien.format);if(typeof ancien?.illustration==='boolean')setIllustration(ancien.illustration);
   if(Array.isArray(ancien?.sponsors))setSponsors(ancien.sponsors.filter((v):v is string=>typeof v==='string'&&v.length<=500000&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(v)).slice(0,6));

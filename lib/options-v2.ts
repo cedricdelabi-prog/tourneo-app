@@ -1,4 +1,7 @@
 export type OptionsV2 = {
+  budgetMinutes?:number;
+  participantsPrevus?:number;
+  adaptationPlanning?:{debutMinimum:number;terrainsFermes:number[];fixes:{matchId:number;terrain:number;debut:number;fin:number}[]};
   tirage: 'aleatoire' | 'equilibre' | 'manuel';
   mode: 'simple' | 'expert';
   score: 'points' | 'sets';
@@ -25,6 +28,8 @@ export function normaliserOptionsV2(value: Partial<OptionsV2> | undefined): Opti
   const source = value || {};
   const entier = (v: unknown, min:number,max:number,defaut:number) => typeof v==='number' && Number.isInteger(v)&&v>=min&&v<=max ? v : defaut;
   return {...OPTIONS_V2,
+    budgetMinutes:entier(source.budgetMinutes,5,1440,0)||undefined,participantsPrevus:entier(source.participantsPrevus,2,128,0)||undefined,
+    adaptationPlanning:normaliserAdaptationPlanning(source.adaptationPlanning),
     tirage:source.tirage==='equilibre'||source.tirage==='manuel'?source.tirage:'aleatoire',
     mode: source.mode === 'expert' ? 'expert' : 'simple',
     score: source.score === 'sets' ? 'sets' : 'points',
@@ -37,4 +42,10 @@ export function normaliserOptionsV2(value: Partial<OptionsV2> | undefined): Opti
     organisateur:typeof source.organisateur==='string'?source.organisateur.trim().slice(0,150):'',
     exemptions:Array.isArray(source.exemptions)?source.exemptions.filter(e=>e&&typeof e.id==='string'&&Number.isInteger(e.ronde)&&e.ronde>0&&e.ronde<=32):[],
   };
+}
+
+export function normaliserAdaptationPlanning(a:OptionsV2['adaptationPlanning']):OptionsV2['adaptationPlanning']{
+ if(!a||!Number.isFinite(a.debutMinimum)||a.debutMinimum<0||a.debutMinimum>525600||!Array.isArray(a.terrainsFermes)||!Array.isArray(a.fixes))return undefined;
+ const fixes=a.fixes.filter(c=>c&&Number.isSafeInteger(c.matchId)&&Number.isInteger(c.terrain)&&c.terrain>=1&&c.terrain<=32&&Number.isFinite(c.debut)&&c.debut>=0&&Number.isFinite(c.fin)&&c.fin>c.debut&&c.fin<=525600).slice(0,20000);
+ return{debutMinimum:a.debutMinimum,terrainsFermes:[...new Set(a.terrainsFermes.filter(n=>Number.isInteger(n)&&n>=1&&n<=32))],fixes};
 }

@@ -1,0 +1,15 @@
+"use client";
+import {useEffect,useState} from 'react';
+import type {Equipe,Match} from '@/types';
+import type {OptionsV2} from '@/lib/options-v2';
+import {nettoyerFavoris,programmeFamille} from '@/lib/suivi-famille';
+import {heureCreneau} from '@/lib/planning';
+import {nomParticipant} from '@/lib/rotation';
+import {tr,trModele,useLangue} from '@/lib/langue';
+export default function SuiviFamille({id,equipes,matchs,options,valides,surMatch}:{id:string;equipes:Equipe[];matchs:Match[];options:OptionsV2;valides:readonly number[];surMatch:()=>void}){
+ useLangue();const[tout,setTout]=useState(false);const[favoris,setFavoris]=useState<string[]>([]),[message,setMessage]=useState('');const cle='tourneo-famille:'+id,ids=equipes.map(e=>e.id).join('\n');
+ useEffect(()=>{void Promise.resolve().then(()=>{try{setFavoris(nettoyerFavoris(JSON.parse(localStorage.getItem(cle)||'[]'),ids.split('\n').map(id=>({id}))));}catch{setFavoris([]);}});},[cle,ids]);
+ function choisir(id:string,actif:boolean){const next=nettoyerFavoris(actif?[...favoris,id]:favoris.filter(x=>x!==id),equipes);setFavoris(next);try{localStorage.setItem(cle,JSON.stringify(next));setMessage('');}catch{setMessage('Le suivi fonctionne ici, mais ne sera pas conservé après fermeture.');}}
+ const programme=programmeFamille(favoris,matchs,options,valides);
+ return <details className="tourneo-assistant tourneo-family"><summary><strong>{tr('Suivre ma famille ou mes favoris')}</strong><span>{favoris.length?trModele('{0} participant(s) suivis sur cet appareil',favoris.length):tr('Réunissez les prochains passages de plusieurs participants, sans compte.')}</span></summary><fieldset><legend>{tr('Choisir mes favoris (12 maximum)')}</legend><div className="tourneo-family-choices">{equipes.map(e=><label key={e.id}><input type="checkbox" checked={favoris.includes(e.id)} disabled={favoris.length>=12&&!favoris.includes(e.id)} onChange={v=>choisir(e.id,v.target.checked)}/>{e.nom}</label>)}</div></fieldset>{message&&<p role="status">{tr(message)}</p>}{favoris.length>0&&<section aria-live="polite"><h3>{tr('Notre programme')}</h3>{!programme.length?<p>{tr('Aucun passage restant dans les rencontres actuellement générées.')}</p>:<ol className="tourneo-family-program">{programme.slice(0,tout?12:3).map(p=><li key={p.match.id}><strong>{p.noms.map(id=>equipes.find(e=>e.id===id)?.nom).join(' · ')}</strong><a href={'#match-'+p.match.id} onClick={surMatch}>{nomParticipant(p.match.equipe1Id,equipes)} / {nomParticipant(p.match.equipe2Id,equipes)}</a><span>{heureCreneau(p.creneau.debut,options.depart)} · {trModele('Terrain {0}',p.creneau.terrain)} · {tr('Horaire estimé')}</span>{p.statut==='validation'?<small>{tr('Résultat en attente de validation')}</small>:p.simultane&&<small>{tr('Des favoris jouent en même temps sur des terrains différents.')}</small>}</li>)}</ol>}{programme.length>3&&<button type="button" onClick={()=>setTout(v=>!v)}>{tr(tout?'Réduire le programme':'Voir la suite du programme')}</button>}</section>}<p className="tourneo-tool-note">{tr('Ce suivi reste sur votre appareil. Il ne modifie ni les équipes ni les horaires du tournoi.')}</p></details>;
+}

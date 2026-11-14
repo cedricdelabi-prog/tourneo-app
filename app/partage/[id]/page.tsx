@@ -10,6 +10,7 @@ import { nomParticipant } from "@/lib/rotation";
 import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
 import { normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
 import { scoreValide } from "@/lib/formats-avances";
+import SuiviFamille from '@/components/SuiviFamille';
 import { passagesJoueur, notifierPassage } from "@/lib/suivi-matchs";
 import { heureCreneau, planifierMatchs } from "@/lib/planning";
 import type { Equipe as EquipeMoteur, Match as MatchMoteur } from "@/types";
@@ -313,6 +314,7 @@ export default function PartagePage() {
 
 
 
+        {!ecranGeant&&<SuiviFamille id={tournoiId!} equipes={equipesMoteur} matchs={matchsMoteur} options={options} valides={donnees.matchsValides||[]} surMatch={()=>setOnglet('matchs')}/>}
         {tournoiTermine && podiumFinal.length > 0 && (<section style={s.finalPoster}>
             <div style={s.finalPosterTop}>
               <div>
@@ -485,7 +487,7 @@ const s: Record<string, CSSProperties> = {
     message: { color: "#A7EFFF", fontSize: 12 },
     tabs: {
         display: "grid",
-        gridTemplateColumns: "repeat(3,1fr)",
+        gridTemplateColumns: "repeat(3,minmax(0,1fr))",
         gap: 6,
         padding: 6,
         borderRadius: 18,
@@ -493,7 +495,8 @@ const s: Record<string, CSSProperties> = {
         margin: "16px 0",
     },
     tab: {
-        padding: 11,
+        minWidth:0,overflowWrap:"anywhere",fontSize:"clamp(11px,3.5vw,14px)",
+        padding: 8,
         border: 0,
         borderRadius: 13,
         background: "transparent",
@@ -502,7 +505,8 @@ const s: Record<string, CSSProperties> = {
         cursor: "pointer",
     },
     tabActive: {
-        padding: 11,
+        minWidth:0,overflowWrap:"anywhere",fontSize:"clamp(11px,3.5vw,14px)",
+        padding: 8,
         border: 0,
         borderRadius: 13,
         background: "linear-gradient(135deg,rgba(124,92,255,.25),rgba(34,211,238,.11))",

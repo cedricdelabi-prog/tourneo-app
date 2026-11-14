@@ -27,7 +27,8 @@
     "test:reprise": "node tests/reprise-browser.cjs",
     "test:regles": "node tests/regles.cjs && node tests/regles-browser.cjs",
     "test:configuration": "node tests/configuration-creation.cjs",
-    "test:flyers": "node tests/flyers-browser.cjs"
+    "test:flyers": "node tests/flyers-browser.cjs",
+    "test:experience": "node tests/experience.cjs && node tests/experience-browser.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

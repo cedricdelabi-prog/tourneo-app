@@ -1,3 +1,4 @@
+import {traductionsExperience}from'@/lib/traductions-experience';
 import {traductionsParcours}from'@/lib/traductions-parcours';
 import {traductionsRegles}from'@/lib/regles-complementaires';
 import {traductionsReprise}from"@/lib/traductions-reprise";
@@ -8,7 +9,7 @@ import { traductionsAlertes } from '@/lib/traductions-alertes';
 import {traductionsErgonomie} from '@/lib/traductions-ergonomie';
 import {traductionsAffiches} from '@/lib/traductions-affiches';
 import {traductionsEspaces} from '@/lib/traductions-espaces';
-const traductions = {...base, ...traductionsAlertes, ...traductionsEspaces, ...traductionsAffiches, ...traductionsErgonomie,...traductionsPronostics,...traductionsReprise,...traductionsRegles,...traductionsParcours};
+const traductions = {...base, ...traductionsAlertes, ...traductionsEspaces, ...traductionsAffiches, ...traductionsErgonomie,...traductionsPronostics,...traductionsReprise,...traductionsRegles,...traductionsParcours,...traductionsExperience};
 export type Langue='fr'|'en'|'nl';
 let langue:Langue='fr';
 const ecouteurs=new Set<()=>void>();

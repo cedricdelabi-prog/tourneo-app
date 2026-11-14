@@ -32,6 +32,10 @@ import ArbitresTournoi from "@/components/ArbitresTournoi";
 import TourneoRetour from "@/components/TourneoRetour";
 import RepereParticipant from "@/components/RepereParticipant";
 import PlanningTournoi from "@/components/PlanningTournoi";
+import ConseillerTournoi from '@/components/ConseillerTournoi';
+import RepereJournee from '@/components/RepereJournee';
+import ImprevusTournoi from '@/components/ImprevusTournoi';
+import {verifierPreparation} from '@/lib/conseiller-tournoi';
 import OptionsTournoiV2 from "@/components/OptionsTournoiV2";
 import SaisieManches from "@/components/SaisieManches";
 import { OPTIONS_V2, normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
@@ -219,7 +223,7 @@ export default function TournoiPage() {
     useEffect(() => {
         let actif = true;
         if (typeof window !== "undefined") {
-            setLienPartage(urlPubliqueTournoi(params.id,'partage'));
+            setLienPartage(urlPubliqueTournoi(params.id,'t'));
         }
         async function initialiser() {
             const generation = ++generationSync.current;
@@ -404,7 +408,7 @@ export default function TournoiPage() {
                     setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
                     setMatchsValides(donnees.matchsValides ?? []);
                     setPodiumPhotoUrl(tournoiCloud.photos_expirent_at && Date.parse(tournoiCloud.photos_expirent_at) <= Date.now() ? "" : donnees.podiumPhotoUrl ?? "");
-                    setLienPartage(urlPubliqueTournoi(tournoiCloud.id,'partage'));
+                    setLienPartage(urlPubliqueTournoi(tournoiCloud.id,'t'));
                     setMessageCloud("Synchronisé");
                 }
                 else if (!localCharge) {
@@ -870,6 +874,7 @@ export default function TournoiPage() {
             if (erreurConfiguration)
                 throw new Error(erreurConfiguration);
             const { nouvellesPoules, nouveauxMatchs } = construireStructure(participants);
+            const blocage=verifierPreparation(participants,nouveauxMatchs,optionsV2).find(a=>a.niveau==='bloquant');if(blocage)throw new Error(blocage.texte);
             const optionsInitiales = formatTournoi === "suisse" ? { ...optionsV2, exemptions: participants.filter(e => !nouveauxMatchs.some(m => m.equipe1Id === e.id || m.equipe2Id === e.id)).map(e => ({ ronde: 1, id: e.id })) } : { ...optionsV2, exemptions: [] };
             const donnees = { sport, equipes: participants, matchs: nouveauxMatchs, cree: true, optionsV2: optionsInitiales, formatTournoi, modePoules, nombrePoules, taillePoules, qualifiesParPoule, poules: nouvellesPoules,
                 matchsPhaseFinale: nouveauxMatchs.filter((m) => m.id >= SEUIL_PHASE_FINALE), matchsValides: [], podiumPhotoUrl: "", termine: false, podiumFinal: [] };
@@ -907,7 +912,7 @@ export default function TournoiPage() {
             setTournoiId(id);
             setCree(true);
             setOnglet("matchs");
-            setLienPartage(urlPubliqueTournoi(id,'partage'));
+            setLienPartage(urlPubliqueTournoi(id,'t'));
             window.history.replaceState({}, "", `/tournoi/${id}`);
             setMessageCloud("Synchronisé");
         }
@@ -1724,6 +1729,7 @@ ${lienPartage}`,
             </div>
 
             {creationEtape === "configuration" ? (<>
+                <ConseillerTournoi effectif={equipes.length||optionsV2.participantsPrevus||0} terrains={optionsV2.terrains} duree={optionsV2.duree} repos={optionsV2.repos} onAppliquer={(p,b)=>{setFormatTournoi(p.format);setOptionsV2(o=>({...o,terrains:b.terrains,duree:b.duree,repos:b.repos,rondes:p.format==='suisse'||p.format==='rotation'?p.rondes:o.rondes,budgetMinutes:b.minutes,participantsPrevus:b.participants}));}}/>
                 <div className="tourneo-field-label"><label htmlFor="tournoi-nom" style={styles.label}>{tr("Nom du tournoi")}</label><AideInfo titre="Nom du tournoi">{"Le titre visible par les participants. Il est repris sur les affiches et les pages de résultats."}</AideInfo></div>
                 <input required maxLength={150} id="tournoi-nom" style={styles.input} value={nomTournoi} onChange={(event) => setNomTournoi(capitaliserNom(event.target.value))} placeholder={tr("Ex. Tournoi été 2026")}/>
 
@@ -1833,7 +1839,9 @@ ${lienPartage}`,
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('photos')}>{tr('Préparer les photos')}</button>
                 <button style={styles.secondaryButton} disabled={operationTournoi||equipes.length<2} onClick={() => preparerSupport('pronostics')}>{tr('Pronostics du public')}</button>{tournoiId&&<button type="button" style={styles.secondaryButton} disabled={operationTournoi||equipes.length<2} onClick={()=>void preparerSupport('pronostics/affiche')}>{tr('Affiche spectateurs et QR')}</button>}
-                <button style={styles.primaryButton} disabled={operationTournoi} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
+                {equipes.length>=2&&equipes.length<=128&&<ConseillerTournoi etapeParticipants effectif={equipes.length} terrains={optionsV2.terrains} duree={optionsV2.duree} repos={optionsV2.repos} onAppliquer={(p,b)=>{setFormatTournoi(p.format);setOptionsV2(o=>({...o,terrains:b.terrains,duree:b.duree,repos:b.repos,rondes:p.format==='suisse'||p.format==='rotation'?p.rondes:o.rondes,budgetMinutes:b.minutes,participantsPrevus:b.participants}));}}/>}
+                <section className="tourneo-preflight" aria-label={tr('Vérification avant lancement')}><strong>{tr('Prêt à jouer ?')}</strong>{validerConfiguration(equipes)&&<p role="status">{tr(validerConfiguration(equipes))}</p>}{verifierPreparation(equipes,[],optionsV2).length?<ul>{verifierPreparation(equipes,[],optionsV2).map((a,i)=><li key={i}>{tr(a.texte)}</li>)}</ul>:<p>{tr('La liste des participants et les réglages sont prêts.')}</p>}{optionsV2.participantsPrevus&&optionsV2.participantsPrevus!==equipes.length&&<p>{trModele('La simulation prévoyait {0} participants ; vous en avez ajouté {1}. Vérifiez la durée avec cet effectif.',optionsV2.participantsPrevus,equipes.length)}</p>}</section>
+                <button style={styles.primaryButton} disabled={operationTournoi||!!validerConfiguration(equipes)||verifierPreparation(equipes,[],optionsV2).some(a=>a.niveau==='bloquant')} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
                 <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
                 {tr(messageCloud) && <div style={styles.statusLine}>{tr(messageCloud)}</div>}
               </>)}
@@ -2222,6 +2230,7 @@ ${lienPartage}`,
             <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>{tr("Inscriptions / pointage")}</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>{tr("QR code")}</button>
             <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button><button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('pronostics')}>{tr('Pronostics du public')}</button>
+            <a style={styles.secondaryButton} href={`/tournoi/${tournoiId}/imprimer?kit=1`}>{tr('Dossier prêt pour le jour J')}</a>
             <button style={styles.secondaryButton} onClick={exporterPDF}>{tr("Imprimer / PDF")}</button>
             <button style={styles.secondaryButton} onClick={exporterClassement}>{tr("Classement CSV")}</button>
             <button style={styles.secondaryButton} onClick={sauvegarderFichier}>{tr("Sauvegarder les r\u00E9sultats")}</button>
@@ -2386,6 +2395,8 @@ ${lienPartage}`,
 
         {onglet === "matchs" && <div className="tourneo-referee-shortcut"><div><strong>{tr('Arbitres et résultats proposés')}</strong><p>{tr('Désignez les arbitres du tournoi et vérifiez leurs transferts.')}</p></div><button type="button" onClick={() => setOnglet('arbitrage')}>{tr('Gérer les arbitres')}</button></div>}
         {onglet === "matchs" && <ReglesSport key={sport} sport={sport}/>}
+        {onglet === "matchs" && <RepereJournee matchs={matchs} equipes={equipes} valides={matchsValides} options={optionsV2} format={formatTournoi}/>}
+        {onglet === "matchs" && <ImprevusTournoi matchs={matchs} equipes={equipes} valides={matchsValides} options={optionsV2} onChange={setOptionsV2}/>}
         {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs} valides={matchsValides} titreTour={titreJournee} detailsTour={journee => optionsV2.exemptions.filter(e => e.ronde === journee).map(e => <p key={e.id} style={styles.muted}>{tr("Exempt : ")}{trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire}{tr(" pts)")}</p>)} renderMatch={(match, reperes) => {
                 const equipe1 = trouverEquipe(match.equipe1Id);
                 const equipe2 = trouverEquipe(match.equipe2Id);

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabase';
+import {REGLES_SPORTS} from '@/lib/regles-sports';
 import { nomParticipant } from '@/lib/rotation';
 import { calculerClassement } from '@/lib/tournoi';
 import { classementTournoi } from '@/lib/resultats';
@@ -14,6 +15,7 @@ import { planifierMatchs, heureCreneau } from '@/lib/planning';
 import type { Equipe, Match } from '@/types';
 type Contenu = {
     nomTournoi: string;
+    sport?:string;
     equipes: Equipe[];
     matchs: Match[];
     formatTournoi: string;
@@ -24,7 +26,7 @@ type Contenu = {
     }[];
     optionsV2?: Parameters<typeof normaliserOptionsV2>[0];
 };
-const rubriques = [['participants', 'Participants et pointage'], ['planning', 'Planning et feuilles de scores'], ['classement', 'Classement'], ['poules', 'Poules et classements par poule'], ['tableaux', 'Tableaux par tour et branche']] as const;
+const rubriques = [['participants', 'Participants et pointage'], ['planning', 'Planning et feuilles de scores'], ['classement', 'Classement'], ['poules', 'Poules et classements par poule'], ['tableaux', 'Tableaux par tour et branche'], ['kit', 'Dossier jour J : règles, matériel et panneaux']] as const;
 export default function FeuilleTournoi() {
     useLangue();
     const { id } = useParams<{
@@ -36,11 +38,12 @@ export default function FeuilleTournoi() {
     const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
     const [couleur, setCouleur] = useState(false), [grandesCases, setGrandesCases] = useState(false);
     const [logo, setLogo] = useState(true), [qr, setQr] = useState(true);
-    const [sections, setSections] = useState({ participants: false, planning: true, classement: true, poules: false, tableaux: false });
+    const [sections, setSections] = useState({ participants: false, planning: true, classement: true, poules: false, tableaux: false, kit:false });
     const [tour, setTour] = useState("tous"), [qrMatchs, setQrMatchs] = useState(false);
     const auMoinsUneSection = Object.values(sections).some(Boolean);
     useEffect(() => {
         let actif = true;
+        if(new URLSearchParams(window.location?.search||'').get('kit')==='1')setSections({participants:true,planning:true,classement:false,poules:false,tableaux:false,kit:true});
         setContenu(null);
         setErreur('');
         setLien(urlPubliqueTournoi(id,'partage'));
@@ -61,11 +64,11 @@ export default function FeuilleTournoi() {
                 const { data: auth } = await supabase.auth.getUser();
                 if (!auth.user)
                     throw new Error('Ouvrez le tournoi depuis votre compte avant d’imprimer.');
-                const { data, error } = await supabase.from('tournois').select('nom,donnees').eq('id', id).eq('user_id', auth.user.id).single();
+                const { data, error } = await supabase.from('tournois').select('nom,sport,donnees').eq('id', id).eq('user_id', auth.user.id).single();
                 if (error || !data)
                     throw new Error('Impossible de charger le tournoi. Vérifiez votre connexion et réessayez.');
                 if (actif)
-                    setContenu({ ...data.donnees, nomTournoi: data.nom });
+                    setContenu({ ...data.donnees, nomTournoi: data.nom, sport:data.sport });
             }
             catch (error) {
                 if (actif)
@@ -124,8 +127,9 @@ export default function FeuilleTournoi() {
                         return <tr key={m.id}><td>{branche}</td><td>{nom(m.equipe1Id)}</td><td>{vierge ? '___ – ___' : trModele("{0} \u2013 {1}", m.score1 || '___', m.score2 || '___')}</td><td>{nom(m.equipe2Id)}</td></tr>;
                     })}</tbody></table></div></div>)}</section>}
       {sections.classement && <section><h2>{tr("Classement provisoire / final selon l\u2019avancement")}</h2><div className="v2-paper-scroll"><table><thead><tr><th>#</th><th>{tr("Participant")}</th><th>{tr("Matchs")}</th><th>{tr("Points")}</th></tr></thead><tbody>{classement.map((l, i) => <tr key={l.equipe.id}><td>{i + 1}</td><td>{l.equipe.nom}</td><td>{l.mj}</td><td>{l.pts}</td></tr>)}</tbody></table></div></section>}
+      {sections.kit&&<section className="tourneo-kit"><h2>{tr('Préparer le jour J')}</h2><ul>{['Vérifier le matériel du jeu et les terrains.','Prévoir feuilles de scores, stylos et moyen d’affichage.','Vérifier les présences et expliquer les règles avant le premier match.','Afficher le QR du tournoi et les numéros de terrain.','Annoncer le départage, le repos et la validation des résultats.'].map(t=><li key={t}>☐ {tr(t)}</li>)}</ul>{REGLES_SPORTS[contenu.sport||'']&&<><h2>{tr('Règles à présenter aux participants')}</h2><h3>{tr(REGLES_SPORTS[contenu.sport!].titre)}</h3><ul>{REGLES_SPORTS[contenu.sport!].reperes.map(r=><li key={r}>{tr(r)}</li>)}</ul><p>{tr('Adaptez ces repères au règlement annoncé par l’organisateur.')}</p></>}<h2>{tr('Panneaux de terrain à afficher')}</h2><div className="tourneo-kit-signs">{Array.from({length:options.terrains},(_,i)=><article key={i}><strong>{trModele('Terrain {0}',i+1)}</strong><span>{contenu.nomTournoi}</span><QRCodeSVG value={urlPubliqueTournoi(id,'t')} size={112} marginSize={4}/><small>{tr('Inscriptions, matchs et résultats')}</small></article>)}</div></section>}
       <p>{tr("Les d\u00E9cisions de l\u2019organisateur et de l\u2019arbitre pr\u00E9valent. Reportez les r\u00E9sultats papier dans Tourneo au retour de la connexion.")}</p>
     </>}
-    <style>{trModele("\n      @page { size: {0} {1}; margin: 12mm; }\n      .v2-print-settings { display:flex; flex-wrap:wrap; gap:16px; align-items:center; padding:18px; border:1px solid #94a3b8; border-radius:12px; margin:20px 0; }\n      .v2-print-settings legend { font-weight:700; padding:0 8px; }\n      .v2-print-settings label { display:flex; gap:8px; align-items:center; }\n      .v2-print-settings select { border:1px solid #64748b; border-radius:6px; padding:6px; }\n      .v2-print-settings p { flex-basis:100%; margin:0; }\n      .v2-paper-heading { display:flex; align-items:center; gap:18px; }\n      .v2-paper-heading h1 { overflow-wrap:anywhere; }\n      .v2-paper-scroll { overflow-x:auto; }\n      .v2-paper h3 { font-size:16px; font-weight:700; margin:18px 0 8px; }\n      .v2-paper td svg { display:block; margin:auto; max-width:100%; height:auto; }\n      .v2-paper td { overflow-wrap:anywhere; }\n      .v2-paper-large td { padding:18px 10px; min-height:40px; }\n      .v2-paper-color th { color:#075985; background:#e0f2fe; }\n      @media print {\n        .v2-print-settings { display:none!important; }\n        .v2-paper-scroll { overflow:visible; }\n        .v2-paper table { table-layout:fixed; }\n        .v2-paper:not(.v2-paper-color) { filter:grayscale(1); }\n        .v2-paper-color { print-color-adjust:exact; -webkit-print-color-adjust:exact; }\n        .v2-paper h2,.v2-paper-heading { break-after:avoid; }\n        .v2-paper-qr { break-inside:avoid; }\n        .v2-paper-large td { padding:18px 6px; }\n      }\n    ", papier, orientation)}</style>
+    <style>{trModele("\n      @page { size: {0} {1}; margin: 12mm; }\n      .v2-print-settings { display:flex; flex-wrap:wrap; gap:16px; align-items:center; padding:18px; border:1px solid #94a3b8; border-radius:12px; margin:20px 0; }\n      .v2-print-settings legend { font-weight:700; padding:0 8px; }\n      .v2-print-settings label { display:flex; gap:8px; align-items:center; }\n      .v2-print-settings select { border:1px solid #64748b; border-radius:6px; padding:6px; }\n      .v2-print-settings p { flex-basis:100%; margin:0; }\n      .v2-paper-heading { display:flex; align-items:center; gap:18px; }\n      .v2-paper-heading h1 { overflow-wrap:anywhere; }\n      .v2-paper-scroll { overflow-x:auto; }\n      .v2-paper h3 { font-size:16px; font-weight:700; margin:18px 0 8px; }\n      .v2-paper td svg { display:block; margin:auto; max-width:100%; height:auto; }\n      .v2-paper td { overflow-wrap:anywhere; }\n      .v2-paper-large td { padding:18px 10px; min-height:40px; }\n      .v2-paper-color th { color:#075985; background:#e0f2fe; }\n      @media print {\n        .v2-print-settings { display:none!important; }\n        .v2-paper-scroll { overflow:visible; }\n        .v2-paper table { table-layout:fixed; }\n        .v2-paper:not(.v2-paper-color) img { filter:grayscale(1); }\n        .v2-paper-color { print-color-adjust:exact; -webkit-print-color-adjust:exact; }\n        .v2-paper h2,.v2-paper-heading { break-after:avoid; }\n        .v2-paper-qr { break-inside:avoid; }\n        .v2-paper-large td { padding:18px 6px; }\n      }\n    ", papier, orientation)}</style>
   </main>;
 }
