@@ -1,4 +1,5 @@
 "use client";
+import CommunautePublique from "@/components/CommunautePublique";
 import {assurerProfilCompte} from '@/lib/profil-compte';
 import {retourPronostics} from "@/lib/pronostics";
 import {tr,trModele,useLangue} from "@/lib/langue";
@@ -188,6 +189,7 @@ export default function LoginPage() {
           <span>{tr("ou")}</span>
         </div></>}
 
+        <CommunautePublique/>
         <form aria-busy={chargement} onSubmit={e => { e.preventDefault(); void envoyer(); }}>
         <fieldset disabled={chargement} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         {mode === "inscription" && (<>

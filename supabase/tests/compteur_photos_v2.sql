@@ -1,0 +1,42 @@
+begin;
+insert into auth.users(id,email_confirmed_at)select ('e1000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,now()from generate_series(1,25)n;
+insert into auth.users(id)values('e1000000-0000-4000-8000-000000000026');
+update auth.users set deleted_at=now()where id='e1000000-0000-4000-8000-000000000024';
+update auth.users set banned_until=now()+interval '1 day'where id='e1000000-0000-4000-8000-000000000023';
+update auth.users set is_anonymous=true where id='e1000000-0000-4000-8000-000000000025';
+insert into tourneo_private.administrateurs(user_id,role)values('e1000000-0000-4000-8000-000000000002','superadmin'),('e1000000-0000-4000-8000-000000000003','admin');
+insert into public.tournois(id,user_id,nom,sport,donnees)values('e2000000-0000-4000-8000-000000000001','e1000000-0000-4000-8000-000000000001','Album test','petanque','{}');
+insert into storage.objects(bucket_id,name)select 'tourneo-media','e1000000-0000-4000-8000-000000000001/tournois/e2000000-0000-4000-8000-000000000001/album-'||suffixe||'e3000000-0000-4000-8000-000000000001.jpg'from unnest(array['','partage-','apercu-'])suffixe;
+set local role authenticated;select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000001',true);
+insert into public.tourneo_album_photos(id,tournoi_id,user_id,path)values('e3000000-0000-4000-8000-000000000001','e2000000-0000-4000-8000-000000000001',auth.uid(),'e1000000-0000-4000-8000-000000000001/tournois/e2000000-0000-4000-8000-000000000001/album-e3000000-0000-4000-8000-000000000001.jpg');
+insert into public.tourneo_album_config(tournoi_id,partage,telechargement)values('e2000000-0000-4000-8000-000000000001',true,false);
+insert into public.tourneo_album_partages(photo_id,tournoi_id,user_id,path,apercu_path)values('e3000000-0000-4000-8000-000000000001','e2000000-0000-4000-8000-000000000001',auth.uid(),'e1000000-0000-4000-8000-000000000001/tournois/e2000000-0000-4000-8000-000000000001/album-partage-e3000000-0000-4000-8000-000000000001.jpg','e1000000-0000-4000-8000-000000000001/tournois/e2000000-0000-4000-8000-000000000001/album-apercu-e3000000-0000-4000-8000-000000000001.jpg');
+set local role anon;select set_config('request.jwt.claim.sub','',true);select set_config('storage.qa_operation','object.get_authenticated',true);
+do $$declare r jsonb;begin
+ r:=public.tourneo_communaute_publique();if r<>jsonb_build_object('minimum',20,'maximum',29,'mesure','comptes_confirmes')then raise exception 'Compteur invalide: %',r;end if;
+ r:=public.tourneo_album_public('e2000000-0000-4000-8000-000000000001');if(r->>'telechargement')::boolean or r#>>'{photos,0,telechargement_path}'is not null then raise exception 'Qualité exposée malgré refus';end if;
+ if r#>>'{photos,0,path}'not like '%album-apercu-%'then raise exception 'Aperçu remplacé par qualité';end if;
+ if(select count(*)from storage.objects)<>1 then raise exception 'Accès non limité à aperçu';end if;
+ begin perform public.tourneo_admin_albums_partages();raise exception 'Modération anonyme';exception when insufficient_privilege then null;end;
+end$$;
+set local role authenticated;select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000003',true);
+do $$begin begin perform public.tourneo_admin_albums_partages();raise exception 'Simple admin voit albums';exception when raise_exception then if sqlerrm<>'Accès super administrateur requis'then raise;end if;end;end$$;
+select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000002',true);
+do $$declare r jsonb;begin
+ if jsonb_array_length(public.tourneo_admin_albums_partages())<>1 then raise exception 'Album partagé non listé';end if;
+ begin perform public.tourneo_admin_ouvrir_album('e2000000-0000-4000-8000-000000000001','');raise exception 'Motif vide accepté';exception when raise_exception then if sqlerrm<>'Motif requis (3 à 300 caractères)'then raise;end if;end;
+ r:=public.tourneo_admin_ouvrir_album('e2000000-0000-4000-8000-000000000001','Vérification suite signalement');
+ if(r->>'expire_at')::timestamptz<>now()+interval '5 minutes' or r::text like '%album-partage-%'or r::text like '%album-e300%'then raise exception 'Consultation non limitée aux aperçus';end if;
+ if exists(select 1 from public.tourneo_album_photos)then raise exception 'Superadmin voit originaux';end if;
+end$$;
+reset role;do $$begin if(select count(*)from tourneo_private.journal_admin where action='consultation_album_partage')<>1 then raise exception 'Consultation non journalisée';end if;end$$;
+set local role authenticated;select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000001',true);update public.tourneo_album_config set telechargement=true;
+set local role anon;select set_config('request.jwt.claim.sub','',true);
+do $$begin if(select count(*)from storage.objects)<>2 then raise exception 'Téléchargement qualité indisponible après accord';end if;end$$;
+set local role authenticated;select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000001',true);update public.tourneo_album_config set partage=false;
+select set_config('request.jwt.claim.sub','e1000000-0000-4000-8000-000000000002',true);
+do $$begin
+ if jsonb_array_length(public.tourneo_admin_albums_partages())<>0 then raise exception 'Album privé listé';end if;
+ begin perform public.tourneo_admin_ouvrir_album('e2000000-0000-4000-8000-000000000001','Vérification');raise exception 'Album privé consulté';exception when raise_exception then if sqlerrm<>'Album non partagé ou expiré'then raise;end if;end;
+end$$;
+reset role;rollback;

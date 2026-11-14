@@ -188,3 +188,7 @@ Activation confirmée ensuite le 13 novembre : migration 20261113072840 appliqu�
 ## Retours du 13 novembre : espaces et album
 
 Voir V2-RETOUR-13-NOVEMBRE.md : navigation par rôle, joueur limité à ses matchs, arbitrage séparé des statistiques, outils dans la rencontre, transfert puis validation explicite, album privé du tournoi. Responsive vérifié sur quatre largeurs Chromium. Compteur : 81 développés, 3 à tester, 1 partiellement développé. Les ajouts de rôle et album complètent le périmètre initial sans inventer de nouveaux numéros.
+
+## Reprise du 14 novembre
+
+Voir `V2-REPRISE-14-NOVEMBRE.md` : aides ancrées près des champs et fiches tennis/volley enrichies. Compteur public, aperçus filigranés avec autorisation de téléchargement et modération des seuls albums partagés développés/testés localement, **activation Supabase non réalisée** (deux confirmations techniques expirées). Compatibilité avec le schéma actuel conservée ; fonctions nouvelles masquées jusqu’à disponibilité de leur API/colonne. Aucun accès supplémentaire aux albums privés et aucune garantie de blocage des captures Web.
