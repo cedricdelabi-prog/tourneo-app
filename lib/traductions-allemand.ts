@@ -1,7 +1,9 @@
 // Shared German catalogue with hand-written discovery and navigation wording.
+import {traductionsLivraison} from '@/lib/traductions-livraison';
 import {traductionsAllemandCompletes} from '@/lib/traductions-allemand-complet';
 export const traductionsAllemand: Record<string, string> = {
   ...traductionsAllemandCompletes,
+  ...Object.fromEntries(Object.entries(traductionsLivraison).map(([fr,v])=>[fr,v.de])),
   "S’inscrire": "Registrieren", "Accès au compte": "Kontozugang",
   "LE PLAISIR DE SE RETROUVER": "GEMEINSAM EINE GUTE ZEIT HABEN",
   "Un tournoi. Tout le monde dans le jeu.": "Ein Turnier. Alle sind dabei.",

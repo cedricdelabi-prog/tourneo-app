@@ -1,4 +1,6 @@
 export type OptionsV2 = {
+  rappelAvant?:0|15|30;
+  fuseauHoraire?:string;
   budgetMinutes?:number;
   participantsPrevus?:number;
   adaptationPlanning?:{debutMinimum:number;terrainsFermes:number[];fixes:{matchId:number;terrain:number;debut:number;fin:number}[]};
@@ -29,6 +31,8 @@ export function normaliserOptionsV2(value: Partial<OptionsV2> | undefined): Opti
   const entier = (v: unknown, min:number,max:number,defaut:number) => typeof v==='number' && Number.isInteger(v)&&v>=min&&v<=max ? v : defaut;
   return {...OPTIONS_V2,
     budgetMinutes:entier(source.budgetMinutes,5,1440,0)||undefined,participantsPrevus:entier(source.participantsPrevus,2,128,0)||undefined,
+    rappelAvant:source.depart&&(source.rappelAvant===15||source.rappelAvant===30)?source.rappelAvant:0,
+    fuseauHoraire:typeof source.fuseauHoraire==='string'&&source.fuseauHoraire.length<=100?source.fuseauHoraire:'Europe/Paris',
     adaptationPlanning:normaliserAdaptationPlanning(source.adaptationPlanning),
     tirage:source.tirage==='equilibre'||source.tirage==='manuel'?source.tirage:'aleatoire',
     mode: source.mode === 'expert' ? 'expert' : 'simple',

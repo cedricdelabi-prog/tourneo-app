@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import TourneoRetour from "@/components/TourneoRetour";
 import TourneoBrand from "@/components/TourneoBrand";
-import SelecteurLangue from '@/components/SelecteurLangue';
+import MenuCompteTourneo from '@/components/MenuCompteTourneo';
+import AccesMessagesTourneo from '@/components/AccesMessagesTourneo';
 import SelecteurEspace from '@/components/SelecteurEspace';
 import {liensEspace, type Espace} from '@/lib/espace';
 const sections = [
@@ -52,19 +53,13 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
     <header className="tourneo-top-nav">
       <div className="tourneo-nav-heading">
         <Link href={accueil[0]} className="tourneo-brand-link" aria-label={tr("Tourneo — mes tournois")}><TourneoBrand compact/></Link>
-        <div className="tourneo-nav-utilities"><SelecteurLangue/><SelecteurEspace onEspace={setEspace}/>
-          <Link href="/regles" aria-current={selected("/regles") ? "page" : undefined}>{tr("Règles des jeux")}</Link>
-          <Link href="/aide" aria-current={selected("/aide") ? "page" : undefined}>{tr("Aide")}</Link>
-          <Link href="/contact" aria-current={selected("/contact") ? "page" : undefined}>{tr("Contact")}</Link>
-          {onLogout && <button type="button" onClick={() => void onLogout()}>{tr("D\u00E9connexion")}</button>}
-          {tr(primaryLabel) && primaryHref && <Link className="tourneo-nav-primary" href={primaryHref}>{tr(primaryLabel)}</Link>}
-        </div>
+        <div className="tourneo-header-actions"><AccesMessagesTourneo/><MenuCompteTourneo onLogout={onLogout}/>{primaryLabel&&primaryHref&&<Link className="tourneo-header-create" href={primaryHref}>{tr(primaryLabel)}</Link>}</div>
       </div>
       {showBack && <div className="tourneo-context-bar"><TourneoRetour href={backHref}>{tr(backLabel)}</TourneoRetour>{tr(contextLabel) && <span className="tourneo-context-label">{tr(contextLabel)}</span>}</div>}
-      <nav className="tourneo-desktop-nav" aria-label={tr("Navigation principale")}>
-        {principaux.map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}
-        {espace === 'organisateur' && <details className="tourneo-desktop-more"><summary>{tr("Autres espaces")}</summary><div>{sections.filter(([href]) => !["/dashboard", "/outils", "/activite", "/profil"].includes(href)).map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}</div></details>}
-      </nav>
+      <div className="tourneo-navigation-row"><SelecteurEspace onEspace={setEspace}/><nav className="tourneo-desktop-nav" aria-label={tr("Navigation principale")}>
+        {principaux.filter(([href])=>!["/activite","/profil"].includes(href)).map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}
+        {espace !== 'admin' && <details className="tourneo-desktop-more"><summary>{tr("Plus d’outils")}</summary><div>{sections.filter(([href]) => !["/dashboard", "/outils", "/activite", "/profil"].includes(href)).map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}</div></details>}
+      </nav></div>
     </header>
     <nav className="tourneo-mobile-bottom-nav" aria-label={tr("Navigation mobile")}>
       <Link href={accueil[0]} aria-current={selected(accueil[0]) ? "page" : undefined}><span aria-hidden="true">⌂</span><small>{tr(accueil[1])}</small></Link>
@@ -77,7 +72,7 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
       {espace!=="organisateur"&&<Link href="/regles" onClick={()=>setMoreOpen(false)}>{tr("Règles des jeux")}</Link>}
       <Link href="/aide" onClick={() => setMoreOpen(false)}>{tr("Aide & s\u00E9curit\u00E9")}</Link>
       <Link href="/contact" onClick={() => setMoreOpen(false)}>{tr("Contact")}</Link>
-      {onLogout && <button type="button" onClick={() => { setMoreOpen(false); void onLogout(); }}>{tr("D\u00E9connexion")}</button>}
+
     </div>}
   </>;
 }

@@ -1,0 +1,10 @@
+"use client";
+import Link from 'next/link';
+import {useEffect,useState} from 'react';
+import {supabase} from '@/lib/supabase';
+import {tr,trModele,useLangue} from '@/lib/langue';
+export default function AccesMessagesTourneo(){
+ useLangue();const[notifications,setNotifications]=useState(0),[messages,setMessages]=useState(0);
+ useEffect(()=>{let actif=true,charge=false;async function lire(){if(charge||document.hidden)return;charge=true;try{const a=await supabase.auth.getUser();if(!a.data.user){if(actif){setNotifications(0);setMessages(0);}return;}const uid=a.data.user.id;const[n,c,m]=await Promise.all([supabase.from('tourneo_notifications').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('lu',false),supabase.from('tourneo_appels').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('lu',false),supabase.from('tourneo_messages').select('id',{count:'exact',head:true}).eq('user_id',uid).eq('lu',false)]);if(actif){setNotifications((n.count||0)+(c.count||0));setMessages(m.count||0);}}finally{charge=false;}}void lire().catch(()=>{});const rafraichir=()=>void lire().catch(()=>{}),t=setInterval(rafraichir,30000);window.addEventListener('tourneo-boite-changee',rafraichir);document.addEventListener('visibilitychange',rafraichir);return()=>{actif=false;clearInterval(t);window.removeEventListener('tourneo-boite-changee',rafraichir);document.removeEventListener('visibilitychange',rafraichir);};},[]);
+ return <div className="tourneo-inbox-access">{[{href:'/activite',label:'Notifications',n:notifications,icone:'cloche'},{href:'/messages',label:'Messages',n:messages,icone:'lettre'}].map(l=><Link href={l.href} key={l.href} aria-label={l.n?trModele('{0} : {1} non lu(s)',tr(l.label),l.n):tr(l.label)}><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">{l.icone==='cloche'?<><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5z"/><path d="M10 21h4M12 2v2"/></>:<><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/></>}</svg><span className="tourneo-inbox-label">{tr(l.label)}</span>{l.n>0&&<b className="tourneo-inbox-count">{l.n>99?'99+':l.n}</b>}</Link>)}</div>;
+}

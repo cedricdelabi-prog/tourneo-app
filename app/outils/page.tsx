@@ -2,6 +2,7 @@
 import {tr,trModele,useLangue} from "@/lib/langue";
 import { useEffect, useRef, useState } from 'react';
 import TourneoNav from '@/components/TourneoNav';
+import {useSonTirage} from '@/lib/use-son-tirage';
 import PileOuFace from '@/components/PileOuFace';
 import CompteurTennis from '@/components/CompteurTennis';
 import ReglesSport from '@/components/ReglesSport';
@@ -10,6 +11,7 @@ import { afficherDuree, nomsPourTirage, tempsChrono, tirerEquipes, texteEquipes,
 const CLE = 'tourneo-outils-v1';
 export default function Outils() {
     useLangue();
+    const sonRoulette=useSonTirage('/audio/tourneo-roue.wav','tourneo-son-roue-v1');
     const [tennisSets,setTennisSets]=useState(2);
     const [outil, setOutil] = useState('chrono'), [pret, setPret] = useState(false), [message, setMessage] = useState('');
     const [chrono, setChrono] = useState<Chrono>({ ecoule: 0, depuis: null, limite: 0 }), [maintenant, setMaintenant] = useState(0), [minutes, setMinutes] = useState('10');
@@ -18,6 +20,7 @@ export default function Outils() {
         string,
         string
     ]>(['Équipe A', 'Équipe B']);
+    useEffect(()=>{if(outil!=='tirage')sonRoulette.arreter();},[outil]);
     const verrou = useRef(false), temporisation = useRef<ReturnType<typeof setTimeout> | null>(null), animation = useRef<ReturnType<typeof setInterval> | null>(null);
     useEffect(() => {
         let actif = true;
@@ -94,7 +97,7 @@ export default function Outils() {
         try {
             const liste = nomsPourTirage(noms), resultat = tirerEquipes(liste, nombre);
             verrou.current = true;
-            setTourne(true);
+            setTourne(true);sonRoulette.jouer();
             setMessage('');
             setEquipes([]);
             let i = 0;
@@ -106,7 +109,7 @@ export default function Outils() {
                 setNomAnime('Équipes prêtes');
                 setTourne(false);
                 verrou.current = false;
-            }, 1800);
+            }, 2400);
         }
         catch (e) {
             setMessage(e instanceof Error ? e.message : 'Tirage impossible.');
@@ -136,10 +139,10 @@ export default function Outils() {
             setChrono({ ecoule: 0, depuis: null, limite: n * 60000 });
             setMessage('');
         }}>{tr("Utiliser le compte \u00E0 rebours")}</button><button type="button" disabled={chrono.depuis !== null} onClick={() => setChrono({ ecoule: 0, depuis: null, limite: 0 })}>{tr("Chronom\u00E8tre libre")}</button></details><p className="tourneo-tool-note">{tr("Le temps reprend \u00E0 l\u2019ouverture apr\u00E8s une mise en veille. Gardez l\u2019\u00E9cran visible pour suivre la fin du compte \u00E0 rebours.")}</p></section>
-    <section className="v2-card" hidden={outil !== 'piece'}><PileOuFace noms={cotes}/></section>
+    <section className="v2-card" hidden={outil !== 'piece'}><PileOuFace visible={outil==='piece'} noms={cotes}/></section>
     <section className="v2-card" hidden={outil !== 'tennis'}><h2>{tr('Compteur tennis')}</h2><label>{tr('Sets gagnants')}<select value={tennisSets} onChange={e=>setTennisSets(Number(e.target.value))}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</select></label><CompteurTennis key={tennisSets} cle={`tourneo-tennis:libre:${tennisSets}`} setsGagnants={tennisSets} noms={cotes}/><ReglesSport sport="tennis"/></section>
     <section className="v2-card" hidden={outil !== 'points'}><h2>{tr("Compter les points")}</h2><div className="tourneo-tool-fields">{cotes.map((nom, i) => <label key={i}>{tr("C\u00F4t\u00E9 ")}{i + 1}<input value={nom} maxLength={100} onChange={e => setCotes(a => i === 0 ? [e.target.value, a[1]] : [a[0], e.target.value])}/></label>)}</div><CompteurArbitre noms={cotes}/></section>
-    <section className="v2-card" hidden={outil !== 'tirage'}><h2>{tr("Former les \u00E9quipes au hasard")}</h2><p>{tr("Par exemple : 21 personnes, 3 \u00E9quipes de 7. Si le nombre ne tombe pas juste, les tailles diff\u00E8rent d\u2019une personne au maximum.")}</p><div className="tourneo-tool-fields"><label>{tr("Une personne par ligne")}<textarea rows={8} maxLength={30000} value={noms} disabled={tourne} placeholder={tr('Alice\nBenoît\nCamille')} onChange={e => { setNoms(e.target.value); setEquipes([]); }}/></label><div><label>{tr("Nombre d\u2019\u00E9quipes")}<input type="number" min={2} max={32} value={nombre} disabled={tourne} onChange={e => { setNombre(Number(e.target.value)); setEquipes([]); }}/></label><div className={`tourneo-draw-wheel${tourne ? ' is-spinning' : ''}`} aria-hidden="true"><span>✦</span></div><p className="tourneo-draw-name" role="status">{tourne ? nomAnime : equipes.length ? tr('Tirage terminé') : tr('À qui le tour ?')}</p><button type="button" disabled={tourne || !pret} onClick={tirer}>{tourne ? tr('Tirage en cours…') : tr('Lancer la roulette')}</button></div></div>{!!equipes.length && <><div className="tourneo-drawn-teams">{equipes.map((e, i) => <article key={i}><input aria-label={trModele("Nom de l\u2019\u00E9quipe {0}", i + 1)} value={e.nom} maxLength={100} onChange={ev => setEquipes(a => a.map((t, j) => i === j ? { ...t, nom: ev.target.value } : t))}/><small>{e.joueurs.length}{tr(" personnes")}</small><ul>{e.joueurs.map(n => <li key={n}>{n}</li>)}</ul></article>)}</div><div className="tourneo-tool-actions"><button type="button" onClick={async () => {
+    <section className="v2-card" hidden={outil !== 'tirage'}><h2>{tr("Former les \u00E9quipes au hasard")}</h2><p>{tr("Par exemple : 21 personnes, 3 \u00E9quipes de 7. Si le nombre ne tombe pas juste, les tailles diff\u00E8rent d\u2019une personne au maximum.")}</p><div className="tourneo-tool-fields"><label>{tr("Une personne par ligne")}<textarea rows={8} maxLength={30000} value={noms} disabled={tourne} placeholder={tr('Alice\nBenoît\nCamille')} onChange={e => { setNoms(e.target.value); setEquipes([]); }}/></label><div><label>{tr("Nombre d\u2019\u00E9quipes")}<input type="number" min={2} max={32} value={nombre} disabled={tourne} onChange={e => { setNombre(Number(e.target.value)); setEquipes([]); }}/></label><div className={`tourneo-draw-wheel${tourne ? ' is-spinning' : ''}`} aria-hidden="true"><span>✦</span></div><p className="tourneo-draw-name" role="status">{tourne ? nomAnime : equipes.length ? tr('Tirage terminé') : tr('À qui le tour ?')}</p><button type="button" disabled={tourne || !pret} onClick={tirer}>{tourne ? tr('Tirage en cours…') : tr('Lancer la roulette')}</button><div className="tourneo-tool-actions tournoi-sound-actions"><button type="button" aria-pressed={sonRoulette.actif} onClick={sonRoulette.changer}>{tr(sonRoulette.actif?'Son de la roue activé':'Son de la roue coupé')}</button><button type="button" disabled={tourne} onClick={()=>sonRoulette.jouer(true)}>{tr('Écouter le son')}</button></div></div></div>{!!equipes.length && <><div className="tourneo-drawn-teams">{equipes.map((e, i) => <article key={i}><input aria-label={trModele("Nom de l\u2019\u00E9quipe {0}", i + 1)} value={e.nom} maxLength={100} onChange={ev => setEquipes(a => a.map((t, j) => i === j ? { ...t, nom: ev.target.value } : t))}/><small>{e.joueurs.length}{tr(" personnes")}</small><ul>{e.joueurs.map(n => <li key={n}>{n}</li>)}</ul></article>)}</div><div className="tourneo-tool-actions"><button type="button" onClick={async () => {
                 try {
                     await navigator.clipboard.writeText(texteEquipes(equipes));
                     setMessage('Équipes copiées.');

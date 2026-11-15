@@ -16,8 +16,6 @@ Le sélecteur propose Deutsch avec un drapeau SVG allemand. La préférence `de`
 
 Le catalogue allemand couvre maintenant l’ensemble des entrées des catalogues d’interface existants, les règles complémentaires et les appels de traduction statiques repérés lors de l’audit. Les écrans de tournoi, outils, affiches, aide et guides utilisent ces entrées. Un glossaire corrige les ambiguïtés de vocabulaire sportif (groupes, rondes, auslosung, Schweizer System, etc.). Les noms et contenus saisis par les utilisateurs restent inchangés. Les textes sont préparés hors ligne : aucune traduction externe n’est appelée dans l’application. Les messages externes émis par le service de notification ne font pas partie de cette correction d’interface.
 
-## Autres demandes à poursuivre séparément
+## Reprise des autres demandes
 
-Cette livraison ne prétend pas achever les demandes fonctionnelles précédentes : rappels 15/30 minutes, annonces administrateur, affichage de la ville, personnalisation photo et sponsors, réorganisation du menu connecté et intégration du son de roue validé. Les travaux locaux non publiés de la session précédente doivent être repris, ils ne sont pas contenus dans le commit de base 5ab8d28. Le son pile ou face proposé a été refusé et ne doit pas être intégré.
-
-Le fournisseur Google est présent dans le code mais a été constaté désactivé dans les paramètres publics de l’authentification V2. Ne pas annoncer une connexion Google opérationnelle avant correction de la configuration et vérification.
+La navigation, les notifications, la messagerie administrateur, les rappels, les villes, les images/sponsors et les sons sont repris dans [le suivi des demandes du 15 novembre](V2-REPRISE-DEMANDES-15-NOVEMBRE.md). Ce suivi distingue les changements livrés du paramétrage Google encore bloqué.

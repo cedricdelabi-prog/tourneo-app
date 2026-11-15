@@ -1,4 +1,5 @@
 "use client";
+import {nomAvecVille} from "@/lib/identite-joueur";
 import {erreursConfigurationCreation} from "@/lib/configuration-creation";
 import AideInfo from '@/components/AideInfo';
 import PublicationPronostics from '@/components/PublicationPronostics';
@@ -1060,7 +1061,7 @@ export default function TournoiPage() {
         setMessageCodeJoueur("Chargement de votre profil…");
         const { data, error } = await supabase
             .from("profiles")
-            .select("id, display_name, player_code, avatar_url, favorite_color")
+            .select("id, display_name, player_code, avatar_url, favorite_color, city, ville_publique")
             .eq("id", userId)
             .maybeSingle();
         if (error || !data) {
@@ -1076,7 +1077,7 @@ export default function TournoiPage() {
         enregistrerEquipe({
             id: userId,
             profilId: userId,
-            nom: data.display_name || data.player_code || "Moi",
+            nom: nomAvecVille({...data,city:data.ville_publique?data.city:null}),
             emoji: "●",
             couleur: data.favorite_color || "#3B82F6",
             photo: data.avatar_url || undefined,
@@ -1089,10 +1090,8 @@ export default function TournoiPage() {
         if (!code)
             return false;
         setMessageCodeJoueur("Recherche du joueur…");
-        const { data, error } = await supabase
-            .rpc("tourneo_profils_publics", { p_code: code })
-            .select("id, display_name, player_code, avatar_url, favorite_color")
-            .maybeSingle();
+        const reponse = await supabase.rpc("tourneo_profils_identites", { p_code: code });
+        const error=reponse.error, data=Array.isArray(reponse.data)?reponse.data[0]:null;
         if (error || !data) {
             setMessageCodeJoueur("Code Tourneo introuvable.");
             return false;
@@ -1104,7 +1103,7 @@ export default function TournoiPage() {
         const nouvelleEquipe: Equipe = {
             id: data.id,
             profilId: data.id,
-            nom: data.display_name || data.player_code,
+            nom: nomAvecVille(data),
             emoji: "👤",
             couleur: data.favorite_color || "#3B82F6",
             photo: data.avatar_url || undefined,

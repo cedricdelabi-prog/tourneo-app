@@ -20,6 +20,7 @@ type Profil = {
     first_name?: string | null;
     last_name?: string | null;
     city?: string | null;
+    ville_publique?:boolean;
 };
 export default function ProfilPage() {
     useLangue();
@@ -28,6 +29,7 @@ export default function ProfilPage() {
     const [prenom, setPrenom] = useState("");
     const [nomFamille, setNomFamille] = useState("");
     const [ville, setVille] = useState("");
+    const [villePublique,setVillePublique]=useState(false);
     const [couleur, setCouleur] = useState("#3B82F6");
     const [avatar, setAvatar] = useState("");
     const [message, setMessage] = useState("");
@@ -65,7 +67,7 @@ export default function ProfilPage() {
             setNom(p.display_name || "");
             setPrenom(p.first_name || String(user.user_metadata?.first_name || ""));
             setNomFamille(p.last_name || String(user.user_metadata?.last_name || ""));
-            setVille(p.city || String(user.user_metadata?.city || ""));
+            setVille(p.city || String(user.user_metadata?.city || ""));setVillePublique(p.ville_publique===true);
             setCouleur(p.favorite_color || "#3B82F6");
             setAvatar(p.avatar_url || "");
             setChargement(false);
@@ -104,7 +106,7 @@ export default function ProfilPage() {
         setNom(p.display_name || displayName);
         setPrenom(p.first_name || String(user.user_metadata?.first_name || ""));
         setNomFamille(p.last_name || String(user.user_metadata?.last_name || ""));
-        setVille(p.city || String(user.user_metadata?.city || ""));
+        setVille(p.city || String(user.user_metadata?.city || ""));setVillePublique(p.ville_publique===true);
         setCouleur(p.favorite_color || "#3B82F6");
         setAvatar(p.avatar_url || "");
         setMessage("Profil Tourneo créé. Vous pouvez maintenant le personnaliser.");
@@ -191,6 +193,7 @@ export default function ProfilPage() {
                 first_name: prenom.trim() || null,
                 last_name: nomFamille.trim() || null,
                 city: ville.trim() || null,
+                ville_publique:villePublique,
                 favorite_color: couleur,
                 updated_at: new Date().toISOString(),
             })
@@ -263,7 +266,7 @@ export default function ProfilPage() {
               </div>
             </div>
             <label style={s.label}>{tr("Ville")}</label>
-            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} placeholder={tr("Ex. Paris (facultatif)")}/>
+            <input style={s.input} value={ville} onChange={(e) => setVille(e.target.value)} placeholder={tr("Ex. Paris (facultatif)")}/><label style={{...s.label,display:'flex',gap:10,alignItems:'center'}}><input type="checkbox" checked={villePublique} onChange={e=>setVillePublique(e.target.checked)}/>{tr('Afficher ma ville à côté de mon pseudo dans les tournois')}</label><p style={{fontSize:12,color:'#9fb7ce'}}>{tr('Exemple : Alex · Calais. Sans votre accord, votre ville reste privée. Les noms déjà inscrits dans un tournoi ne sont pas modifiés automatiquement.')}</p>
 
             <label style={s.label}>{tr("Couleur du profil")}</label>
             <input style={s.colorInput} type="color" value={couleur} onChange={(e) => setCouleur(e.target.value)}/>
