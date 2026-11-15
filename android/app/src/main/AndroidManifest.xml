@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Ouvre les liens https://tourneo-v2-test-tourneo.vercel.app/... directement dans Tourneo. -->
+            <!-- Accepte le lien public V2 et son ancien alias. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -34,6 +34,7 @@
                 <data
                     android:scheme="https"
                     android:host="tourneo-v2-test-tourneo.vercel.app" />
+                <data android:scheme="https" android:host="tourneo-v2-test.vercel.app" />
             </intent-filter>
 
         </activity>
