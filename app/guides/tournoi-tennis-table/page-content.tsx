@@ -1,4 +1,5 @@
 "use client";
+import TourneoNav from "@/components/TourneoNav";
 import {tr,trModele,useLangue} from "@/lib/langue";
 import type { CSSProperties } from "react";
 import Link from "next/link";
@@ -7,10 +8,10 @@ export default function GuidePage() {
     useLangue();
     return <main style={s.page}><div style={s.shell}>
     <style>{`@media(max-width:700px){.dh{flex-direction:column!important;align-items:flex-start!important}.dn{width:100%!important}}@media(max-width:460px){.dn{display:grid!important;grid-template-columns:1fr 1fr!important}.dn a{text-align:center!important}}`}</style>
-    <header className="dh" style={s.header}><Link href="/" style={s.brand}>{tr("TOURNEO")}</Link><nav className="dn" style={s.nav}><Link href="/guides" style={s.navLink}>{tr("Guides")}</Link><Link href="/formats-tournoi" style={s.navLink}>{tr("Formats")}</Link><Link href="/aide" style={s.navLink}>{tr("Aide")}</Link><Link href="/login" style={s.login}>{tr("Cr\u00E9er un tournoi")}</Link></nav></header>
+    <TourneoNav showBack backHref="/dashboard" backLabel="Mon espace"/>
     <article><section style={s.hero}><Link href="/guides" style={s.back}>{tr("\u2190 Tous les guides")}</Link><span style={s.eyebrow}>{tr("Guide Tourneo")}</span><h1 style={s.title}>{tr("Organiser un tournoi de tennis de table")}</h1><p style={s.lead}>{tr("Plusieurs rencontres peuvent s'encha\u00EEner rapidement : la r\u00E9partition des tables et des joueurs est essentielle.")}</p></section>
     <div style={s.content}>{sections.map(([title, text]) => <section style={s.section} key={title}><h2 style={s.h2}>{tr(title)}</h2><p style={s.text}>{tr(text)}</p></section>)}</div>
-    <aside style={s.cta}><div><span style={s.eyebrow}>{tr("Passer \u00E0 la pratique")}</span><h2 style={s.ctaTitle}>{tr("Pr\u00EAt \u00E0 organiser votre tournoi ?")}</h2><p style={s.text}>{tr("Tourneo permet de centraliser participants, rencontres, scores et classement.")}</p></div><Link href="/login" style={s.login}>{tr("Cr\u00E9er un tournoi")}</Link></aside></article>
+    <aside style={s.cta}><div><span style={s.eyebrow}>{tr("Passer \u00E0 la pratique")}</span><h2 style={s.ctaTitle}>{tr("Pr\u00EAt \u00E0 organiser votre tournoi ?")}</h2><p style={s.text}>{tr("Tourneo permet de centraliser participants, rencontres, scores et classement.")}</p></div><Link href="/tournoi/nouveau" style={s.login}>{tr("Cr\u00E9er un tournoi")}</Link></aside></article>
     <footer style={s.footer}><Link href="/guides" style={s.footerLink}>{tr("Guides")}</Link><Link href="/confidentialite" style={s.footerLink}>{tr("Confidentialit\u00E9")}</Link><Link href="/contact" style={s.footerLink}>{tr("Contact")}</Link></footer>
     </div></main>;
 }

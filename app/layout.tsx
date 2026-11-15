@@ -1,3 +1,4 @@
+import PiedLegalTourneo from '@/components/PiedLegalTourneo';
 import AlertesAndroidCompte from '@/components/AlertesAndroidCompte';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -33,7 +34,7 @@ export default function RootLayout({
       lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="tourneo-arena min-h-full flex flex-col">
         <Toaster
           position="top-center"
           toastOptions={{
@@ -50,6 +51,7 @@ export default function RootLayout({
         <OfflineV2 />
         <LangueCompte /><AlertesAndroidCompte />
         {children}
+        <PiedLegalTourneo />
       </body>
     </html>
   );

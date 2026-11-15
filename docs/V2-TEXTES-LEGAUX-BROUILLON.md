@@ -1,10 +1,10 @@
 # Tourneo — textes préparés, identité éditeur à compléter
 
-**Brouillon de travail du 13 novembre 2026. Ne pas présenter comme un ensemble de mentions légales finalisées tant que les champs ci-dessous ne sont pas confirmés.**
+**Brouillon de travail mis à jour le 15 novembre 2026. Ne pas présenter comme un ensemble de mentions légales finalisées tant que les champs ci-dessous ne sont pas confirmés.**
 
 ## Informations indispensables à confirmer
 
-- Éditeur : personne physique, entreprise ou association ; pays d’établissement.
+- Statut confirmé le 15 novembre : particulier, service gratuit, en France. Identité et choix de publication restent à confirmer.
 - Identité légale et directeur de publication ; coordonnées adaptées au statut. Pour un éditeur non professionnel souhaitant rester anonyme publiquement, vérifier que les éléments d’identification ont été communiqués à l’hébergeur avant de retenir cette possibilité.
 - Adresse de contact à publier pour les demandes des utilisateurs et les droits sur leurs données. L’e-mail utilisé pour attribuer le rôle superadmin n’est pas automatiquement un contact public.
 - Si structure : dénomination, forme, immatriculation et autres mentions propres au statut.
@@ -61,3 +61,14 @@ Décrire par finalité les données nécessaires/facultatives, destinataires, ba
 Le stockage local actuel sert notamment à la session, à la langue et aux sauvegardes demandées. Il ne faut pas ajouter de widgets sociaux embarqués ou de traceurs optionnels sans réexaminer leurs besoins d’information et de consentement. Les boutons actuels utilisent le partage système et des liens ouverts à la demande.
 
 **Ce brouillon ne constitue pas une certification de conformité et ne peut garantir une absence de responsabilité. Une revue juridique adaptée au statut et au fonctionnement réellement activé reste nécessaire avant diffusion publique générale.**
+
+## Vérifications du 15 novembre
+
+- Une seule attribution administrative dans la V2 : compte Cédric confirmé, superadmin. Aucun changement de droits effectué.
+- Toutes les tables applicatives ont RLS activé ; tests de non-promotion et isolation des données réussis.
+- Protection des mots de passe compromis désactivée dans Auth ; pas de garantie globale de sécurité.
+- Google désactivé ; pas de fonctionnalité OAuth annoncée comme opérationnelle.
+- Vercel V2 ne contient que les deux variables Supabase : RESEND_API_KEY et NEXT_PUBLIC_CONTACT_EMAIL sont absentes. Le formulaire de contact ne peut donc pas transmettre les demandes. Contact opérationnel indispensable avant diffusion générale.
+- CGU accessibles, liens permanents, informations sur les bases légales, messagerie, stockage local et droits ajoutés. Ces textes ne constituent pas une certification de conformité RGPD.
+- Mentions éditeur non publiées faute de coordonnées et de choix d’identification confirmé ; ne pas utiliser l’e-mail privé du superadmin comme contact public par défaut.
+- Région du projet Supabase V2 confirmée eu-west-1. Ne pas en déduire que tous les prestataires et sous-traitants traitent exclusivement dans l’UE.

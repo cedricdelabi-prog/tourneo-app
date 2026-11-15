@@ -12,7 +12,7 @@ export default function ConfidentialitePage() {
         <header style={s.hero}>
           <span style={s.eyebrow}>{tr("Tourneo")}</span>
           <h1 style={s.title}>{tr("Politique de confidentialit\u00E9")}</h1>
-          <p style={s.subtitle}>{tr("Dernière mise à jour : 13 novembre 2026")}</p>
+          <p style={s.subtitle}>{tr("Dernière mise à jour : 15 novembre 2026")}</p>
         </header>
 
         <section style={s.card}>
@@ -84,6 +84,18 @@ export default function ConfidentialitePage() {
           <h2 style={s.heading}>{tr('Jeu de pronostics du public')}</h2>
           <p style={s.text}>{tr('Lorsque le jeu sans compte est disponible, un nom ou pseudo suffit. Un identifiant aléatoire conservé dans ce navigateur permet de retrouver, modifier ou supprimer sa participation. Le nom n’est pas une identité vérifiée : plusieurs appareils peuvent permettre plusieurs participations. Les choix restent privés ; après publication des résultats, seuls le nom ou pseudo, les points et le rang apparaissent. Aucun e-mail ni identifiant de compte ou de navigateur n’est publié.')}</p>
           <p style={s.text}>{tr('Les pronostics servent uniquement à cette animation gratuite, sans mise d’argent. La suppression du compte ou du tournoi supprime les participations correspondantes. Vous pouvez contacter Tourneo pour exercer vos droits. Aucun lot ni paiement n’est géré par cette fonctionnalité.')}</p>
+        </section>
+
+
+        <section style={s.card} id="bases-legales">
+          <h2 style={s.heading}>{tr('Bases légales et données obligatoires')}</h2>
+          <p style={s.text}>{tr('Le compte, les tournois et les résultats demandés reposent sur l’exécution du service. La sécurité et la prévention des abus reposent sur l’intérêt légitime de protéger les utilisateurs. Les communications promotionnelles reposent sur votre consentement facultatif, modifiable dans Mon profil sans fermer votre compte.')}</p>
+          <p style={s.text}>{tr('L’e-mail, le mot de passe et un pseudo sont nécessaires au compte par e-mail. Le nom civil, la ville et la structure sont facultatifs. Sans compte, certaines inscriptions et certains pronostics restent accessibles avec un pseudo. La ville n’est affichée avec le pseudo que si vous activez ce choix dans votre profil.')}</p>
+        </section>
+        <section style={s.card} id="stockage-local">
+          <h2 style={s.heading}>{tr('Stockage local et messagerie')}</h2>
+          <p style={s.text}>{tr('Le navigateur conserve des éléments nécessaires aux fonctions demandées : session de connexion, langue, préférences de son, participation invitée et copies locales des tournois ou affiches. Effacer les données du navigateur retire ces copies et peut empêcher de retrouver une participation invitée. Les données déjà enregistrées sur le serveur ne sont pas supprimées par cette action.')}</p>
+          <p style={s.text}>{tr('Les informations sur le service et les messages promotionnels sont distincts dans la messagerie Tourneo. Les promotions ne sont déposées que pour les comptes ayant autorisé les communications correspondantes. Les rappels de tournoi dépendent du réglage de l’organisateur et de vos préférences de notification.')}</p>
         </section>
 
         <section style={s.card} id="bilans">
@@ -168,6 +180,9 @@ export default function ConfidentialitePage() {
 
         <section style={s.card}>
           <h2 style={s.heading}>{tr("13. Droits des utilisateurs")}</h2>
+          <p style={s.text}>{tr('Vous pouvez demander l’accès, la rectification, l’effacement ou la limitation de vos données, ainsi que leur portabilité lorsque les conditions légales sont réunies. Vous pouvez vous opposer à un traitement fondé sur l’intérêt légitime et retirer votre consentement pour les traitements qui en dépendent.')}</p>
+          <p style={s.text}>{tr('Une réponse vous est apportée en principe sous un mois. En cas de demande complexe, ce délai peut être prolongé de deux mois avec une information motivée. Un justificatif d’identité ne doit être demandé qu’en cas de doute raisonnable et dans la mesure nécessaire.')}</p>
+          <p style={s.text}><a href="https://www.cnil.fr/fr/adresser-une-plainte">{tr('Vous pouvez adresser une réclamation à la CNIL.')}</a></p>
 
           <p style={s.text}>{tr("Selon la r\u00E9glementation applicable, l\u2019utilisateur peut notamment demander l\u2019acc\u00E8s, la rectification ou la suppression de ses donn\u00E9es personnelles.")}</p>
 

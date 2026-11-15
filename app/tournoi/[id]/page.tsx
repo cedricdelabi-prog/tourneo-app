@@ -1,4 +1,5 @@
 "use client";
+import AffichesTournoi from "@/components/AffichesTournoi";
 import {nomAvecVille} from "@/lib/identite-joueur";
 import {erreursConfigurationCreation} from "@/lib/configuration-creation";
 import AideInfo from '@/components/AideInfo';
@@ -52,7 +53,7 @@ const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
 type FormatTournoi = "rotation" | "suisse" | "doubleElimination" | "consolante" | "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
 type ModePoules = "nombrePoules" | "taillePoules";
-type Onglet = "matchs" | "classement" | "statistiques" | "participants" | "arbitrage" | "photos";
+type Onglet = "matchs" | "classement" | "statistiques" | "participants" | "arbitrage" | "photos" | "affiches";
 type Poule = {
     id: string;
     nom: string;
@@ -2261,6 +2262,7 @@ ${lienPartage}`,
             ["statistiques", "Statistiques"],
             ["arbitrage", "Arbitrage"],
             ["photos", "Photos"],
+            ["affiches", "Mes affiches"],
         ] as [
             Onglet,
             string
@@ -2269,9 +2271,10 @@ ${lienPartage}`,
             </button>))}
         </nav>
 
-        {cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
-        {cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
-        {cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
+        {onglet === "affiches" && cree && tournoiId && <AffichesTournoi id={tournoiId}/>}
+        {onglet !== "affiches" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
+        {onglet !== "affiches" && cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
+        {onglet !== "affiches" && cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
         {onglet === "participants" && (<section style={styles.card}>
             <div style={styles.formHeader}>
               <div>

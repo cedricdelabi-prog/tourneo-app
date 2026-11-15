@@ -1,3 +1,4 @@
+import {traductionsCorrections} from '@/lib/traductions-corrections';
 import {traductionsLivraison} from '@/lib/traductions-livraison';
 import {traductionsExperience}from'@/lib/traductions-experience';
 import {traductionsDecouverte} from '@/lib/traductions-decouverte';
@@ -12,7 +13,7 @@ import { traductionsAlertes } from '@/lib/traductions-alertes';
 import {traductionsErgonomie} from '@/lib/traductions-ergonomie';
 import {traductionsAffiches} from '@/lib/traductions-affiches';
 import {traductionsEspaces} from '@/lib/traductions-espaces';
-const catalogueBase = {...base, ...traductionsAlertes, ...traductionsEspaces, ...traductionsAffiches, ...traductionsErgonomie,...traductionsPronostics,...traductionsReprise,...traductionsRegles,...traductionsParcours,...traductionsExperience,...traductionsDecouverte,...traductionsLivraison};
+const catalogueBase = {...traductionsCorrections,...base, ...traductionsAlertes, ...traductionsEspaces, ...traductionsAffiches, ...traductionsErgonomie,...traductionsPronostics,...traductionsReprise,...traductionsRegles,...traductionsParcours,...traductionsExperience,...traductionsDecouverte,...traductionsLivraison};
 export type Langue='fr'|'en'|'nl'|'de';
 const traductions:Record<string,Partial<Record<Exclude<Langue,'fr'>,string>>> = {...catalogueBase};
 for(const [fr,de] of Object.entries(traductionsAllemand))traductions[fr]={...traductions[fr],de};

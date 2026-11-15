@@ -22,7 +22,7 @@ export default function LoginPage() {
     const [structure,setStructure]=useState('');
     const [message, setMessage] = useState("");
     const [chargement, setChargement] = useState(false);
-    const [googleDisponible, setGoogleDisponible] = useState(false);
+    const [googleDisponible, setGoogleDisponible] = useState<boolean|null>(null);
     const [action, setAction] = useState<"connexion" | "inscription" | "google" | "reset" | null>(null);
     const [etatMessage, setEtatMessage] = useState<"info" | "succes" | "erreur">("info");
     const verrou = useRef(false);
@@ -34,6 +34,7 @@ export default function LoginPage() {
     useEffect(() => { if (message)
         messageRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [message]);
     useEffect(() => {
+        let present=true;
         const controleur = new AbortController();
         const delai = setTimeout(() => controleur.abort(), 5000);
         void fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
@@ -41,12 +42,12 @@ export default function LoginPage() {
             signal: controleur.signal,
         }).then(async (r) => {
             if (!r.ok)
-                return;
+                throw new Error('settings unavailable');
             const settings = await r.json();
             if (!controleur.signal.aborted)
                 setGoogleDisponible(settings.external?.google === true);
-        }).catch(() => { }).finally(() => clearTimeout(delai));
-        return () => { clearTimeout(delai); controleur.abort(); };
+        }).catch(() => { if (present) setGoogleDisponible(false); }).finally(() => { clearTimeout(delai); if (present && controleur.signal.aborted) setGoogleDisponible(false); });
+        return () => { present=false; clearTimeout(delai); controleur.abort(); };
     }, []);
     function notifier(texte: string, etat: "info" | "succes" | "erreur" = "info") {
         setMessage(texte);
@@ -183,14 +184,15 @@ export default function LoginPage() {
         }} onClick={() => { setMode("inscription"); notifier(""); }} aria-pressed={mode === "inscription"} disabled={chargement}>{tr("Cr\u00E9er un compte")}</button>
         </div>
 
-        {googleDisponible && <><button style={{
+        {<><button style={{
                 ...s.google,
                 ...(chargement ? { opacity: 0.65, cursor: "wait" } : {}),
-            }} onClick={connexionGoogle} disabled={chargement}>
+            }} onClick={connexionGoogle} disabled={chargement || googleDisponible !== true}>
           <span style={s.googleMark}>G</span>
           {action === "google" ? tr("Redirection vers Google…") : tr("Continuer avec Google")}
         </button>
 
+        {googleDisponible===false&&<p style={s.optional}>{tr('La connexion Google est indisponible sur la V2 pour le moment. La connexion par e-mail reste disponible.')}</p>}
         <div style={s.separator}>
           <span>{tr("ou")}</span>
         </div></>}
@@ -253,7 +255,7 @@ export default function LoginPage() {
           @media (prefers-reduced-motion: reduce) { .auth-spinner { animation: none; } }
         `}</style>
 
-        <p style={s.legal}>{tr("En cr\u00E9ant un compte, vous acceptez le fonctionnement et les r\u00E8gles de s\u00E9curit\u00E9 pr\u00E9sent\u00E9s dans la rubrique Aide & s\u00E9curit\u00E9.")}</p>
+        <p style={s.legal}><Link href="/conditions-utilisation">{tr('Conditions d’utilisation')}</Link>{' · '}<Link href="/confidentialite">{tr('Confidentialité')}</Link>{' · '}<Link href="/contact">{tr('Contact')}</Link></p>
       </section>
     </main>);
 }

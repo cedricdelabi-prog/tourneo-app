@@ -37,7 +37,10 @@ export default function AfficheTournoi(){
   if(!p.error&&(Array.isArray(p.data)?p.data.length>0:!!p.data))setResultats(urlPubliqueTournoi(id,'partage'));
   if(ancien?.format==='A4'||ancien?.format==='A3'||ancien?.format==='social'||ancien?.format==='flyersA6')setFormat(ancien.format);if(typeof ancien?.illustration==='boolean')setIllustration(ancien.illustration);setImageSport(lireVisuelAffiche(ancien?.imageSport));
   if(Array.isArray(ancien?.sponsors))setSponsors(ancien.sponsors.filter((v):v is string=>typeof v==='string'&&v.length<=500000&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(v)).slice(0,6));
-  setModele(ancien?.modele==='resultats'||ancien?.modele==='inscriptions'?ancien.modele:d.cree?'resultats':'inscriptions');setPret(true);
+  const demande=new URLSearchParams(window.location.search),demandeModele=demande.get('modele'),demandeFormat=demande.get('format');
+  setModele(demandeModele==='inscriptions'||demandeModele==='resultats'?demandeModele:ancien?.modele==='resultats'||ancien?.modele==='inscriptions'?ancien.modele:d.cree?'resultats':'inscriptions');
+  if(demandeFormat==='A4'||demandeFormat==='A3'||demandeFormat==='social'||demandeFormat==='flyersA6')setFormat(demandeFormat==='flyersA6'&&demandeModele==='resultats'?'A4':demandeFormat);
+  setPret(true);
  })().catch(e=>{if(actif)setErreur(e instanceof Error?e.message:'Chargement impossible.');});return()=>{actif=false;};},[id]);
  const lien=modele==='inscriptions'?(surPlace?'':inscriptions):resultats;
  const classement=useMemo(()=>donnees?classementTournoi(donnees.formatTournoi,donnees.equipes,donnees.matchs,normaliserOptionsV2(donnees.optionsV2)):[],[donnees]);

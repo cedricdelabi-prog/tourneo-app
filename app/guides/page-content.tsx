@@ -1,4 +1,5 @@
 "use client";
+import TourneoNav from "@/components/TourneoNav";
 import {tr,trModele,useLangue} from "@/lib/langue";
 import type { CSSProperties } from "react";
 import Link from "next/link";
@@ -18,7 +19,7 @@ export default function GuidesPage() {
     useLangue();
     return <main style={s.page}><div style={s.shell}>
     <style>{`@media(max-width:700px){.gh{flex-direction:column!important;align-items:flex-start!important}.gn{width:100%!important}.gg{grid-template-columns:1fr!important}}@media(max-width:420px){.gn{display:grid!important;grid-template-columns:1fr 1fr!important}.gn a:last-child{grid-column:1/-1;text-align:center!important}}`}</style>
-    <header className="gh" style={s.header}><Link href="/" style={s.brand}>{tr("TOURNEO")}</Link><nav className="gn" style={s.nav}><Link href="/formats-tournoi" style={s.navLink}>{tr("Formats")}</Link><Link href="/aide" style={s.navLink}>{tr("Aide")}</Link><Link href="/login" style={s.login}>{tr("Cr\u00E9er un tournoi")}</Link></nav></header>
+    <TourneoNav showBack backHref="/dashboard" backLabel="Mon espace"/>
     <section style={s.hero}><span style={s.eyebrow}>{tr("Guides pratiques")}</span><h1 style={s.title}>{tr("Un coup de main pour pr\u00E9parer votre tournoi.")}</h1><p style={s.lead}>{tr("Choisissez simplement le sujet qui vous int\u00E9resse. Les explications d\u00E9taill\u00E9es restent ici : l'accueil de Tourneo reste consacr\u00E9 \u00E0 l'application.")}</p></section>
     <section className="gg" style={s.grid}>{guides.map(([href, icon, title, text]) => <Link href={href} style={s.card} key={href}><span style={s.icon}>{icon}</span><div><h2 style={s.h2}>{tr(title)}</h2><p style={s.text}>{tr(text)}</p></div><span style={s.arrow}>→</span></Link>)}</section>
     <div style={{ paddingTop: 28 }}><Link href="/" style={s.back}>{tr("\u2190 Retour \u00E0 l'accueil")}</Link></div>
