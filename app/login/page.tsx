@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import ChampMotDePasse from "@/components/ChampMotDePasse";
 import SelecteurLangue from '@/components/SelecteurLangue';
 import TourneoBrand from "@/components/TourneoBrand";
+import Link from "next/link";
 export default function LoginPage() {
     useLangue();
     const [mode, setMode] = useState<"connexion" | "inscription">("connexion");
@@ -164,6 +165,7 @@ export default function LoginPage() {
         <div style={s.brandCenter}>
           <TourneoBrand />
         </div>
+        <p style={{ textAlign: 'center', margin: '0 0 20px', fontSize: 13 }}><Link href="/" style={{ color: '#72E7FF' }}>{tr("Découvrir Tourneo avant de me connecter")} →</Link></p>
 
         <div style={s.switcher}>
           <button style={{
