@@ -1,5 +1,6 @@
 import {traductionsExperience}from'@/lib/traductions-experience';
 import {traductionsDecouverte} from '@/lib/traductions-decouverte';
+import {traductionsAllemand} from '@/lib/traductions-allemand';
 import {traductionsParcours}from'@/lib/traductions-parcours';
 import {traductionsRegles}from'@/lib/regles-complementaires';
 import {traductionsReprise}from"@/lib/traductions-reprise";
@@ -10,15 +11,17 @@ import { traductionsAlertes } from '@/lib/traductions-alertes';
 import {traductionsErgonomie} from '@/lib/traductions-ergonomie';
 import {traductionsAffiches} from '@/lib/traductions-affiches';
 import {traductionsEspaces} from '@/lib/traductions-espaces';
-const traductions = {...base, ...traductionsAlertes, ...traductionsEspaces, ...traductionsAffiches, ...traductionsErgonomie,...traductionsPronostics,...traductionsReprise,...traductionsRegles,...traductionsParcours,...traductionsExperience,...traductionsDecouverte};
-export type Langue='fr'|'en'|'nl';
+const catalogueBase = {...base, ...traductionsAlertes, ...traductionsEspaces, ...traductionsAffiches, ...traductionsErgonomie,...traductionsPronostics,...traductionsReprise,...traductionsRegles,...traductionsParcours,...traductionsExperience,...traductionsDecouverte};
+export type Langue='fr'|'en'|'nl'|'de';
+const traductions:Record<string,Partial<Record<Exclude<Langue,'fr'>,string>>> = {...catalogueBase};
+for(const [fr,de] of Object.entries(traductionsAllemand))traductions[fr]={...traductions[fr],de};
 let langue:Langue='fr';
 const ecouteurs=new Set<()=>void>();
 export function useLangue(){return useSyncExternalStore(ecouterLangue,lireLangue,()=> "fr" as const);}
 export function lireLangue(){return langue;}
 export function ecouterLangue(fn:()=>void){ecouteurs.add(fn);return()=>{ecouteurs.delete(fn);};}
-export function changerLangue(v:unknown){const suivante=v==='en'||v==='nl'?v:'fr';if(langue===suivante)return;langue=suivante;if(typeof document!=='undefined')document.documentElement.lang=suivante;try{localStorage.setItem('tourneo-langue',suivante);}catch{}ecouteurs.forEach(fn=>fn());}
-export function localeFormat(){return langue==='en'?'en-GB':langue==='nl'?'nl-BE':'fr-FR';}
+export function changerLangue(v:unknown){const suivante=v==='en'||v==='nl'||v==='de'?v:'fr';if(langue===suivante)return;langue=suivante;if(typeof document!=='undefined')document.documentElement.lang=suivante;try{localStorage.setItem('tourneo-langue',suivante);}catch{}ecouteurs.forEach(fn=>fn());}
+export function localeFormat(){return langue==='en'?'en-GB':langue==='nl'?'nl-BE':langue==='de'?'de-DE':'fr-FR';}
 export function tr<T>(valeur:T):T{
  if(langue==='fr'||typeof valeur!=='string')return valeur;
  const texte=valeur.trim();const trouve=traductions[texte]?.[langue];
@@ -30,7 +33,7 @@ export function tr<T>(valeur:T):T{
    for(const m of cle.matchAll(/\{(\d+)\}/g)){motif+=cle.slice(pos,m.index).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(.+?)';groupes.push(Number(m[1]));pos=m.index!+m[0].length;}
    motif+=cle.slice(pos).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
    const capture=new RegExp('^'+motif+'$','s').exec(texte);if(!capture)continue;
-   let rendu=versions[langue];groupes.forEach((n,i)=>{rendu=rendu.replaceAll('{'+n+'}',capture[i+1]);});
+   let rendu=versions[langue];if(!rendu)continue;groupes.forEach((n,i)=>{rendu=rendu!.replaceAll('{'+n+'}',capture[i+1]);});
    return valeur.replace(texte,rendu) as T;
   }
   return valeur;

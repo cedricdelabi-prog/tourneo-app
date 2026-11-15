@@ -34,6 +34,10 @@ const ecrans = [
   },
 ] as const;
 
+function FlechePartage() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg>;
+}
+
 function Apercu({ ecran }: { ecran: number }) {
   return <div className={styles.apercu} aria-hidden="true">
     <div className={styles.apercuEntete}><span>TOURNEO</span><span className={styles.exemple}>{tr("Aperçu illustratif")}</span></div>
@@ -45,15 +49,15 @@ function Apercu({ ecran }: { ecran: number }) {
     </div> : ecran === 1 ? <div className={styles.configuration}>
       <span className={styles.petitTitre}>{tr("Mon prochain tournoi")}</span>
       {["Choisir mon jeu", "Régler mon tournoi", "Ajouter les participants"].map((t, i) => <div key={t} className={styles.etape}><b>{String(i + 1).padStart(2, "0")}</b><span>{tr(t)}</span><span className={styles.coche}>✓</span></div>)}
-      <div className={styles.pret}>{tr("Les rencontres sont prêtes.")} <span>↗</span></div>
+      <div className={styles.pret}>{tr("Les rencontres sont prêtes.")} <span><FlechePartage/></span></div>
     </div> : ecran === 2 ? <div className={styles.rencontres}>
       <span className={styles.petitTitre}>{tr("Les rencontres")}</span>
       <div className={styles.match}><span>{tr("Équipe bleue")}</span><strong>13 <i>–</i> 9</strong><span>{tr("Équipe turquoise")}</span></div>
       <div className={styles.aSuivre}><span>{tr("À suivre")}</span><b>{tr("Terrain 2")}</b></div>
       <div className={styles.podium}><span>2</span><span>1 <small>★</small></span><span>3</span></div>
     </div> : <div className={styles.public}>
-      <div className={styles.partageIcone}>↗</div><span className={styles.petitTitre}>{tr("Le tournoi se partage.")}</span>
-      {["Suivre les matchs", "Choisir mes favoris", "Faire mon pronostic"].map((t, i) => <div key={t} className={styles.lienPublic}><span>{["◉", "☆", "⚑"][i]}</span>{tr(t)}<b>↗</b></div>)}
+      <div className={styles.partageIcone}><FlechePartage/></div><span className={styles.petitTitre}>{tr("Le tournoi se partage.")}</span>
+      {["Suivre les matchs", "Choisir mes favoris", "Faire mon pronostic"].map((t, i) => <div key={t} className={styles.lienPublic}><span>{["◉", "☆", "⚑"][i]}</span>{tr(t)}<b><FlechePartage/></b></div>)}
       <small>{tr("Un lien pour réunir tout le monde.")}</small>
     </div>}
   </div>;
@@ -94,7 +98,7 @@ export default function DecouvrirTourneo() {
     <div className={styles.shell}>
       <header className={styles.entete}>
         <Link href="/" aria-label={tr("Accueil Tourneo")} className={styles.logo}><TourneoBrand compact/></Link>
-        <div className={styles.utilitaires}><SelecteurLangue/><Link href="/login" onClick={terminer} className={styles.connexion}>{tr("Se connecter")} <span aria-hidden="true">↗</span></Link></div>
+        <div className={styles.utilitaires}><SelecteurLangue/><Link href="/login" onClick={terminer} className={styles.connexion}>{tr("Se connecter")} <span aria-hidden="true"><FlechePartage/></span></Link></div>
       </header>
       <section className={styles.presentation} aria-label={tr("Découvrir Tourneo")} aria-roledescription={tr("Carrousel")}
         onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
@@ -108,7 +112,7 @@ export default function DecouvrirTourneo() {
             <h1>{tr(courant.titre)}</h1>
             <p className={styles.description}>{tr(courant.texte)}</p>
             <ul className={styles.atouts}>{courant.atouts.map(t => <li key={t}><span aria-hidden="true">✓</span>{tr(t)}</li>)}</ul>
-            <div className={styles.actions}><Link href="/login" onClick={terminer} className={styles.principal}>{tr(ecran === 3 ? "C’est parti !" : "Créer mon tournoi")} <span aria-hidden="true">↗</span></Link>
+            <div className={styles.actions}><Link href="/login" onClick={terminer} className={styles.principal}>{tr(ecran === 3 ? "C’est parti !" : "Créer mon tournoi")} <span aria-hidden="true"><FlechePartage/></span></Link>
               {ecran === 0 && <button type="button" onClick={() => choisir(1)} className={styles.secondaire}>{tr("Découvrir Tourneo")} <span aria-hidden="true">→</span></button>}</div>
           </div>
           <div className={styles.visuel}><Apercu ecran={ecran}/><p>{tr(courant.legende)}</p></div>
