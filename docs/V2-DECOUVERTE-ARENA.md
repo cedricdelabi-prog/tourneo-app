@@ -14,7 +14,7 @@ L’en-tête propose deux accès explicites dès le premier écran : « Se conne
 
 Le sélecteur propose Deutsch avec un drapeau SVG allemand. La préférence `de` est reconnue sur l’appareil, dans les préférences du compte et avec le format de date `de-DE`. La migration étend uniquement la liste des langues autorisées, sans modifier les préférences existantes ni les consentements.
 
-Le catalogue allemand couvre la découverte, la connexion/inscription, les préférences et la navigation commune. Les écrans métier spécialisés et les messages externes restent à traduire ; une langue disponible dans le sélecteur ne signifie pas une traduction intégrale de l’application. Les libellés non traduits conservent le français et les noms de participants restent inchangés.
+Le catalogue allemand couvre maintenant l’ensemble des entrées des catalogues d’interface existants, les règles complémentaires et les appels de traduction statiques repérés lors de l’audit. Les écrans de tournoi, outils, affiches, aide et guides utilisent ces entrées. Un glossaire corrige les ambiguïtés de vocabulaire sportif (groupes, rondes, auslosung, Schweizer System, etc.). Les noms et contenus saisis par les utilisateurs restent inchangés. Les textes sont préparés hors ligne : aucune traduction externe n’est appelée dans l’application. Les messages externes émis par le service de notification ne font pas partie de cette correction d’interface.
 
 ## Autres demandes à poursuivre séparément
 

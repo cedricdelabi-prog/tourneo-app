@@ -73,7 +73,7 @@ export default function ContactPage() {
       <div style={s.shell}>
         <TourneoNav active="contact" showBack backHref="/dashboard" primaryLabel={tr("Créer un tournoi")} primaryHref="/tournoi/nouveau"/>
         <header style={s.hero}>
-          <span style={s.eyebrow}>Contactez-nous</span>
+          <span style={s.eyebrow}>{tr("Contactez-nous")}</span>
           <h1 style={s.title}>{tr("Une id\u00E9e, un bug ou une demande ?")}</h1>
           <p style={s.muted}>{tr("Vous pouvez nous \u00E9crire pour une am\u00E9lioration, un probl\u00E8me technique ou l\u2019organisation de vos tournois en club.")}</p>
         </header>
@@ -91,7 +91,7 @@ export default function ContactPage() {
             </div>
             <label style={s.label}>{tr("Nom / pseudo")}</label>
             <input style={s.input} value={nom} onChange={(e) => setNom(e.target.value)}/>
-            <label style={s.label}>E-mail</label>
+            <label style={s.label}>{tr("E-mail")}</label>
             <input style={s.input} value={email} onChange={(e) => setEmail(e.target.value)}/>
             <label style={s.label}>{tr("Message")}</label>
             <textarea style={s.textarea} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={tr("Expliquez-nous votre demande…")}/>

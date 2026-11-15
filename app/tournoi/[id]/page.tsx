@@ -769,7 +769,7 @@ export default function TournoiPage() {
         const doublon = equipes.some((item) => item.id !== equipeAModifier?.id &&
             item.nom.trim().toLowerCase() === equipe.nom.trim().toLowerCase());
         if (doublon) {
-            alert("Un participant porte déjà ce nom.");
+            alert(tr("Un participant porte déjà ce nom."));
             return;
         }
         const nouvellesEquipes = equipeAModifier
@@ -802,7 +802,7 @@ export default function TournoiPage() {
         if (!cree&&!configurationComplete) {setCreationEtape("configuration");alert(tr(erreursCreation[0]));return;}
         if (destination.startsWith('pronostics')&&equipes.length<2){alert(tr('Ajoutez au moins deux participants avant de préparer les pronostics.'));return;}
         if (!nomTournoi.trim()) {
-            alert("Ajoutez le nom du tournoi.");
+            alert(tr("Ajoutez le nom du tournoi."));
             return;
         }
         if (!userId) {
@@ -847,7 +847,7 @@ export default function TournoiPage() {
             return;
         if (!configurationComplete&&!cree) {setCreationEtape("configuration");alert(tr(erreursCreation[0]));return;}
         if (!nomTournoi.trim()) {
-            alert("Ajoute un nom au tournoi.");
+            alert(tr("Ajoute un nom au tournoi."));
             return;
         }
         if (!userId) {
@@ -927,7 +927,7 @@ export default function TournoiPage() {
     }
     function recalculerTournoi() {
         if (!modificationParticipantsAutorisee) {
-            alert("Le tournoi ne peut plus être modifié après le premier résultat.");
+            alert(tr("Le tournoi ne peut plus être modifié après le premier résultat."));
             return;
         }
         const erreurConfiguration = validerConfiguration(equipes);
@@ -1018,12 +1018,12 @@ export default function TournoiPage() {
     function changerSport(valeur: string) { setSportChoisi(true);if(valeur===sport)return;setSport(valeur); setOptionsV2(o => ({ ...o, ...reglesPourSport(valeur) })); }
     function validerScore(match: Match) {
         if (!/^(0|[1-9]\d*)$/.test(match.score1) || !/^(0|[1-9]\d*)$/.test(match.score2) || !Number.isSafeInteger(Number(match.score1)) || !Number.isSafeInteger(Number(match.score2))) {
-            alert("Saisissez les deux scores avant de valider.");
+            alert(tr("Saisissez les deux scores avant de valider."));
             return;
         }
         if ((formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE) &&
             Number(match.score1) === Number(match.score2)) {
-            alert("Un vainqueur est nécessaire pour ce match.");
+            alert(tr("Un vainqueur est nécessaire pour ce match."));
             return;
         }
         const erreurSport = erreurScoreSport(sport, Number(match.score1), Number(match.score2), optionsV2, match.manches);
@@ -1038,7 +1038,7 @@ export default function TournoiPage() {
     function corrigerScore(match: Match) {
         const toursSuivants = matchs.some((item) => item.journee > match.journee);
         if (toursSuivants && (formatTournoi === "suisse" || formatParcours || formatTournoi === "elimination" || match.id >= SEUIL_PHASE_FINALE)) {
-            if (!confirm("Corriger ce résultat supprimera les tours générés après celui-ci. Continuer ?"))
+            if (!confirm(tr("Corriger ce résultat supprimera les tours générés après celui-ci. Continuer ?")))
                 return;
             setOptionsV2(o => ({ ...o, exemptions: o.exemptions.filter(e => e.ronde <= match.journee) }));
             setMatchs((actuels) => actuels.filter((item) => item.journee <= match.journee));
@@ -1207,7 +1207,7 @@ export default function TournoiPage() {
     async function seDeconnecter() {
         const { error } = await deconnecterTourneo();
         if (error) {
-            alert("Impossible de se déconnecter pour le moment.");
+            alert(tr("Impossible de se déconnecter pour le moment."));
             return;
         }
         window.location.href = "/login";
@@ -1222,7 +1222,7 @@ export default function TournoiPage() {
             setMessageCloud("Lien copié");
         }
         catch {
-            prompt("Copie ce lien :", lienPartage);
+            prompt(tr("Copie ce lien :"), lienPartage);
         }
     }
     async function choisirPhotoPodium(event: ChangeEvent<HTMLInputElement>) {
@@ -1234,7 +1234,7 @@ export default function TournoiPage() {
             return;
         }
         if (!fichier.type.startsWith("image/")) {
-            alert("Choisissez une image.");
+            alert(tr("Choisissez une image."));
             return;
         }
         // Aperçu immédiat, même si le réseau est lent.
@@ -1384,7 +1384,7 @@ ${lienPartage}`,
         }
         catch (error) {
             console.error(error);
-            alert("Impossible de partager l’affiche sur cet appareil. Utilisez « Imprimer / enregistrer en PDF ».");
+            alert(tr("Impossible de partager l’affiche sur cet appareil. Utilisez « Imprimer / enregistrer en PDF »."));
         }
     }
     async function partagerTournoi() {
@@ -1410,7 +1410,7 @@ ${lienPartage}`,
             if (fichier.size > 5000000)
                 throw new Error("Fichier limité à 5 Mo.");
             const d = lireSauvegarde(await fichier.text());
-            if (!confirm("Remplacer les résultats de ce tournoi par la sauvegarde ? Téléchargez d’abord vos résultats actuels si vous souhaitez les conserver."))
+            if (!confirm(tr("Remplacer les résultats de ce tournoi par la sauvegarde ? Téléchargez d’abord vos résultats actuels si vous souhaitez les conserver.")))
                 return;
             setNomTournoi(d.nomTournoi);
             setSport(d.sport);setSportChoisi(true);
@@ -1439,13 +1439,13 @@ ${lienPartage}`,
         window.location.href = `/tournoi/${tournoiId}/imprimer`;
     }
     async function supprimerTournoi() {
-        if (!confirm("Supprimer définitivement ce tournoi ?"))
+        if (!confirm(tr("Supprimer définitivement ce tournoi ?")))
             return;
         if (tournoiId) {
             const { error } = await supabase.from("tournois").delete().eq("id", tournoiId);
             if (error) {
                 console.error(error);
-                alert("La suppression dans le cloud a échoué.");
+                alert(tr("La suppression dans le cloud a échoué."));
                 return;
             }
         }
@@ -2206,7 +2206,7 @@ ${lienPartage}`,
               {equipes.length}{tr(" participants \u00B7 ")}{joues}/{totalMatchsTheorique || matchs.length}{tr(" matchs termin\u00E9s")}</p>
             {tr(messageCloud) && <div style={styles.syncBadge}><span style={styles.syncDot}/>{tr(messageCloud)}</div>}
             {conflitCloud && <section className="tourneo-sync-conflict" aria-label={tr("Comparer les versions")} role="status"><strong>{tr("Une autre version existe en ligne")}</strong><p>{tr("Cette copie contient ")}{matchsValides.length}{tr(" r\u00E9sultat(s) valid\u00E9(s). La version en ligne en contient ")}{Array.isArray(conflitCloud.donnees?.matchsValides) ? conflitCloud.donnees.matchsValides.length : 0}{tr(". Aucun remplacement automatique n\u2019a \u00E9t\u00E9 fait.")}</p><div><button type="button" onClick={sauvegarderFichier}>{tr("T\u00E9l\u00E9charger ma copie locale")}</button><button type="button" onClick={() => {
-                if (!window.confirm("Charger la version en ligne ? Une sauvegarde de cette copie locale sera téléchargée avant le rechargement."))
+                if (!window.confirm(tr("Charger la version en ligne ? Une sauvegarde de cette copie locale sera téléchargée avant le rechargement.")))
                     return;
                 sauvegarderFichier();
                 suspendreSync.current = true;
@@ -2215,7 +2215,7 @@ ${lienPartage}`,
                 localStorage.removeItem(revisionKey);
                 window.location.reload();
             }}>{tr("Charger la version en ligne")}</button><button type="button" onClick={() => {
-                if (!window.confirm("Publier cette copie locale à la place de la version en ligne ? Les résultats de l’autre version seront remplacés."))
+                if (!window.confirm(tr("Publier cette copie locale à la place de la version en ligne ? Les résultats de l’autre version seront remplacés.")))
                     return;
                 revisionCloud.current = conflitCloud.revision;
                 setConflitCloud(null);

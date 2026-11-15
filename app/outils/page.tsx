@@ -123,7 +123,7 @@ export default function Outils() {
     }
     return <main className="v2-page"><div className="v2-shell"><TourneoNav showBack contextLabel={tr("Boîte à outils")}/><section className="v2-card"><span className="v2-eyebrow">{tr("Sur le terrain")}</span><h1>{tr("Bo\u00EEte \u00E0 outils")}</h1><p>{tr("Des outils rapides pour arbitrer ou pr\u00E9parer vos \u00E9quipes. Utilisables sans compte.")}</p><div className="tourneo-tool-tabs" role="group" aria-label={tr("Choisir un outil")}>{[['chrono', 'Chrono'], ['points', 'Points'], ['tirage', 'Tirage des équipes'], ['tennis', 'Tennis'], ['piece', 'Pile ou face']].map(([id, label]) => <button type="button" key={id} aria-pressed={outil === id} onClick={() => setOutil(id)}>{tr(label)}</button>)}</div>{tr(message) && <p role="status">{tr(message)}</p>}</section>
     <section className="v2-card" hidden={outil !== 'chrono'}><h2>{tr("Chronom\u00E8tre")}</h2><div className="tourneo-clock" role="timer" aria-label={chrono.limite ? tr('Temps restant') : tr('Temps écoulé')}>{afficherDuree(affiche)}</div><div className="tourneo-tool-actions"><button type="button" disabled={!pret || (chrono.limite > 0 && ecoule >= chrono.limite)} onClick={() => { const t = Date.now(); setMaintenant(t); setChrono(c => c.depuis === null ? { ...c, depuis: t } : { ...c, ecoule: tempsChrono(c, t), depuis: null }); }}>{chrono.depuis === null ? tr('Démarrer / reprendre') : tr('Pause')}</button><button type="button" disabled={!pret} onClick={() => {
-            if (window.confirm('Réinitialiser le chronomètre ?')) {
+            if (window.confirm(tr('Réinitialiser le chronomètre ?'))) {
                 setChrono(c => ({ ...c, ecoule: 0, depuis: null }));
                 setMessage('');
             }

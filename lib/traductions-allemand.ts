@@ -1,6 +1,7 @@
-// German coverage: discovery, authentication, language settings and shared navigation.
-// Untranslated specialist screens keep their original text; player names are never translated.
+// Shared German catalogue with hand-written discovery and navigation wording.
+import {traductionsAllemandCompletes} from '@/lib/traductions-allemand-complet';
 export const traductionsAllemand: Record<string, string> = {
+  ...traductionsAllemandCompletes,
   "S’inscrire": "Registrieren", "Accès au compte": "Kontozugang",
   "LE PLAISIR DE SE RETROUVER": "GEMEINSAM EINE GUTE ZEIT HABEN",
   "Un tournoi. Tout le monde dans le jeu.": "Ein Turnier. Alle sind dabei.",

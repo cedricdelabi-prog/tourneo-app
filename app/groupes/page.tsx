@@ -121,7 +121,7 @@ export default function Groupes() {
         await chargerGroupes();
         await chargerDetails();
     } setOccupe(false); }
-    async function supprimer() { if (!confirm('Supprimer ce groupe et sa liste partagée ? Les tournois déjà créés conservent leurs participants.'))
+    async function supprimer() { if (!confirm(tr('Supprimer ce groupe et sa liste partagée ? Les tournois déjà créés conservent leurs participants.')))
         return; setOccupe(true); const r = await supabase.from('tourneo_groupes').delete().eq('id', selection).eq('user_id', user); if (r.error)
         setMessage('Suppression impossible.');
     else

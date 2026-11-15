@@ -221,7 +221,7 @@ export default function LoginPage() {
             <label style={s.label}>{tr('Nom de la structure')}<input style={s.input} value={structure} maxLength={150} onChange={e=>setStructure(e.target.value)} autoComplete="organization"/></label><p style={s.optional}>{tr('Ces champs sont facultatifs. Tourneo V2 reste gratuit, y compris le mode Expert.')}</p></details>
           </>)}
 
-        <label htmlFor="auth-email" style={s.label}>E-mail</label>
+        <label htmlFor="auth-email" style={s.label}>{tr("E-mail")}</label>
         <input style={s.input} type="email" id="auth-email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder={tr("vous@email.fr")}/>
 
         <label htmlFor="auth-password" style={s.label}>{tr("Mot de passe")}</label>

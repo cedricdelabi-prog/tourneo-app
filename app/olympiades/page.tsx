@@ -198,7 +198,7 @@ export default function Olympiades() {
         return <main className="v2-page"><div className="v2-shell"><TourneoNav /><p role="status">{tr("Ouverture des Olympiades\u2026")}</p></div></main>;
     return <main className="v2-page"><div className="v2-shell"><TourneoNav showBack contextLabel={tr("Olympiades")}/><h1 className="tourneo-olympic-print-title">{d.nom}</h1>
  <section className="v2-card tourneo-olympic-editor"><span className="v2-eyebrow">{tr("Plusieurs activit\u00E9s \u00B7 les m\u00EAmes \u00E9quipes")}</span><h1>{tr("Olympiades")}</h1><p>{tr("Ajoutez vos \u00E9quipes, vos \u00E9preuves, puis notez chaque performance. Le classement se construit avec les \u00E9preuves valid\u00E9es.")}</p><a href="/guides/outils-et-olympiades">{tr("Comment organiser mes Olympiades ?")}</a>{tr(message) && <p role="status">{tr(message)}</p>}{conflit && <div className="tourneo-sync-conflict"><p>{tr("Deux versions existent. Cette copie reste disponible \u00E0 l\u2019export.")}</p><button type="button" onClick={() => exporterOlympiade(d)}>{tr("Exporter cette copie")}</button><button type="button" onClick={() => {
-                if (window.confirm('Recharger la version en ligne ? Votre copie locale sera téléchargée.')) {
+                if (window.confirm(tr('Recharger la version en ligne ? Votre copie locale sera téléchargée.'))) {
                     exporterOlympiade(d);
                     localStorage.removeItem(`${CLE}:${id}`);
                     window.location.reload();
@@ -219,7 +219,7 @@ export default function Olympiades() {
         }}>{tr("R\u00E9cup\u00E9rer le brouillon pr\u00E9c\u00E9dent")}</button><label>{tr("Mes Olympiades")}<select value={id} disabled={occupe} onChange={e => {
             if (!e.target.value)
                 return;
-            if (signature !== sauve && !window.confirm('Changer d’Olympiade ? La copie actuelle restera sur cet appareil.'))
+            if (signature !== sauve && !window.confirm(tr('Changer d’Olympiade ? La copie actuelle restera sur cet appareil.')))
                 return;
             window.location.href = `/olympiades?id=${e.target.value}`;
         }}><option value="">{tr("Choisir\u2026")}</option>{liste.map(e => <option key={e.id} value={e.id}>{e.nom}</option>)}</select></label><label>{tr("Importer une sauvegarde")}<input type="file" accept=".json,application/json" disabled={occupe} onChange={async (e) => {
@@ -231,7 +231,7 @@ export default function Olympiades() {
                 if (f.size > 1000000)
                     throw new Error('Fichier trop volumineux.');
                 const copie = lireOlympiade(await f.text());
-                if (!window.confirm('Ouvrir cette sauvegarde comme une nouvelle Olympiade ? La copie actuelle sera téléchargée avant le remplacement.'))
+                if (!window.confirm(tr('Ouvrir cette sauvegarde comme une nouvelle Olympiade ? La copie actuelle sera téléchargée avant le remplacement.')))
                     return;
                 exporterOlympiade(d);
                 setD(copie);
@@ -246,7 +246,7 @@ export default function Olympiades() {
                 setMessage(err instanceof Error ? err.message : 'Fichier invalide.');
             }
         }}/></label><div className="tourneo-tool-actions"><button type="button" disabled={occupe || conflit} onClick={() => void enregistrer(!partage)}>{partage ? tr('Fermer le partage public') : tr('Activer le partage public')}</button>{id && partage && <a href={`/olympiades/partage/${id}`}>{tr("Ouvrir le classement public")}</a>}<button type="button" disabled={occupe} onClick={() => {
-            if (window.confirm('Préparer une nouvelle Olympiade ? Exportez votre copie actuelle si nécessaire.')) {
+            if (window.confirm(tr('Préparer une nouvelle Olympiade ? Exportez votre copie actuelle si nécessaire.'))) {
                 exporterOlympiade(d);
                 setD(vide());
                 setId('');
@@ -268,7 +268,7 @@ export default function Olympiades() {
                     if (/^\d{0,9}(?:[.,]\d{0,3})?$/.test(ev.target.value))
                         changerEpreuve(e.id, a => ({ ...a, mesures: { ...a.mesures, [t.id]: ev.target.value } }));
                 }}/></label>)}</div><div className="tourneo-tool-actions tourneo-olympic-editor"><button type="button" disabled={occupe || (!e.validee && classementEpreuve(e, d.equipes).length !== d.equipes.length) || d.equipes.length < 2} onClick={() => changerEpreuve(e.id, a => ({ ...a, validee: !a.validee }))}>{e.validee ? tr('Corriger les résultats') : tr('Valider cette épreuve')}</button>{!e.validee && <button type="button" disabled={occupe} onClick={() => {
-                    if (window.confirm('Supprimer cette épreuve ?'))
+                    if (window.confirm(tr('Supprimer cette épreuve ?')))
                         setD(a => ({ ...a, epreuves: a.epreuves.filter(x => x.id !== e.id) }));
                 }}>{tr("Supprimer")}</button>}</div></section>)}
  <ClassementOlympiade donnees={d}/>

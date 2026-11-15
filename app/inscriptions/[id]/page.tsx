@@ -78,7 +78,7 @@ export default function InscriptionPublique() {
         }
     }
     async function annuler() {
-        if (!confirm('Annuler cette inscription ?'))
+        if (!confirm(tr('Annuler cette inscription ?')))
             return;
         setOccupe(true);
         const { data, error } = await supabase.rpc('tourneo_mon_inscription', { p_tournoi: id, p_jeton: jeton, p_annuler: true });

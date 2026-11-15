@@ -99,7 +99,7 @@ export default function DashboardPage() {
         return { matchs, joues, termine, progression: matchs.length ? Math.round((joues / matchs.length) * 100) : 0 };
     }
     async function supprimerTournoi(id: string) {
-        if (!confirm("Supprimer définitivement ce tournoi ?"))
+        if (!confirm(tr("Supprimer définitivement ce tournoi ?")))
             return;
         const { error } = await supabase.from("tournois").delete().eq("id", id);
         if (error) {
@@ -117,7 +117,7 @@ export default function DashboardPage() {
         setMenuOuvert(null);
     }
     async function renommerTournoi(t: Tournoi) {
-        const brut = prompt("Nouveau nom :", t.nom)?.trim();
+        const brut = prompt(tr("Nouveau nom :"), t.nom)?.trim();
         if (!brut)
             return;
         const nom = brut.charAt(0).toUpperCase() + brut.slice(1);
