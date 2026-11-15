@@ -98,7 +98,7 @@ export default function DecouvrirTourneo() {
     <div className={styles.shell}>
       <header className={styles.entete}>
         <Link href="/" aria-label={tr("Accueil Tourneo")} className={styles.logo}><TourneoBrand compact/></Link>
-        <div className={styles.utilitaires}><SelecteurLangue/><Link href="/login" onClick={terminer} className={styles.connexion}>{tr("Se connecter")} <span aria-hidden="true"><FlechePartage/></span></Link></div>
+        <div className={styles.utilitaires}><SelecteurLangue/><nav className={styles.acces} aria-label={tr("Accès au compte")}><Link href="/login" onClick={terminer} className={styles.connexion}>{tr("Se connecter")}</Link><Link href="/login?mode=inscription" onClick={terminer} className={styles.inscription}>{tr("S’inscrire")} <span aria-hidden="true"><FlechePartage/></span></Link></nav></div>
       </header>
       <section className={styles.presentation} aria-label={tr("Découvrir Tourneo")} aria-roledescription={tr("Carrousel")}
         onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
@@ -112,7 +112,7 @@ export default function DecouvrirTourneo() {
             <h1>{tr(courant.titre)}</h1>
             <p className={styles.description}>{tr(courant.texte)}</p>
             <ul className={styles.atouts}>{courant.atouts.map(t => <li key={t}><span aria-hidden="true">✓</span>{tr(t)}</li>)}</ul>
-            <div className={styles.actions}><Link href="/login" onClick={terminer} className={styles.principal}>{tr(ecran === 3 ? "C’est parti !" : "Créer mon tournoi")} <span aria-hidden="true"><FlechePartage/></span></Link>
+            <div className={styles.actions}><Link href="/login?mode=inscription" onClick={terminer} className={styles.principal}>{tr(ecran === 3 ? "C’est parti !" : "Créer mon tournoi")} <span aria-hidden="true"><FlechePartage/></span></Link>
               {ecran === 0 && <button type="button" onClick={() => choisir(1)} className={styles.secondaire}>{tr("Découvrir Tourneo")} <span aria-hidden="true">→</span></button>}</div>
           </div>
           <div className={styles.visuel}><Apercu ecran={ecran}/><p>{tr(courant.legende)}</p></div>

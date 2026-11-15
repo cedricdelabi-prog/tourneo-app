@@ -27,6 +27,10 @@ export default function LoginPage() {
     const [etatMessage, setEtatMessage] = useState<"info" | "succes" | "erreur">("info");
     const verrou = useRef(false);
     const messageRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (new URLSearchParams(window.location.search).get("mode") === "inscription")
+            setMode("inscription");
+    }, []);
     useEffect(() => { if (message)
         messageRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [message]);
     useEffect(() => {

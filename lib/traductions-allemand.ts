@@ -1,6 +1,7 @@
 // German coverage: discovery, authentication, language settings and shared navigation.
 // Untranslated specialist screens keep their original text; player names are never translated.
 export const traductionsAllemand: Record<string, string> = {
+  "S’inscrire": "Registrieren", "Accès au compte": "Kontozugang",
   "LE PLAISIR DE SE RETROUVER": "GEMEINSAM EINE GUTE ZEIT HABEN",
   "Un tournoi. Tout le monde dans le jeu.": "Ein Turnier. Alle sind dabei.",
   "Entre amis, au club, au camping ou à l’école : Tourneo vous aide à organiser les rencontres et à partager les bons moments.": "Mit Freunden, im Verein, auf dem Campingplatz oder in der Schule: Tourneo hilft euch, Spiele zu organisieren und gemeinsam eine gute Zeit zu haben.",

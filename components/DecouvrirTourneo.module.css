@@ -6,3 +6,5 @@
 @media(prefers-reduced-motion:reduce){.pagination button span{transition:none}}
 
 .partageIcone svg{width:34px;height:34px}.connexion svg{display:inline-block;vertical-align:middle}
+.acces{display:flex;align-items:center;gap:20px}.inscription{display:inline-flex;align-items:center;gap:14px;min-height:44px;padding:12px 17px;border-radius:11px;background:#087cfa;font-size:14px;font-weight:700;white-space:nowrap}.inscription:hover{background:#176ee1}
+@media(max-width:620px){.acces{gap:13px}.inscription{font-size:12px;padding:11px 13px;gap:9px}.entete{padding:8px 0}}

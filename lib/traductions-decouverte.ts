@@ -1,4 +1,6 @@
 export const traductionsDecouverte: Record<string, { en: string; nl: string }> = Object.fromEntries([
+  ["S’inscrire", "Sign up", "Registreren"],
+  ["Accès au compte", "Account access", "Toegang tot je account"],
   ["LE PLAISIR DE SE RETROUVER", "GOOD TIMES TOGETHER", "SAMEN PLEZIER MAKEN"],
   ["Un tournoi. Tout le monde dans le jeu.", "One tournament. Everyone in the game.", "Eén toernooi. Iedereen doet mee."],
   ["Entre amis, au club, au camping ou à l’école : Tourneo vous aide à organiser les rencontres et à partager les bons moments.", "With friends, at your club, campsite or school: Tourneo helps you organise matches and share good times.", "Met vrienden, op de club, camping of school: Tourneo helpt je wedstrijden te organiseren en samen plezier te maken."],
