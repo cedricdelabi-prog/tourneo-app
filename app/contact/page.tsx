@@ -1,6 +1,6 @@
 "use client";
 import {tr,trModele,useLangue} from "@/lib/langue";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import TourneoNav from "@/components/TourneoNav";
@@ -20,6 +20,7 @@ export default function ContactPage() {
     const [retour, setRetour] = useState("");
     const [envoi, setEnvoi] = useState(false);
     const [succes, setSucces] = useState(false);
+    useEffect(()=>{const q=new URLSearchParams(window.location.search),tournoi=q.get('tournoi'),reference=q.get('message');const uuid=/^[a-f0-9-]{36}$/i;if(tournoi&&reference&&uuid.test(tournoi)&&uuid.test(reference))setMessage(`Tournoi : ${tournoi}\nMessage : ${reference}\n\n`);},[]);
     async function preRemplirCompte() {
         const { data } = await supabase.auth.getSession();
         const user = data.session?.user;

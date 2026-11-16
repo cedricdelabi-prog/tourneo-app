@@ -1,5 +1,8 @@
 "use client";
+import DiscussionsTournoi from "@/components/DiscussionsTournoi";
+import RouletteParticipants from "@/components/RouletteParticipants";
 import AffichesTournoi from "@/components/AffichesTournoi";
+import ProchaineEdition from '@/components/ProchaineEdition';
 import {nomAvecVille} from "@/lib/identite-joueur";
 import {erreursConfigurationCreation} from "@/lib/configuration-creation";
 import AideInfo from '@/components/AideInfo';
@@ -13,6 +16,10 @@ import {libellesSports as LIBELLES_SPORT} from '@/lib/catalogue-sports';
 import AlbumTournoi from '@/components/AlbumTournoi';
 import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
+import { fusionnerInscriptions } from '@/lib/participants-inscrits';
+import ChampEntier from '@/components/ChampEntier';
+import ModelesAffiche from '@/components/ModelesAffiche';
+import {copierIdentiteAffiche} from '@/lib/modeles-affiche';
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent } from "react";
 import { useParams } from "next/navigation";
@@ -53,7 +60,7 @@ const CLE = "tourneo-v04";
 const SEUIL_PHASE_FINALE = 100000;
 type FormatTournoi = "rotation" | "suisse" | "doubleElimination" | "consolante" | "allerRetour" | "complet" | "poules" | "elimination" | "poulesFinale";
 type ModePoules = "nombrePoules" | "taillePoules";
-type Onglet = "matchs" | "classement" | "statistiques" | "participants" | "arbitrage" | "photos" | "affiches";
+type Onglet = "matchs" | "classement" | "statistiques" | "participants" | "arbitrage" | "photos" | "affiches" | "discussions";
 type Poule = {
     id: string;
     nom: string;
@@ -203,7 +210,7 @@ export default function TournoiPage() {
     const [aideOuverte, setAideOuverte] = useState(false);
     const [codeJoueur, setCodeJoueur] = useState("");
     const [messageCodeJoueur, setMessageCodeJoueur] = useState("");
-    const [creationEtape, setCreationEtape] = useState<"configuration" | "participants">("configuration");
+    const [creationEtape, setCreationEtape] = useState<"configuration" | "participants" | "communication">("configuration");
     const [matchsValides, setMatchsValides] = useState<number[]>([]);
     const [ajoutMoiEnCours, setAjoutMoiEnCours] = useState(false);
     const [souvenirOuvert, setSouvenirOuvert] = useState(false);
@@ -794,14 +801,60 @@ export default function TournoiPage() {
     const erreursCreation=erreursConfigurationCreation({nom:nomTournoi,sport,sportChoisi,format:formatTournoi,options:optionsV2,modePoules,nombrePoules,taillePoules,qualifiesParPoule});
     const configurationComplete=erreursCreation.length===0;
     const [retourPronostics,setRetourPronostics]=useState(false);
-    useEffect(()=>{if(!pret||cree)return;const url=new URL(window.location.href);if(url.searchParams.get('pronostics')==='enregistres'){setRetourPronostics(true);url.searchParams.delete('pronostics');}if(url.searchParams.get('etape')==='participants'&&configurationComplete)setCreationEtape('participants');if(url.searchParams.has('etape'))url.searchParams.delete('etape');window.history.replaceState(window.history.state,'',url);},[pret,cree,configurationComplete]);
+    useEffect(() => {
+        if (!pret) return;
+        const url = new URL(window.location.href);
+        const etape = url.searchParams.get('etape');
+        if (cree) {
+            if (etape === 'communication') setOnglet('affiches');
+        } else if (configurationComplete) {
+            if (url.searchParams.get('pronostics') === 'enregistres') {
+                setRetourPronostics(true);
+                setCreationEtape('communication');
+            } else if (etape === 'participants' || etape === 'communication') {
+                setCreationEtape(etape);
+            } else if (!etape && params.id !== 'nouveau') {
+                try {
+                    const ancien = localStorage.getItem(`tourneo-etape-creation:${params.id}`);
+                    if (ancien === 'participants' || ancien === 'communication') setCreationEtape(ancien);
+                } catch {}
+            }
+        }
+        if (etape) url.searchParams.delete('etape');
+        if (url.searchParams.has('pronostics')) url.searchParams.delete('pronostics');
+        window.history.replaceState(window.history.state, '', url);
+    }, [pret, cree, configurationComplete, params.id]);
+    useEffect(() => {
+        if (pret && !cree && params.id !== 'nouveau') {
+            try { localStorage.setItem(`tourneo-etape-creation:${params.id}`, creationEtape); } catch {}
+        }
+    }, [pret, cree, params.id, creationEtape]);
 
-    function continuerCreation(){if(!configurationComplete){setCreationEtape("configuration");return;}setCreationEtape("participants");}
+    function choisirEtapeCreation(etape: "configuration" | "participants" | "communication") {
+        setCreationEtape(etape);
+        const url = new URL(window.location.href);
+        url.searchParams.set('etape', etape);
+        window.history.replaceState(window.history.state, '', url);
+    }
+
+    function continuerCreation(){if(!configurationComplete){choisirEtapeCreation("configuration");return;}choisirEtapeCreation("participants");}
     const [operationTournoi, setOperationTournoi] = useState(false);
-    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' | 'pronostics' | 'pronostics/affiche' = 'inscriptions') {
+    async function actualiserParticipantsInscrits() {
+        if (!tournoiId || operationTournoi) return;
+        setOperationTournoi(true);
+        try {
+            const r = await supabase.from('tourneo_inscriptions').select('id,nom,joueurs,user_id,type_participant').eq('tournoi_id', tournoiId).eq('statut', 'accepte');
+            if (r.error) throw r.error;
+            setEquipes(fusionnerInscriptions(equipes, r.data ?? []));
+            setMessageCloud('Inscriptions acceptées actualisées. Elles seront vérifiées à nouveau au démarrage.');
+        } catch (e) {
+            setMessageCloud(e instanceof Error ? e.message : 'Impossible de charger les inscriptions acceptées. Réessayez.');
+        } finally { setOperationTournoi(false); }
+    }
+    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' | 'pronostics' | 'pronostics/affiche' | 'affiches' = 'inscriptions') {
         if (operationTournoi)
             return;
-        if (!cree&&!configurationComplete) {setCreationEtape("configuration");alert(tr(erreursCreation[0]));return;}
+        if (!cree&&!configurationComplete) {choisirEtapeCreation("configuration");alert(tr(erreursCreation[0]));return;}
         if (destination.startsWith('pronostics')&&equipes.length<2){alert(tr('Ajoutez au moins deux participants avant de préparer les pronostics.'));return;}
         if (!nomTournoi.trim()) {
             alert(tr("Ajoutez le nom du tournoi."));
@@ -847,7 +900,7 @@ export default function TournoiPage() {
     async function lancerTournoi() {
         if (operationTournoi)
             return;
-        if (!configurationComplete&&!cree) {setCreationEtape("configuration");alert(tr(erreursCreation[0]));return;}
+        if (!configurationComplete&&!cree) {choisirEtapeCreation("configuration");alert(tr(erreursCreation[0]));return;}
         if (!nomTournoi.trim()) {
             alert(tr("Ajoute un nom au tournoi."));
             return;
@@ -865,12 +918,7 @@ export default function TournoiPage() {
                 const { data: demandes, error } = await supabase.from("tourneo_inscriptions").select("id,nom,joueurs,user_id,type_participant").eq("tournoi_id", tournoiId).eq("statut", "accepte");
                 if (error)
                     throw error;
-                const nouveaux = (demandes ?? []).filter((r) => !participants.some((e) => e.id === `inscription:${r.id}`));
-                const profilsInscrits = new Set(nouveaux.filter(r => r.type_participant === "individuel" && r.user_id).map(r => r.user_id));
-                participants = participants.filter(e => !profilsInscrits.has(e.profilId ?? e.id));
-                if (nouveaux.some((r) => participants.some((e) => e.nom.trim().toLocaleLowerCase("fr") === r.nom.trim().toLocaleLowerCase("fr"))))
-                    throw new Error("Un participant manuel porte le nom d’une inscription acceptée. Renommez-le avant de démarrer.");
-                participants = [...participants, ...nouveaux.map((r) => ({ id: `inscription:${r.id}`, nom: r.nom, joueurs: r.joueurs, profilId: r.type_participant === "individuel" ? r.user_id ?? undefined : undefined, emoji: "🏅", couleur: "#3B82F6" }))];
+                participants = fusionnerInscriptions(participants, demandes ?? []);
             }
             const erreurConfiguration = validerConfiguration(participants);
             if (erreurConfiguration)
@@ -1718,17 +1766,19 @@ ${lienPartage}`,
               <div>
                 <span style={styles.eyebrow}>{tr("Nouveau tournoi")}</span>
                 <h1 style={{ ...styles.heroTitle, marginBottom: 8 }}>{tr("Cr\u00E9er votre tournoi")}</h1>
-                <p style={styles.heroText}>{tr("Deux \u00E9tapes simples : configurez, puis ajoutez les participants.")}</p>
+                <p style={styles.heroText}>{tr("Trois étapes : configuration, participants, communication.")}</p>
               </div>
               <span style={styles.pill}>{equipes.length}{tr(" participant(s)")}</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, padding: 6, borderRadius: 16, background: "#090E17", margin: "18px 0" }}>
-              <button style={{ ...styles.ghostButton, ...(creationEtape === "configuration" ? styles.tabActive : {}) }} onClick={() => setCreationEtape("configuration")}>{tr("1 \u00B7 Configuration")}</button>
-              <button style={{ ...styles.ghostButton, ...(creationEtape === "participants" ? styles.tabActive : {}) }} disabled={!configurationComplete} onClick={continuerCreation}>{tr("2 \u00B7 Participants")}</button>
-            </div>
+            <nav className="tourneo-creation-steps" aria-label={tr("Créer votre tournoi")} style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7, padding: 6, borderRadius: 16, background: "#090E17", margin: "18px 0" }}>
+              <button style={{ ...styles.ghostButton, ...(creationEtape === "configuration" ? styles.tabActive : {}) }} aria-current={creationEtape === "configuration" ? "step" : undefined} onClick={() => choisirEtapeCreation("configuration")}>{tr("1 \u00B7 Configuration")}</button>
+              <button style={{ ...styles.ghostButton, ...(creationEtape === "participants" ? styles.tabActive : {}) }} disabled={!configurationComplete} aria-current={creationEtape === "participants" ? "step" : undefined} onClick={continuerCreation}>{tr("2 \u00B7 Participants")}</button>
+              <button style={{ ...styles.ghostButton, ...(creationEtape === "communication" ? styles.tabActive : {}) }} disabled={!configurationComplete} aria-current={creationEtape === "communication" ? "step" : undefined} onClick={() => choisirEtapeCreation("communication")}>{tr("3 · Communication")}</button>
+            </nav>
 
             {creationEtape === "configuration" ? (<>
+                <details className="tourneo-optional-panel"><summary>{tr("Partir d’un modèle")}</summary><ModelesAffiche onChoisir={m=>{changerSport(m.sport);setNomTournoi(m.titre);setOptionsV2(o=>({...o,lieu:m.lieu,organisateur:m.organisateur,identiteAffiche:copierIdentiteAffiche(m.identite)}));}}/></details>
                 <ConseillerTournoi effectif={equipes.length||optionsV2.participantsPrevus||0} terrains={optionsV2.terrains} duree={optionsV2.duree} repos={optionsV2.repos} onAppliquer={(p,b)=>{setFormatTournoi(p.format);setOptionsV2(o=>({...o,terrains:b.terrains,duree:b.duree,repos:b.repos,rondes:p.format==='suisse'||p.format==='rotation'?p.rondes:o.rondes,budgetMinutes:b.minutes,participantsPrevus:b.participants}));}}/>
                 <div className="tourneo-field-label"><label htmlFor="tournoi-nom" style={styles.label}>{tr("Nom du tournoi")}</label><AideInfo titre="Nom du tournoi">{"Le titre visible par les participants. Il est repris sur les affiches et les pages de résultats."}</AideInfo></div>
                 <input required maxLength={150} id="tournoi-nom" style={styles.input} value={nomTournoi} onChange={(event) => setNomTournoi(capitaliserNom(event.target.value))} placeholder={tr("Ex. Tournoi été 2026")}/>
@@ -1762,29 +1812,32 @@ ${lienPartage}`,
                         <div className="tourneo-field-label"><label htmlFor="tournoi-poules-quantite" style={styles.label}>
                           {modePoules === "nombrePoules" ? tr("Nombre de poules") : tr("Participants par poule")}
                         </label><AideInfo titre="Répartition des poules">{'Une poule est un petit groupe de participants. Choisissez combien de groupes créer ou combien de personnes placer dans chaque groupe. Tourneo répartit les participants.'}</AideInfo></div>
-                        <input style={styles.input} type="number" min="2" value={modePoules === "nombrePoules" ? nombrePoules : taillePoules} onChange={(event) => modePoules === "nombrePoules"
-                        ? setNombrePoules(Number(event.target.value))
-                        : setTaillePoules(Number(event.target.value))}/>
+                        <ChampEntier id="tournoi-poules-quantite" style={styles.input} min={2} max={128} value={modePoules === "nombrePoules" ? nombrePoules : taillePoules} onValue={n => modePoules === "nombrePoules" ? setNombrePoules(n) : setTaillePoules(n)}/>
                       </div>
                       {formatTournoi === "poulesFinale" && (<div>
                           <div className="tourneo-field-label"><label htmlFor="tournoi-qualifies" style={styles.label}>{tr("Qualifi\u00E9s par poule")}</label><AideInfo titre="Qualifiés par poule">{"Nombre de participants de chaque poule qui passent en phase finale. Exemple : 2 qualifiés dans 4 poules donnent 8 finalistes."}</AideInfo></div>
-                          <input id="tournoi-qualifies" style={styles.input} type="number" min="1" value={qualifiesParPoule} onChange={(event) => setQualifiesParPoule(Number(event.target.value))}/>
+                          <ChampEntier id="tournoi-qualifies" style={styles.input} min={1} max={128} value={qualifiesParPoule} onValue={setQualifiesParPoule}/>
                         </div>)}
                     </div>
                   </div>)}
 
-                <OptionsTournoiV2 value={optionsV2} onChange={setOptionsV2}/>
+                <OptionsTournoiV2 format={formatTournoi} value={optionsV2} onChange={setOptionsV2}/>
                 {!configurationComplete&&<div role="status" className="tourneo-creation-check"><strong>{tr('À compléter avant les participants')}</strong><ul>{erreursCreation.map(e=><li key={e}>{tr(e)}</li>)}</ul></div>}
                 <p style={styles.muted}>{tr('Les réglages proposés sont déjà valides. Les champs indiqués facultatifs peuvent rester vides.')}</p>
-                {tournoiId&&configurationComplete&&<div className="tourneo-promo-shortcuts">{retourPronostics&&<p role="status">{tr('Pronostics enregistrés. Votre affiche spectateurs est prête à partager.')}</p>}<strong>{tr('Faire participer les spectateurs')}</strong><p>{tr('Préparez le jeu de pronostics, puis ouvrez son affiche avec QR pour le public.')}</p><button type="button" disabled={operationTournoi||equipes.length<2} onClick={()=>void preparerSupport('pronostics')}>{tr('Configurer les pronostics')}</button><button type="button" disabled={operationTournoi||equipes.length<2} onClick={()=>void preparerSupport('pronostics/affiche')}>{tr('Affiche spectateurs et QR')}</button></div>}
+
                 <button style={styles.primaryButton} disabled={!configurationComplete} onClick={continuerCreation}>{tr("Continuer vers les participants \u2192")}</button>
-              </>) : (<>
+              </>) : creationEtape === "participants" ? (<>
                 <div className="tourneo-participants-header-mobile" style={styles.participantsHeader}>
                   <div>
                     <span style={styles.eyebrow}>{tr("Participants")}</span>
                     <h2 style={styles.sectionTitle}>{tr("\u00C9quipes / joueurs")}</h2>
                   </div>
                 </div>
+
+                <p style={styles.muted}>{tr('Ajoutez les participants vous-même, ou ouvrez les inscriptions en ligne.')}</p>
+                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => void preparerSupport('inscriptions')}>{tr('Préparer les inscriptions par lien / QR')}</button>
+                {tournoiId && <button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void actualiserParticipantsInscrits()}>{tr('Actualiser les inscriptions acceptées')}</button>}
+                <RouletteParticipants participants={equipes} onAppliquer={setEquipes}/>
 
                 <button className="tourneo-add-player-main" style={styles.primaryButton} onClick={() => {
                     setEquipeAModifier(null);
@@ -1834,16 +1887,30 @@ ${lienPartage}`,
                     }} onSupprimer={() => setEquipes((actuelles) => actuelles.filter((item) => item.id !== equipe.id))}/>)))}
                 </div>
 
-                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('inscriptions')}>{tournoiId ? tr("Gérer les inscriptions et le pointage") : tr("Préparer les inscriptions par lien / QR")}</button>
-                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button>
-                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
-                <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('photos')}>{tr('Préparer les photos')}</button>
-                <button style={styles.secondaryButton} disabled={operationTournoi||equipes.length<2} onClick={() => preparerSupport('pronostics')}>{tr('Pronostics du public')}</button>{tournoiId&&<button type="button" style={styles.secondaryButton} disabled={operationTournoi||equipes.length<2} onClick={()=>void preparerSupport('pronostics/affiche')}>{tr('Affiche spectateurs et QR')}</button>}
+                <button style={styles.primaryButton} disabled={operationTournoi} onClick={() => choisirEtapeCreation('communication')}>{tr('Continuer vers la communication →')}</button>
                 {equipes.length>=2&&equipes.length<=128&&<ConseillerTournoi etapeParticipants effectif={equipes.length} terrains={optionsV2.terrains} duree={optionsV2.duree} repos={optionsV2.repos} onAppliquer={(p,b)=>{setFormatTournoi(p.format);setOptionsV2(o=>({...o,terrains:b.terrains,duree:b.duree,repos:b.repos,rondes:p.format==='suisse'||p.format==='rotation'?p.rondes:o.rondes,budgetMinutes:b.minutes,participantsPrevus:b.participants}));}}/>}
-                <section className="tourneo-preflight" aria-label={tr('Vérification avant lancement')}><strong>{tr('Prêt à jouer ?')}</strong>{validerConfiguration(equipes)&&<p role="status">{tr(validerConfiguration(equipes))}</p>}{verifierPreparation(equipes,[],optionsV2).length?<ul>{verifierPreparation(equipes,[],optionsV2).map((a,i)=><li key={i}>{tr(a.texte)}</li>)}</ul>:<p>{tr('La liste des participants et les réglages sont prêts.')}</p>}{optionsV2.participantsPrevus&&optionsV2.participantsPrevus!==equipes.length&&<p>{trModele('La simulation prévoyait {0} participants ; vous en avez ajouté {1}. Vérifiez la durée avec cet effectif.',optionsV2.participantsPrevus,equipes.length)}</p>}</section>
-                <button style={styles.primaryButton} disabled={operationTournoi||!!validerConfiguration(equipes)||verifierPreparation(equipes,[],optionsV2).some(a=>a.niveau==='bloquant')} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
-                <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => setCreationEtape("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
+
+                <div style={{ marginTop: 12 }}><TourneoRetour onClick={() => choisirEtapeCreation("configuration")}>{tr("Configuration du tournoi")}</TourneoRetour></div>
                 {tr(messageCloud) && <div style={styles.statusLine}>{tr(messageCloud)}</div>}
+              </>) : (<>
+                <h2 style={styles.sectionTitle}>{tr('Communication du tournoi')}</h2>
+                <p style={styles.muted}>{tr('Affiches, inscriptions, spectateurs et résultats : tous les supports sont réunis ici. Le tournoi peut rester en brouillon pendant les inscriptions.')}</p>
+                {retourPronostics&&<p role="status">{tr('Pronostics enregistrés. Votre affiche spectateurs est prête à partager.')}</p>}
+                <div className="tourneo-affiches-hub">
+                  <button type="button" disabled={operationTournoi} onClick={()=>void preparerSupport('affiche')}><h3>{tr('Annoncer le tournoi')}</h3><p>{tr('Date, lieu et inscriptions')}</p></button>
+                  <button type="button" disabled={operationTournoi} onClick={()=>void preparerSupport('inscriptions')}><h3>{tr('Inscriptions en ligne')}</h3><p>{tr('Ouvrir les inscriptions et gérer les demandes')}</p></button>
+                  <button type="button" disabled={operationTournoi||equipes.length<2} onClick={()=>void preparerSupport('pronostics')}><h3>{tr('Pronostics du public')}</h3><p>{tr('Préparez le jeu de pronostics, puis ouvrez son affiche avec QR pour le public.')}</p></button>
+                  <button type="button" disabled={operationTournoi} onClick={()=>void preparerSupport('affiches')}><h3>{tr('Mes affiches')}</h3><p>{tr('Retrouvez ici tous les supports pour vos joueurs, vos spectateurs et votre club.')}</p></button>
+                </div>
+                <details className="tourneo-optional-panel"><summary>{tr('Préparer les arbitres et les photos')}</summary>
+                  <button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
+                  <button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void preparerSupport('photos')}>{tr('Préparer les photos')}</button>
+                </details>
+                {tournoiId&&<p style={styles.muted}>{tr('Les inscriptions acceptées seront récupérées et vérifiées au démarrage, même si la liste ci-dessous est vide.')} <button type="button" disabled={operationTournoi} onClick={()=>void actualiserParticipantsInscrits()}>{tr('Actualiser les inscriptions acceptées')}</button></p>}
+                <section className="tourneo-preflight" aria-label={tr('Vérification avant lancement')}><strong>{tr('Prêt à jouer ?')}</strong>{validerConfiguration(equipes)&&<p role="status">{tr(validerConfiguration(equipes))}</p>}{verifierPreparation(equipes,[],optionsV2).length?<ul>{verifierPreparation(equipes,[],optionsV2).map((a,i)=><li key={i}>{tr(a.texte)}</li>)}</ul>:<p>{tr('La liste des participants et les réglages sont prêts.')}</p>}{optionsV2.participantsPrevus&&optionsV2.participantsPrevus!==equipes.length&&<p>{trModele('La simulation prévoyait {0} participants ; vous en avez ajouté {1}. Vérifiez la durée avec cet effectif.',optionsV2.participantsPrevus,equipes.length)}</p>}</section>
+                <button style={styles.primaryButton} disabled={operationTournoi||(!tournoiId&&(!!validerConfiguration(equipes)||verifierPreparation(equipes,[],optionsV2).some(a=>a.niveau==='bloquant')))} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
+                <TourneoRetour onClick={()=>choisirEtapeCreation('participants')}>{tr('Participants')}</TourneoRetour>
+                {tr(messageCloud)&&<p role="status">{tr(messageCloud)}</p>}
               </>)}
           </section>
         </div>
@@ -2237,6 +2304,7 @@ ${lienPartage}`,
             <label style={styles.secondaryButton}>{tr("Restaurer une sauvegarde")}<input type="file" accept=".json,application/json" onChange={restaurerFichier} style={{ maxWidth: 180, display: "block", fontSize: 11, marginTop: 6 }}/></label>
             <button style={styles.secondaryButton} onClick={() => setOnglet("participants")}>{tr("Modifier les \u00E9quipes")}</button>
             <button style={styles.primarySmall} onClick={() => (window.location.href = "/tournoi/nouveau")}>{tr("Nouveau tournoi")}</button>
+            <ProchaineEdition nom={nomTournoi} source={{sport,formatTournoi,modePoules,nombrePoules,taillePoules,qualifiesParPoule,optionsV2,equipes}} />
             <a href="/guides/outils-et-olympiades">{tr("Guide des outils et des Olympiades")}</a>
             </div></details>
           </div>
@@ -2262,7 +2330,8 @@ ${lienPartage}`,
             ["statistiques", "Statistiques"],
             ["arbitrage", "Arbitrage"],
             ["photos", "Photos"],
-            ["affiches", "Mes affiches"],
+            ["affiches", "Communication"],
+            ["discussions", "Échanges du tournoi"],
         ] as [
             Onglet,
             string
@@ -2271,9 +2340,10 @@ ${lienPartage}`,
             </button>))}
         </nav>
 
+        {onglet === "discussions" && cree && tournoiId && <DiscussionsTournoi tournoiId={tournoiId}/>}
         {onglet === "affiches" && cree && tournoiId && <AffichesTournoi id={tournoiId}/>}
-        {onglet !== "affiches" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
-        {onglet !== "affiches" && cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
+        {onglet === "matchs" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
+        {onglet === "affiches" && cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
         {onglet !== "affiches" && cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
         {onglet === "participants" && (<section style={styles.card}>
             <div style={styles.formHeader}>
@@ -2286,7 +2356,7 @@ ${lienPartage}`,
             </div>
 
             <fieldset disabled={!modificationParticipantsAutorisee} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
-            <OptionsTournoiV2 value={optionsV2} onChange={setOptionsV2} disabled={!modificationParticipantsAutorisee}/>
+            <OptionsTournoiV2 format={formatTournoi} value={optionsV2} onChange={setOptionsV2} disabled={!modificationParticipantsAutorisee}/>
             <div style={styles.twoColumns}>
               <div>
                 <div className="tourneo-field-label"><label htmlFor="tournoi-format" style={styles.label}>{tr("Format")}</label><AideInfo titre="Format">{"Championnat : chacun rencontre les autres. Élimination : une défaite élimine. Poules puis finale : petits groupes suivis d’une phase finale. Suisse : adversaires selon les résultats. Choisissez Championnat si vous hésitez."}</AideInfo></div>
@@ -2313,13 +2383,11 @@ ${lienPartage}`,
                 <div style={styles.twoColumns}>
                   <div>
                     <label style={styles.label}>{modePoules === "nombrePoules" ? tr("Nombre de poules") : tr("Participants par poule")}</label>
-                    <input style={styles.input} type="number" min="2" value={modePoules === "nombrePoules" ? nombrePoules : taillePoules} onChange={(event) => modePoules === "nombrePoules"
-                    ? setNombrePoules(Number(event.target.value))
-                    : setTaillePoules(Number(event.target.value))}/>
+                    <ChampEntier id="tournoi-poules-quantite" style={styles.input} min={2} max={128} value={modePoules === "nombrePoules" ? nombrePoules : taillePoules} onValue={n => modePoules === "nombrePoules" ? setNombrePoules(n) : setTaillePoules(n)}/>
                   </div>
                   {formatTournoi === "poulesFinale" && (<div>
                       <div className="tourneo-field-label"><label htmlFor="tournoi-qualifies" style={styles.label}>{tr("Qualifi\u00E9s par poule")}</label><AideInfo titre="Qualifiés par poule">{"Nombre de participants de chaque poule qui passent en phase finale. Exemple : 2 qualifiés dans 4 poules donnent 8 finalistes."}</AideInfo></div>
-                      <input id="tournoi-qualifies" style={styles.input} type="number" min="1" value={qualifiesParPoule} onChange={(event) => setQualifiesParPoule(Number(event.target.value))}/>
+                      <ChampEntier id="tournoi-qualifies" style={styles.input} min={1} max={128} value={qualifiesParPoule} onValue={setQualifiesParPoule}/>
                     </div>)}
                 </div>
               </div>)}

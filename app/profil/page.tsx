@@ -7,6 +7,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/lib/supabase";
 import PhotoPrivee from "@/components/PhotoPrivee";
 import { referencePhoto } from "@/lib/media-prive";
+import ModelesAffiche from '@/components/ModelesAffiche';
 import CompteUsage from '@/components/CompteUsage';
 import AlertesExternes from '@/components/AlertesExternes';
 import PreferencesCompte from "@/components/PreferencesCompte";
@@ -249,6 +250,7 @@ export default function ProfilPage() {
 
         <CompteUsage />
         <PreferencesCompte />
+        <ModelesAffiche />
         <AlertesExternes />
         <section style={s.grid}>
           <article style={s.card}>

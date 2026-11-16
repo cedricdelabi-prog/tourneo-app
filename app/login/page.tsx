@@ -166,7 +166,7 @@ export default function LoginPage() {
       <div style={s.glow1}/>
       <div style={s.glow2}/>
 
-      <section style={s.card}>
+      <section className="tourneo-auth-card" style={s.card}>
         <div style={s.brandCenter}>
           <TourneoBrand />
         </div>

@@ -12,7 +12,7 @@ export default function ConfidentialitePage() {
         <header style={s.hero}>
           <span style={s.eyebrow}>{tr("Tourneo")}</span>
           <h1 style={s.title}>{tr("Politique de confidentialit\u00E9")}</h1>
-          <p style={s.subtitle}>{tr("Dernière mise à jour : 15 novembre 2026")}</p>
+          <p style={s.subtitle}>{tr("Dernière mise à jour : 16 novembre 2026")}</p>
         </header>
 
         <section style={s.card}>
@@ -27,6 +27,8 @@ export default function ConfidentialitePage() {
 
           <p style={s.text}>{tr("Selon les fonctionnalit\u00E9s utilis\u00E9es, Tourneo peut traiter les cat\u00E9gories de donn\u00E9es suivantes :")}</p>
 
+          <p style={s.text}>{tr('La messagerie conserve le contenu, le pseudo de l’auteur, la date, le tournoi et le groupe destinataire. Ces échanges sont accessibles aux membres autorisés selon le destinataire choisi et sont supprimés avec le tournoi. Ne transmettez pas de données sensibles. Vous pouvez supprimer vos messages et signaler un abus depuis Contact.')}</p>
+          <p style={s.text}>{tr('En cas de signalement, une copie du message et de quelques échanges visibles autour est transmise au super administrateur pour examen. Cette preuve reste disponible pour traiter le signalement même si le tournoi est supprimé. Les autres conversations privées ne sont pas ouvertes. Les décisions de modération et leur motif sont consignés dans l’historique administratif.')}</p>
           <ul style={s.list}>
             <li>{tr("adresse e-mail ;")}</li>
             <li>{tr("pr\u00E9nom et nom ;")}</li>

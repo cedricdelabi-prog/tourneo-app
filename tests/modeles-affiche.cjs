@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),ts=require('typescript');
+const cache=new Map();function load(file){if(cache.has(file))return cache.get(file).exports;const m={exports:{}};cache.set(file,m);new Function('require','module','exports',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(id=>id.startsWith('@/')?load(id.slice(2)+'.ts'):id.startsWith('.')?load(path.join(path.dirname(file),id)+'.ts'):require(id),m,m.exports);return m.exports;}
+const {copierIdentiteAffiche,normaliserIdentiteAffiche}=load('lib/modeles-affiche.ts');
+const logo='data:image/png;base64,aGVsbG8=',source={logo,sponsors:[logo],message:'Bienvenue au camping'};
+const copie=copierIdentiteAffiche(source);source.sponsors.push(logo);source.message='Autre édition';assert.equal(copie.sponsors.length,1);assert.equal(copie.message,'Bienvenue au camping');
+assert.deepEqual(normaliserIdentiteAffiche({logo:'https://bad.invalid/p.png',sponsors:['javascript:alert(1)',logo],message:'x'.repeat(500)}),{logo:'',sponsors:[logo],message:'x'.repeat(200)});
+const {normaliserOptionsV2}=load('lib/options-v2.ts'),{texteDepuisTournoi}=load('lib/affiche.ts');
+const options=normaliserOptionsV2({depart:'2026-12-15T14:30',organisateur:'Camping',lieu:'Terrain 2',identiteAffiche:copie});
+const t=texteDepuisTournoi('Pétanque au camping',{optionsV2:options});assert.equal(t.logo,logo);assert.equal(t.message,'Bienvenue au camping');assert.equal(t.date,'2026-12-15T14:30');assert.equal(t.organisateur,'Camping');assert.equal(t.lieu,'Terrain 2');
+const {preparerEdition}=load('lib/prochaine-edition.ts');const edition=preparerEdition({sport:'petanque',formatTournoi:'complet',modePoules:'nombrePoules',nombrePoules:2,taillePoules:4,qualifiesParPoule:2,optionsV2:options,equipes:[]},false,()=> 'new');assert.equal(edition.optionsV2.depart,'');assert.equal(edition.optionsV2.identiteAffiche.logo,logo);edition.optionsV2.identiteAffiche.sponsors.push(logo);assert.equal(options.identiteAffiche.sponsors.length,1);
+console.log('Modèles : copie indépendante, filtrage images, reprise du logo/lieu/organisateur et nouvelle édition sans ancienne date : OK');

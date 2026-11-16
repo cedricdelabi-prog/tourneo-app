@@ -1,4 +1,6 @@
+import {normaliserIdentiteAffiche, type IdentiteAffiche} from '@/lib/modeles-affiche';
 export type OptionsV2 = {
+  identiteAffiche?:IdentiteAffiche;
   rappelAvant?:0|15|30;
   fuseauHoraire?:string;
   budgetMinutes?:number;
@@ -30,6 +32,7 @@ export function normaliserOptionsV2(value: Partial<OptionsV2> | undefined): Opti
   const source = value || {};
   const entier = (v: unknown, min:number,max:number,defaut:number) => typeof v==='number' && Number.isInteger(v)&&v>=min&&v<=max ? v : defaut;
   return {...OPTIONS_V2,
+    identiteAffiche:source.identiteAffiche?normaliserIdentiteAffiche(source.identiteAffiche):undefined,
     budgetMinutes:entier(source.budgetMinutes,5,1440,0)||undefined,participantsPrevus:entier(source.participantsPrevus,2,128,0)||undefined,
     rappelAvant:source.depart&&(source.rappelAvant===15||source.rappelAvant===30)?source.rappelAvant:0,
     fuseauHoraire:typeof source.fuseauHoraire==='string'&&source.fuseauHoraire.length<=100?source.fuseauHoraire:'Europe/Paris',

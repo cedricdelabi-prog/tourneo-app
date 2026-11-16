@@ -29,7 +29,7 @@ Migration `20261114190703_tourneo_v2_planning_adapte_public.sql` appliquée avec
 
 - Travail à plusieurs avec droits distincts accueil/terrains/photos/organisation et historique durable des actions.
 - Correction réversible des résultats avec aperçu des conséquences sur les tours suivants.
-- Prochaine édition, saisons et classements cumulés dédiés aux événements récurrents.
+- Saisons et classements cumulés dédiés aux événements récurrents (la préparation de la prochaine édition est maintenant développée, voir ci-dessous).
 - Disponibilités personnelles, conflits entre plusieurs tournois et suivi familial commun à plusieurs événements.
 - Recherche de partenaire/remplaçant dans l’événement.
 - Objectif de participation minimale et équilibrage avancé, avec preuve que le planning peut le respecter.
@@ -38,3 +38,13 @@ Migration `20261114190703_tourneo_v2_planning_adapte_public.sql` appliquée avec
 - Cartes souvenirs enrichies et récapitulatif automatique vérifié depuis les résultats validés et les photos autorisées.
 
 Les briques déjà présentes (groupes, événements cumulés, profils, photos, pronostics, annonces et formats avancés) serviront à ces extensions. Cette liste n’est pas une annonce de livraison de toutes les idées ni de complétude globale 85/85. Aucun module vidéo à prévoir sans nouvelle demande explicite.
+
+## Reprise du 15 novembre — prochaine édition
+
+Dans un tournoi démarré, `Gérer le tournoi → Créer la prochaine édition` prépare un nouveau brouillon privé. Sport, formule, terrains, barème, réglages de poules et lieu sont repris. Nom modifiable et participants facultatifs (décochés par défaut). La date, les rappels, les exemptions et adaptations du planning sont réinitialisés. Matchs, scores, photos, historique des équipes, inscriptions, liens et autorisations ne sont pas copiés. Les participants copiés ont de nouveaux identifiants locaux ; les profils liés gardent leur identité de compte.
+
+Création sous le compte authentifié et les politiques existantes. Même UUID conservé après un échec réseau, verrou immédiat contre le double clic et lecture de vérification en cas de réponse perdue. Aucune migration requise et aucun tournoi réel créé pendant les tests.
+
+Contrôles : TypeScript, build Next.js avec configuration publique V2 de test, règles métier de copie, interactions avec API simulée (double clic, réponse perdue, nouvelle tentative, absence de session), tests de langue et régression création/expérience. Test Chromium local bloqué par une restriction système `socket() Operation not permitted` ; script navigateur conservé pour une exécution dans un environnement compatible, aucun succès mobile réel revendiqué.
+
+Google : l’utilisateur a ajouté le callback V2 dans Google Cloud et indique avoir renseigné le secret dans Supabase. Activation et essai OAuth complet non encore vérifiés ; ce point ne doit pas être annoncé terminé.

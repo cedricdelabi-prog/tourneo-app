@@ -28,6 +28,7 @@
     "test:regles": "node tests/regles.cjs && node tests/regles-browser.cjs",
     "test:configuration": "node tests/configuration-creation.cjs",
     "test:flyers": "node tests/flyers-browser.cjs",
+    "test:edition": "node tests/prochaine-edition.cjs && node tests/prochaine-edition-ui.cjs",
     "test:experience": "node tests/experience.cjs && node tests/experience-browser.cjs"
   },
   "dependencies": {

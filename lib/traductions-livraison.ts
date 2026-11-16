@@ -314,11 +314,6 @@ export const traductionsLivraison:Record<string,{en:string;nl:string;de:string}>
     "nl": "Voeg maximaal 6 logo's toe. Ze verschijnen in een speciale banner onderaan de poster.",
     "de": "Fügen Sie bis zu 6 Logos hinzu. Sie erscheinen in einem speziellen Banner am unteren Rand des Posters."
   },
-  "Logos des sponsors (6 maximum)": {
-    "en": "Sponsor logos (6 maximum)",
-    "nl": "Sponsorlogo's (maximaal 6)",
-    "de": "Sponsorenlogos (maximal 6)"
-  },
   "Un logo sponsor est illisible ou trop volumineux. Choisissez un petit PNG ou JPEG.": {
     "en": "A sponsor logo is illegible or too large. Choose a small PNG or JPEG.",
     "nl": "Een sponsorlogo is onleesbaar of te groot. Kies een kleine PNG of JPEG.",
@@ -618,5 +613,335 @@ export const traductionsLivraison:Record<string,{en:string;nl:string;de:string}>
     "en": "This image remains too bulky. Choose a lighter image.",
     "nl": "Dit beeld blijft te omvangrijk. Kies een lichtere afbeelding.",
     "de": "Dieses Bild bleibt zu sperrig. Wählen Sie ein helleres Bild."
-  }
+  },
+"Créer la prochaine édition": {"en": "Create the next edition", "nl": "Volgende editie maken", "de": "Nächste Ausgabe erstellen"},
+"Reprenez le sport, la formule, les terrains et les règles. La nouvelle date sera à choisir.": {"en": "Reuse the sport, format, courts and rules. Choose a new date afterwards.", "nl": "Neem sport, formule, velden en regels over. Kies daarna een nieuwe datum.", "de": "Sportart, Format, Spielfelder und Regeln übernehmen. Das neue Datum wird anschließend gewählt."},
+"Nom de la prochaine édition": {"en": "Next edition name", "nl": "Naam van de volgende editie", "de": "Name der nächsten Ausgabe"},
+"Reprendre aussi les participants": {"en": "Also reuse the participants", "nl": "Ook deelnemers overnemen", "de": "Auch die Teilnehmenden übernehmen"},
+"Un nouveau brouillon privé sera créé. Les scores, photos, inscriptions et liens partagés restent dans le tournoi précédent.": {"en": "A new private draft will be created. Scores, photos, registrations and shared links stay with the previous tournament.", "nl": "Er wordt een nieuw privéconcept gemaakt. Scores, foto’s, inschrijvingen en gedeelde links blijven bij het vorige toernooi.", "de": "Ein neuer privater Entwurf wird erstellt. Ergebnisse, Fotos, Anmeldungen und geteilte Links bleiben beim bisherigen Turnier."},
+"Création non confirmée. Vérifiez votre connexion puis réessayez.": {"en": "Creation not confirmed. Check your connection and try again.", "nl": "Aanmaak niet bevestigd. Controleer je verbinding en probeer opnieuw.", "de": "Erstellung nicht bestätigt. Verbindung prüfen und erneut versuchen."},
+"Création du brouillon…": {"en": "Creating draft…", "nl": "Concept maken…", "de": "Entwurf wird erstellt…"},
+"Préparer cette édition": {"en": "Prepare this edition", "nl": "Deze editie voorbereiden", "de": "Diese Ausgabe vorbereiten"},
+"3 · Communication":{"en": "3 · Communication", "nl": "3 · Communicatie", "de": "3 · Kommunikation"},
+"Communication":{"en": "Communication", "nl": "Communicatie", "de": "Kommunikation"},
+"Communication du tournoi":{"en": "Tournament communication", "nl": "Toernooicommunicatie", "de": "Turnierkommunikation"},
+"Trois étapes : configuration, participants, communication.":{"en": "Three steps: settings, participants, communication.", "nl": "Drie stappen: instellingen, deelnemers, communicatie.", "de": "Drei Schritte: Einstellungen, Teilnehmende, Kommunikation."},
+"Ajoutez les participants vous-même, ou ouvrez les inscriptions en ligne.":{"en": "Add participants yourself or open online registration.", "nl": "Voeg zelf deelnemers toe of open de online inschrijvingen.", "de": "Teilnehmende selbst hinzufügen oder Online-Anmeldung öffnen."},
+"Continuer vers la communication →":{"en": "Continue to communication →", "nl": "Verder naar communicatie →", "de": "Weiter zur Kommunikation →"},
+"Affiches, inscriptions, spectateurs et résultats : tous les supports sont réunis ici. Le tournoi peut rester en brouillon pendant les inscriptions.":{"en": "Posters, registration, spectators and results: all materials are here. The tournament can remain a draft while registration is open.", "nl": "Affiches, inschrijvingen, publiek en resultaten: alle materialen staan hier. Het toernooi kan tijdens de inschrijvingen een concept blijven.", "de": "Plakate, Anmeldungen, Publikum und Ergebnisse: alle Materialien an einem Ort. Während der Anmeldung kann das Turnier ein Entwurf bleiben."},
+"Inscriptions en ligne":{"en": "Online registration", "nl": "Online inschrijvingen", "de": "Online-Anmeldung"},
+"Ouvrir les inscriptions et gérer les demandes":{"en": "Open registration and manage requests", "nl": "Inschrijvingen openen en aanvragen beheren", "de": "Anmeldung öffnen und Anfragen verwalten"},
+"Préparer les arbitres et les photos":{"en": "Prepare referees and photos", "nl": "Scheidsrechters en foto's voorbereiden", "de": "Schiedsrichter und Fotos vorbereiten"},
+"Réglages et ouverture des inscriptions":{"en": "Registration settings and opening", "nl": "Instellingen en opening van inschrijvingen", "de": "Einstellungen und Freigabe der Anmeldung"},
+"Date et heure de clôture (facultatives)":{"en": "Closing date and time (optional)", "nl": "Sluitingsdatum en -tijd (optioneel)", "de": "Anmeldeschluss: Datum und Uhrzeit (optional)"},
+"Partager le lien ou le QR d’inscription":{"en": "Share the registration link or QR code", "nl": "Inschrijflink of QR-code delen", "de": "Anmeldelink oder QR-Code teilen"},
+"Former les équipes avec la roulette":{"en": "Form teams with the wheel", "nl": "Teams vormen met het rad", "de": "Teams mit dem Glücksrad bilden"},
+"Utiliser les participants ajoutés":{"en": "Use the participants already added", "nl": "Toegevoegde deelnemers gebruiken", "de": "Bereits hinzugefügte Teilnehmende verwenden"},
+"Appliquer ce tirage remplace la liste actuelle. Les profils individuels ne sont pas transférés aux équipes.":{"en": "Applying this draw replaces the current list. Individual profiles are not transferred to teams.", "nl": "Deze loting vervangt de huidige lijst. Individuele profielen worden niet aan teams gekoppeld.", "de": "Diese Auslosung ersetzt die aktuelle Liste. Einzelprofile werden nicht den Teams zugeordnet."},
+"Remplacer les participants par les équipes tirées ?":{"en": "Replace participants with the drawn teams?", "nl": "Deelnemers vervangen door de gelote teams?", "de": "Teilnehmende durch die ausgelosten Teams ersetzen?"},
+"Utiliser ces équipes dans le tournoi":{"en": "Use these teams in the tournament", "nl": "Deze teams in het toernooi gebruiken", "de": "Diese Teams im Turnier verwenden"},
+"Équipes ajoutées au tournoi.":{"en": "Teams added to the tournament.", "nl": "Teams toegevoegd aan het toernooi.", "de": "Teams zum Turnier hinzugefügt."},
+"Supprimer ce message ?":{"en": "Delete this message?", "nl": "Dit bericht verwijderen?", "de": "Diese Nachricht löschen?"},
+"Échanges du tournoi":{"en": "Tournament conversations", "nl": "Toernooigesprekken", "de": "Turniergespräche"},
+"Échangez avec les membres de votre tournoi avant, pendant et après les rencontres.":{"en": "Talk with tournament members before, during and after matches.", "nl": "Praat met toernooileden voor, tijdens en na de wedstrijden.", "de": "Vor, während und nach den Begegnungen mit Turniermitgliedern austauschen."},
+"Vos tournois apparaîtront ici dès que vous serez organisateur, joueur inscrit ou arbitre désigné.":{"en": "Your tournaments appear here when you are an organiser, registered player or assigned referee.", "nl": "Je toernooien verschijnen hier als je organisator, ingeschreven speler of aangewezen scheidsrechter bent.", "de": "Ihre Turniere erscheinen hier, sobald Sie organisieren, angemeldet sind oder als Schiedsrichter eingeteilt wurden."},
+"Historique des échanges":{"en": "Conversation history", "nl": "Gespreksgeschiedenis", "de": "Gesprächsverlauf"},
+"Supprimer ce message":{"en": "Delete this message", "nl": "Dit bericht verwijderen", "de": "Diese Nachricht löschen"},
+"Référence":{"en": "Reference", "nl": "Referentie", "de": "Referenz"},
+"Destinataires":{"en": "Recipients", "nl": "Ontvangers", "de": "Empfänger"},
+"Tous les membres":{"en": "All members", "nl": "Alle leden", "de": "Alle Mitglieder"},
+"Organisateur uniquement":{"en": "Organiser only", "nl": "Alleen organisator", "de": "Nur Veranstalter"},
+"Respectez les autres : aucun propos haineux, raciste, discriminatoire ni harcèlement. Ne partagez pas de données privées. Les invités sans compte n’ont pas accès à ces échanges.":{"en": "Respect others: no hate speech, racism, discrimination or harassment. Do not share private data. Guests without accounts cannot access these conversations.", "nl": "Respecteer anderen: geen haat, racisme, discriminatie of intimidatie. Deel geen privégegevens. Gasten zonder account hebben geen toegang tot deze gesprekken.", "de": "Respektieren Sie andere: keine Hassrede, Rassismus, Diskriminierung oder Belästigung. Keine privaten Daten teilen. Gäste ohne Konto haben keinen Zugang zu diesen Gesprächen."},
+"Les 100 derniers messages accessibles sont affichés. Actualisation toutes les 15 secondes. Les notifications push ne sont pas envoyées pour ces échanges.":{"en": "The latest 100 accessible messages are shown. Refreshes every 15 seconds. These conversations do not send push notifications.", "nl": "De laatste 100 toegankelijke berichten worden getoond. Vernieuwing elke 15 seconden. Deze gesprekken versturen geen pushmeldingen.", "de": "Die letzten 100 zugänglichen Nachrichten werden angezeigt. Aktualisierung alle 15 Sekunden. Diese Gespräche senden keine Push-Benachrichtigungen."},
+"Impossible de charger les échanges des tournois. Réessayez.":{"en": "Unable to load tournament conversations. Try again.", "nl": "Toernooigesprekken laden lukt niet. Probeer opnieuw.", "de": "Turniergespräche konnten nicht geladen werden. Bitte erneut versuchen."},
+"Envoi non confirmé. Réessayez : le même message ne sera pas envoyé deux fois.":{"en": "Sending not confirmed. Try again: the same message will not be sent twice.", "nl": "Verzending niet bevestigd. Probeer opnieuw: hetzelfde bericht wordt niet tweemaal verstuurd.", "de": "Versand nicht bestätigt. Erneut versuchen: dieselbe Nachricht wird nicht doppelt gesendet."},
+"Impossible de supprimer ce message. Réessayez.":{"en": "Unable to delete this message. Try again.", "nl": "Dit bericht verwijderen lukt niet. Probeer opnieuw.", "de": "Nachricht konnte nicht gelöscht werden. Bitte erneut versuchen."},
+"Retrouvez les échanges de vos tournois plus bas. Les rappels restent dans Notifications. Les 100 derniers messages de Tourneo sont affichés ici.":{"en": "Find tournament conversations below. Reminders stay in Notifications. The latest 100 Tourneo messages are shown here.", "nl": "Je toernooigesprekken staan hieronder. Herinneringen blijven bij Meldingen. Hier staan de laatste 100 Tourneo-berichten.", "de": "Ihre Turniergespräche finden Sie weiter unten. Erinnerungen bleiben unter Benachrichtigungen. Hier stehen die letzten 100 Tourneo-Nachrichten."},
+"Modèles d’affiche":{"en": "Poster templates", "nl": "Affichesjablonen", "de": "Plakatvorlagen"},
+"Partez de votre modèle ou remplissez directement les réglages ci-dessous.":{"en": "Start from your template or fill in the settings below.", "nl": "Start met je sjabloon of vul de instellingen hieronder in.", "de": "Mit einer Vorlage beginnen oder die Einstellungen unten ausfüllen."},
+"Préparez vos logos, sponsors et lieux habituels une seule fois. Chaque tournoi conserve sa propre copie.":{"en": "Prepare your usual logos, sponsors and venues once. Each tournament keeps its own copy.", "nl": "Bereid je gebruikelijke logo's, sponsors en locaties eenmaal voor. Elk toernooi bewaart een eigen kopie.", "de": "Logos, Sponsoren und übliche Orte einmal vorbereiten. Jedes Turnier behält seine eigene Kopie."},
+"Utiliser ce modèle":{"en": "Use this template", "nl": "Dit sjabloon gebruiken", "de": "Diese Vorlage verwenden"},
+"Créer un modèle":{"en": "Create a template", "nl": "Een sjabloon maken", "de": "Vorlage erstellen"},
+"Gérer mes modèles d’affiche":{"en": "Manage my poster templates", "nl": "Mijn affichesjablonen beheren", "de": "Meine Plakatvorlagen verwalten"},
+"Logo de mon organisation":{"en": "My organisation's logo", "nl": "Logo van mijn organisatie", "de": "Logo meiner Organisation"},
+"Sponsor":{"en": "Sponsor", "nl": "Sponsor", "de": "Sponsor"},
+"Retirer le sponsor":{"en": "Remove sponsor", "nl": "Sponsor verwijderen", "de": "Sponsor entfernen"},
+"Enregistrer le modèle":{"en": "Save template", "nl": "Sjabloon opslaan", "de": "Vorlage speichern"},
+"Nom du modèle":{"en": "Template name", "nl": "Naam van het sjabloon", "de": "Name der Vorlage"},
+"Nom habituel du tournoi":{"en": "Usual tournament name", "nl": "Gebruikelijke toernooinaam", "de": "Üblicher Turniername"},
+"Club, camping ou organisateur":{"en": "Club, campsite or organiser", "nl": "Club, camping of organisator", "de": "Verein, Campingplatz oder Veranstalter"},
+"Lieu ou terrain habituel":{"en": "Usual venue or court", "nl": "Gebruikelijke locatie of veld", "de": "Üblicher Ort oder Spielfeld"},
+"Informations complémentaires (facultatif)":{"en": "Additional information (optional)", "nl": "Aanvullende informatie (optioneel)", "de": "Weitere Informationen (optional)"},
+"Logos des sponsors (6 maximum)":{"en": "Sponsor logos (up to 6)", "nl": "Sponsorlogo's (maximaal 6)", "de": "Sponsorenlogos (höchstens 6)"},
+"Modèle enregistré dans votre compte.":{"en": "Template saved to your account.", "nl": "Sjabloon in je account opgeslagen.", "de": "Vorlage in Ihrem Konto gespeichert."},
+"Enregistrement impossible. Votre saisie est conservée ; réessayez.":{"en": "Unable to save. Your entries are kept; try again.", "nl": "Opslaan lukt niet. Je invoer blijft bewaard; probeer opnieuw.", "de": "Speichern fehlgeschlagen. Ihre Eingaben bleiben erhalten; erneut versuchen."},
+"Les modèles d’affiche ne sont pas encore disponibles.":{"en": "Poster templates are not available yet.", "nl": "Affichesjablonen zijn nog niet beschikbaar.", "de": "Plakatvorlagen sind noch nicht verfügbar."},
+"Modèle repris. Choisissez la date et l’heure du tournoi.":{"en": "Template applied. Choose the tournament date and time.", "nl": "Sjabloon toegepast. Kies de datum en tijd van het toernooi.", "de": "Vorlage übernommen. Datum und Uhrzeit des Turniers wählen."},
+"Avant de jouer : les points à annoncer":{"en": "Before playing: what to explain", "nl": "Voor het spelen: wat je uitlegt", "de": "Vor dem Spielen: Was Sie erklären sollten"},
+"Vérifiez le matériel, les dimensions de jeu et les zones de sécurité avec les participants.":{"en": "Check equipment, playing dimensions and safety areas with participants.", "nl": "Controleer materiaal, speelafmetingen en veiligheidszones met de deelnemers.", "de": "Material, Spielfeldmaße und Sicherheitsbereiche mit den Teilnehmenden prüfen."},
+"Annoncez le service ou l’engagement, les changements de côté et les remplacements autorisés.":{"en": "Explain serves or starts, side changes and allowed substitutions.", "nl": "Leg service of start, kantwissels en toegestane vervangingen uit.", "de": "Aufschlag oder Spielbeginn, Seitenwechsel und erlaubte Auswechslungen erklären."},
+"Précisez le score à atteindre, les manches gagnantes, l’écart minimum et le plafond éventuel.":{"en": "Specify the target score, sets to win, minimum lead and any score cap.", "nl": "Bepaal doelscore, te winnen sets, minimaal verschil en eventuele bovengrens.", "de": "Zielpunktzahl, Gewinnsätze, Mindestabstand und eventuelle Obergrenze festlegen."},
+"Expliquez les fautes, les pénalités, les égalités et la procédure pour demander un arbitrage.":{"en": "Explain faults, penalties, ties and how to request a referee.", "nl": "Leg fouten, straffen, gelijke standen en het vragen om arbitrage uit.", "de": "Fehler, Strafen, Gleichstände und das Anfordern eines Schiedsrichters erklären."},
+"Ces choix d’organisation complètent la fiche ; ils ne remplacent pas le règlement officiel de votre discipline.":{"en": "These arrangements supplement the guide; they do not replace your sport's official rules.", "nl": "Deze afspraken vullen de fiche aan; ze vervangen de officiële sportregels niet.", "de": "Diese Vereinbarungen ergänzen das Merkblatt; sie ersetzen nicht die offiziellen Sportregeln."},
+"Dernière mise à jour : 16 novembre 2026":{"en": "Last updated: 16 November 2026", "nl": "Laatst bijgewerkt: 16 november 2026", "de": "Zuletzt aktualisiert: 16. November 2026"},
+"Messagerie des tournois":{"en": "Tournament messaging", "nl": "Toernooiberichten", "de": "Turniernachrichten"},
+"FFBaD · règles simplifiées":{"en": "FFBaD · simplified rules", "nl": "FFBaD · vereenvoudigde regels", "de": "FFBaD · vereinfachte Regeln"},
+"Chaque échange gagné rapporte un point, même lorsque vous ne serviez pas.":{"en": "Each rally won earns a point, including when receiving serve.", "nl": "Elke gewonnen rally levert een punt op, ook als ontvanger.", "de": "Jeder gewonnene Ballwechsel zählt einen Punkt, auch beim Rückschlag."},
+"Format 15 points : à 14–14, deux points d’avance sont nécessaires ; à 20–20, le prochain point conclut la manche.":{"en": "15-point format: at 14–14, a two-point lead is needed; at 20–20, the next point ends the game.", "nl": "15-puntenformaat: bij 14–14 zijn twee punten verschil nodig; bij 20–20 beslist het volgende punt.", "de": "15-Punkte-Format: Bei 14:14 sind zwei Punkte Vorsprung nötig; bei 20:20 entscheidet der nächste Punkt den Satz."},
+"Avant le match, tirez au sort : le gagnant choisit le premier service ou le côté ; son adversaire choisit l’autre option.":{"en": "Draw lots before the match: the winner chooses the first serve or side; the opponent chooses the other option.", "nl": "Loot voor de wedstrijd: de winnaar kiest de eerste service of kant; de tegenstander kiest de andere optie.", "de": "Vor dem Spiel losen: Der Gewinner wählt den ersten Aufschlag oder die Seite; der Gegner wählt die andere Option."},
+"Terrain : les couloirs latéraux sont exclus en simple et utilisés en double.":{"en": "Court: side alleys are out in singles and in play in doubles.", "nl": "Veld: zijstroken tellen niet mee in enkelspel, wel in dubbelspel.", "de": "Spielfeld: Die Seitenstreifen zählen im Einzel nicht mit, im Doppel schon."},
+"Service : placez-vous à droite si votre score est pair, à gauche s’il est impair. Le vainqueur de l’échange prend ou conserve le service.":{"en": "Serve from the right at an even score and left at an odd score. The rally winner takes or keeps serve.", "nl": "Serveer rechts bij een even score en links bij een oneven score. De rallywinnaar krijgt of behoudt de service.", "de": "Bei geradem Punktestand rechts, bei ungeradem links aufschlagen. Der Gewinner des Ballwechsels erhält oder behält den Aufschlag."},
+"Fautes courantes : volant dehors, sous le filet, sur le corps ou frappé deux fois ; toucher le filet ou gêner l’adversaire est également interdit.":{"en": "Common faults: shuttle out, under the net, touching the body or hit twice; touching the net or obstructing an opponent is also forbidden.", "nl": "Veelvoorkomende fouten: shuttle uit, onder het net, tegen het lichaam of tweemaal geraakt; het net aanraken of hinderen is ook verboden.", "de": "Häufige Fehler: Federball im Aus, unter dem Netz, am Körper oder doppelt geschlagen; Netzberührung und Behinderung sind ebenfalls verboten."},
+"Changez de côté entre les manches. En troisième manche du format 15 points, changez aussi dès qu’un camp atteint 8.":{"en": "Change ends between games. In the third game of the 15-point format, also change when either side reaches 8.", "nl": "Wissel van kant tussen sets. Wissel in de derde set van het 15-puntenformaat ook zodra een kant 8 bereikt.", "de": "Zwischen den Sätzen die Seiten wechseln. Im dritten Satz des 15-Punkte-Formats auch wechseln, sobald eine Seite 8 erreicht."},
+"Partir d’un modèle":{"en": "Start from a template", "nl": "Starten met een sjabloon", "de": "Mit einer Vorlage beginnen"},
+"Choisissez des logos sponsors plus petits.":{"en": "Choose smaller sponsor logos.", "nl": "Kies kleinere sponsorlogo’s.", "de": "Kleinere Sponsorenlogos wählen."},
+"Connectez-vous pour retrouver vos modèles.":{"en": "Sign in to access your templates.", "nl": "Meld je aan voor je sjablonen.", "de": "Anmelden, um Ihre Vorlagen aufzurufen."},
+"La messagerie conserve le contenu, le pseudo de l’auteur, la date, le tournoi et le groupe destinataire. Ces échanges sont accessibles aux membres autorisés selon le destinataire choisi et sont supprimés avec le tournoi. Ne transmettez pas de données sensibles. Vous pouvez supprimer vos messages et signaler un abus depuis Contact.":{"en": "Messaging stores the content, author’s nickname, date, tournament and recipient group. Authorised members can access conversations according to the selected audience. Conversations are deleted with the tournament. Do not send sensitive data. You can delete your messages and report abuse through Contact.", "nl": "De berichtendienst bewaart inhoud, bijnaam van de auteur, datum, toernooi en ontvangersgroep. Bevoegde leden hebben toegang volgens de gekozen doelgroep. Gesprekken worden met het toernooi verwijderd. Verstuur geen gevoelige gegevens. Je kunt je berichten verwijderen en misbruik melden via Contact.", "de": "Die Nachrichtenfunktion speichert Inhalt, Pseudonym, Datum, Turnier und Empfängergruppe. Berechtigte Mitglieder erhalten entsprechend der gewählten Zielgruppe Zugang. Die Gespräche werden mit dem Turnier gelöscht. Keine sensiblen Daten versenden. Eigene Nachrichten können gelöscht und Missbrauch über Kontakt gemeldet werden."},
+"Les échanges servent à organiser le tournoi, avant, pendant et après les rencontres. Respectez les joueurs, arbitres et organisateurs : les propos haineux, racistes, discriminatoires, les menaces, le harcèlement et les contenus sexuels ou violents sont interdits. Ne partagez pas de coordonnées privées ni de données sensibles. Les messages adressés à tous sont visibles par les membres autorisés du tournoi ; ceux destinés à l’organisateur sont visibles par leur auteur et cet organisateur. Un organisateur peut retirer un message de son tournoi. Signalez un abus via Contact en indiquant le tournoi et le message concerné.":{"en": "Conversations help organise the tournament before, during and after matches. Respect players, referees and organisers: hate speech, racism, discrimination, threats, harassment, sexual and violent content are forbidden. Do not share private contact details or sensitive data. Messages to everyone are visible to authorised tournament members; messages to the organiser are visible to their author and that organiser. Organisers can remove messages from their tournament. Report abuse through Contact, identifying the tournament and message.", "nl": "Gesprekken helpen het toernooi organiseren voor, tijdens en na de wedstrijden. Respecteer spelers, scheidsrechters en organisatoren: haat, racisme, discriminatie, bedreigingen, intimidatie, seksuele en gewelddadige inhoud zijn verboden. Deel geen privécontactgegevens of gevoelige informatie. Berichten aan iedereen zijn zichtbaar voor bevoegde toernooileden; berichten aan de organisator alleen voor de auteur en die organisator. Organisatoren kunnen berichten verwijderen. Meld misbruik via Contact met de toernooi- en berichtreferentie.", "de": "Gespräche dienen der Turnierorganisation vor, während und nach den Spielen. Respektieren Sie Teilnehmende, Schiedsrichter und Veranstalter: Hassrede, Rassismus, Diskriminierung, Drohungen, Belästigung sowie sexuelle und gewalttätige Inhalte sind verboten. Keine privaten Kontaktdaten oder sensiblen Daten teilen. Nachrichten an alle sehen die berechtigten Turniermitglieder; Nachrichten an den Veranstalter sehen der Autor und dieser Veranstalter. Veranstalter können Nachrichten entfernen. Missbrauch unter Angabe von Turnier und Nachricht über Kontakt melden."},
+"Publiez uniquement des images et logos que vous avez le droit d’utiliser. Demandez l’accord des personnes reconnaissables avant de prendre et de partager leur photo ; respectez leur refus et leur demande de retrait. Pour les mineurs, obtenez les autorisations nécessaires de leurs représentants légaux. Les images humiliantes, intimes, haineuses, racistes, discriminatoires, sexuellement explicites ou faisant l’apologie de la violence sont interdites. L’organisateur choisit le partage de son album et peut le retirer. Les copies déjà récupérées par des tiers ne peuvent pas être rappelées.":{"en": "Only publish images and logos you have the right to use. Ask recognisable people for permission before taking and sharing their photo; respect refusal and removal requests. Obtain the necessary permission from legal representatives for minors. Humiliating, intimate, hateful, racist, discriminatory, sexually explicit images or those glorifying violence are forbidden. Organisers choose whether to share their album and can stop sharing. Copies already obtained by others cannot be recalled.", "nl": "Publiceer alleen beelden en logo’s waarvoor je gebruiksrechten hebt. Vraag herkenbare personen toestemming voor het maken en delen van hun foto; respecteer weigering en verzoeken om verwijdering. Vraag voor minderjarigen de nodige toestemming van wettelijke vertegenwoordigers. Vernederende, intieme, haatdragende, racistische, discriminerende, seksueel expliciete of geweld verheerlijkende beelden zijn verboden. Organisatoren bepalen of zij hun album delen en kunnen dit stoppen. Reeds opgehaalde kopieën kunnen niet worden teruggehaald.", "de": "Veröffentlichen Sie nur Bilder und Logos, für die Sie Nutzungsrechte haben. Erkennbare Personen vor Aufnahme und Weitergabe um Erlaubnis bitten; Ablehnung und Löschwünsche respektieren. Für Minderjährige die nötige Erlaubnis der gesetzlichen Vertretung einholen. Erniedrigende, intime, hasserfüllte, rassistische, diskriminierende, sexuell explizite oder gewaltverherrlichende Bilder sind verboten. Veranstalter entscheiden über die Albumfreigabe und können sie beenden. Bereits von Dritten gespeicherte Kopien lassen sich nicht zurückholen."},
+"Actualiser les inscriptions acceptées":{"en": "Refresh accepted registrations", "nl": "Goedgekeurde inschrijvingen vernieuwen", "de": "Bestätigte Anmeldungen aktualisieren"},
+"Inscriptions acceptées actualisées. Elles seront vérifiées à nouveau au démarrage.":{"en": "Accepted registrations refreshed. They will be checked again at launch.", "nl": "Goedgekeurde inschrijvingen vernieuwd. Ze worden bij de start opnieuw gecontroleerd.", "de": "Bestätigte Anmeldungen aktualisiert. Sie werden beim Start erneut geprüft."},
+"Impossible de charger les inscriptions acceptées. Réessayez.":{"en": "Unable to load accepted registrations. Try again.", "nl": "Goedgekeurde inschrijvingen laden lukt niet. Probeer opnieuw.", "de": "Bestätigte Anmeldungen konnten nicht geladen werden. Bitte erneut versuchen."},
+"Les inscriptions acceptées seront récupérées et vérifiées au démarrage, même si la liste ci-dessous est vide.":{"en": "Accepted registrations will be retrieved and checked at launch, even if the list below is empty.", "nl": "Goedgekeurde inschrijvingen worden bij de start opgehaald en gecontroleerd, ook als de lijst hieronder leeg is.", "de": "Bestätigte Anmeldungen werden beim Start geladen und geprüft, auch wenn die folgende Liste leer ist."},
+"Avant de photographier ou de partager, demandez l’accord des personnes reconnaissables et les autorisations nécessaires pour les mineurs. Aucune image intime, humiliante, haineuse ou raciste.":{"en": "Before taking or sharing photos, ask recognisable people for permission and obtain the necessary authorisations for minors. No intimate, humiliating, hateful or racist images.", "nl": "Vraag herkenbare personen toestemming voor het maken of delen van foto’s en verkrijg de nodige toestemming voor minderjarigen. Geen intieme, vernederende, haatdragende of racistische beelden.", "de": "Erkennbare Personen vor dem Fotografieren oder Teilen um Erlaubnis bitten; für Minderjährige die nötigen Genehmigungen einholen. Keine intimen, erniedrigenden, hasserfüllten oder rassistischen Bilder."}
 };
+
+Object.assign(traductionsLivraison, {
+  "Sécurité": {
+    "en": "Safety",
+    "nl": "Veiligheid",
+    "de": "Sicherheit"
+  },
+  "Signaler ce message": {
+    "en": "Report this message",
+    "nl": "Dit bericht melden",
+    "de": "Diese Nachricht melden"
+  },
+  "Motif du signalement": {
+    "en": "Reason for reporting",
+    "nl": "Reden voor de melding",
+    "de": "Grund der Meldung"
+  },
+  "Haine ou discrimination": {
+    "en": "Hate or discrimination",
+    "nl": "Haat of discriminatie",
+    "de": "Hass oder Diskriminierung"
+  },
+  "Harcèlement ou propos agressifs": {
+    "en": "Harassment or aggressive language",
+    "nl": "Intimidatie of agressieve taal",
+    "de": "Belästigung oder aggressive Sprache"
+  },
+  "Menace ou danger": {
+    "en": "Threat or danger",
+    "nl": "Bedreiging of gevaar",
+    "de": "Bedrohung oder Gefahr"
+  },
+  "Divulgation de données privées": {
+    "en": "Disclosure of private information",
+    "nl": "Openbaarmaking van privégegevens",
+    "de": "Offenlegung privater Daten"
+  },
+  "Autre problème": {
+    "en": "Other problem",
+    "nl": "Ander probleem",
+    "de": "Anderes Problem"
+  },
+  "Précisions (facultatives)": {
+    "en": "Details (optional)",
+    "nl": "Details (optioneel)",
+    "de": "Details (optional)"
+  },
+  "Transmettre le signalement": {
+    "en": "Submit report",
+    "nl": "Melding verzenden",
+    "de": "Meldung senden"
+  },
+  "Signalement transmis à la modération. Merci.": {
+    "en": "Report sent to moderation. Thank you.",
+    "nl": "Melding naar moderatie verstuurd. Bedankt.",
+    "de": "Meldung an die Moderation gesendet. Vielen Dank."
+  },
+  "Signalement non confirmé. Votre saisie est conservée ; réessayez.": {
+    "en": "Report not confirmed. Your text is saved; try again.",
+    "nl": "Melding niet bevestigd. Je tekst blijft bewaard; probeer opnieuw.",
+    "de": "Meldung nicht bestätigt. Ihr Text bleibt erhalten; versuchen Sie es erneut."
+  },
+  "Le message et quelques échanges visibles autour seront transmis au super administrateur pour examen.": {
+    "en": "The message and a few surrounding exchanges visible to you will be sent to the super administrator for review.",
+    "nl": "Het bericht en enkele omliggende gesprekken die je kunt zien worden ter beoordeling aan de hoofdbeheerder verzonden.",
+    "de": "Die Nachricht und einige für Sie sichtbare Nachrichten im Umfeld werden dem Hauptadministrator zur Prüfung übermittelt."
+  },
+  "Sécurité · signalements": {
+    "en": "Safety · reports",
+    "nl": "Veiligheid · meldingen",
+    "de": "Sicherheit · Meldungen"
+  },
+  "Prendre en charge": {
+    "en": "Start reviewing",
+    "nl": "Beoordeling starten",
+    "de": "Prüfung beginnen"
+  },
+  "Masquer le message": {
+    "en": "Hide the message",
+    "nl": "Bericht verbergen",
+    "de": "Nachricht ausblenden"
+  },
+  "Suspendre la messagerie 24 heures": {
+    "en": "Suspend messaging for 24 hours",
+    "nl": "Berichten 24 uur opschorten",
+    "de": "Nachrichtenversand für 24 Stunden sperren"
+  },
+  "Suspendre la messagerie 7 jours": {
+    "en": "Suspend messaging for 7 days",
+    "nl": "Berichten 7 dagen opschorten",
+    "de": "Nachrichtenversand für 7 Tage sperren"
+  },
+  "Bannir de la messagerie": {
+    "en": "Ban from messaging",
+    "nl": "Berichten permanent blokkeren",
+    "de": "Dauerhaft vom Nachrichtenversand ausschließen"
+  },
+  "Rétablir la messagerie": {
+    "en": "Restore messaging",
+    "nl": "Berichten herstellen",
+    "de": "Nachrichtenversand wiederherstellen"
+  },
+  "Classer sans suite": {
+    "en": "Dismiss report",
+    "nl": "Melding sluiten zonder actie",
+    "de": "Meldung ohne Maßnahme schließen"
+  },
+  "Marquer comme traité": {
+    "en": "Mark as resolved",
+    "nl": "Markeren als afgehandeld",
+    "de": "Als bearbeitet markieren"
+  },
+  "Confirmer cette décision de modération ?": {
+    "en": "Confirm this moderation decision?",
+    "nl": "Deze moderatiebeslissing bevestigen?",
+    "de": "Diese Moderationsentscheidung bestätigen?"
+  },
+  "Décision enregistrée dans l’historique.": {
+    "en": "Decision recorded in the history.",
+    "nl": "Beslissing opgeslagen in de geschiedenis.",
+    "de": "Entscheidung im Verlauf gespeichert."
+  },
+  "Décision non confirmée. Actualisez avant de réessayer.": {
+    "en": "Decision not confirmed. Refresh before trying again.",
+    "nl": "Beslissing niet bevestigd. Vernieuw voordat je opnieuw probeert.",
+    "de": "Entscheidung nicht bestätigt. Vor einem erneuten Versuch aktualisieren."
+  },
+  "Chargement des signalements impossible. Réessayez.": {
+    "en": "Unable to load reports. Try again.",
+    "nl": "Meldingen laden mislukt. Probeer opnieuw.",
+    "de": "Meldungen können nicht geladen werden. Bitte erneut versuchen."
+  },
+  "Afficher les signalements": {
+    "en": "Show reports",
+    "nl": "Meldingen tonen",
+    "de": "Meldungen anzeigen"
+  },
+  "À examiner": {
+    "en": "To review",
+    "nl": "Te beoordelen",
+    "de": "Zu prüfen"
+  },
+  "Traités": {
+    "en": "Resolved",
+    "nl": "Afgehandeld",
+    "de": "Bearbeitet"
+  },
+  "Classés sans suite": {
+    "en": "Dismissed",
+    "nl": "Gesloten zonder actie",
+    "de": "Ohne Maßnahme geschlossen"
+  },
+  "Aucun signalement dans cette catégorie.": {
+    "en": "No reports in this category.",
+    "nl": "Geen meldingen in deze categorie.",
+    "de": "Keine Meldungen in dieser Kategorie."
+  },
+  "Voir le message et son contexte": {
+    "en": "View message and context",
+    "nl": "Bericht en context bekijken",
+    "de": "Nachricht und Kontext ansehen"
+  },
+  "Message signalé": {
+    "en": "Reported message",
+    "nl": "Gemeld bericht",
+    "de": "Gemeldete Nachricht"
+  },
+  "Suspension de la messagerie en cours": {
+    "en": "Messaging suspension active",
+    "nl": "Berichten tijdelijk opgeschort",
+    "de": "Nachrichtenversand vorübergehend gesperrt"
+  },
+  "Bannissement de la messagerie en cours": {
+    "en": "Messaging ban active",
+    "nl": "Berichten permanent geblokkeerd",
+    "de": "Nachrichtenversand dauerhaft gesperrt"
+  },
+  "Intervenir": {
+    "en": "Take action",
+    "nl": "Ingrijpen",
+    "de": "Maßnahme ergreifen"
+  },
+  "Décision de modération": {
+    "en": "Moderation decision",
+    "nl": "Moderatiebeslissing",
+    "de": "Moderationsentscheidung"
+  },
+  "Confirmer la décision": {
+    "en": "Confirm decision",
+    "nl": "Beslissing bevestigen",
+    "de": "Entscheidung bestätigen"
+  },
+  "Des signalements nécessitent votre attention.": {
+    "en": "Reports need your attention.",
+    "nl": "Er zijn meldingen die je aandacht nodig hebben.",
+    "de": "Meldungen benötigen Ihre Aufmerksamkeit."
+  },
+  "Examiner les signalements": {
+    "en": "Review reports",
+    "nl": "Meldingen beoordelen",
+    "de": "Meldungen prüfen"
+  },
+  "Votre accès à la messagerie est suspendu. Contactez Tourneo.": {
+    "en": "Your messaging access is suspended. Contact Tourneo.",
+    "nl": "Je toegang tot berichten is opgeschort. Neem contact op met Tourneo.",
+    "de": "Ihr Zugang zum Nachrichtenversand ist gesperrt. Kontaktieren Sie Tourneo."
+  },
+  "nouveau": {
+    "en": "New",
+    "nl": "Nieuw",
+    "de": "Neu"
+  },
+  "examine": {
+    "en": "Under review",
+    "nl": "In beoordeling",
+    "de": "In Prüfung"
+  },
+  "traite": {
+    "en": "Resolved",
+    "nl": "Afgehandeld",
+    "de": "Bearbeitet"
+  },
+  "classe": {
+    "en": "Dismissed",
+    "nl": "Gesloten",
+    "de": "Geschlossen"
+  },
+  "Examinez le message signalé et le contexte transmis. Aucun accès général aux conversations privées n’est ouvert.": {
+    "en": "Review the reported message and submitted context. General access to private conversations is not provided.",
+    "nl": "Beoordeel het gemelde bericht en de meegestuurde context. Er is geen algemene toegang tot privégesprekken.",
+    "de": "Prüfen Sie die gemeldete Nachricht und den übermittelten Kontext. Es besteht kein allgemeiner Zugang zu privaten Gesprächen."
+  },
+  "Les suspensions et le bannissement concernent uniquement l’envoi de messages dans Tourneo. Les tournois et les scores sont conservés.": {
+    "en": "Suspensions and bans only affect sending messages in Tourneo. Tournaments and scores are kept.",
+    "nl": "Opschortingen en blokkeringen gelden alleen voor het verzenden van berichten in Tourneo. Toernooien en scores blijven bewaard.",
+    "de": "Sperren betreffen nur den Versand von Nachrichten in Tourneo. Turniere und Ergebnisse bleiben erhalten."
+  }
+});
+
+Object.assign(traductionsLivraison, {"En cas de signalement, une copie du message et de quelques échanges visibles autour est transmise au super administrateur pour examen. Cette preuve reste disponible pour traiter le signalement même si le tournoi est supprimé. Les autres conversations privées ne sont pas ouvertes. Les décisions de modération et leur motif sont consignés dans l’historique administratif.": {"en": "When a message is reported, a copy of it and a few surrounding visible exchanges are sent to the super administrator for review. This evidence remains available to handle the report even if the tournament is deleted. Other private conversations are not opened. Moderation decisions and their reasons are recorded in the administrative history.", "nl": "Bij een melding worden een kopie van het bericht en enkele omliggende zichtbare gesprekken ter beoordeling aan de hoofdbeheerder verzonden. Dit bewijs blijft beschikbaar om de melding te behandelen, ook als het toernooi wordt verwijderd. Andere privégesprekken worden niet geopend. Moderatiebeslissingen en hun redenen worden vastgelegd in de beheergeschiedenis.", "de": "Bei einer Meldung werden eine Kopie der Nachricht und einige sichtbare Nachrichten im Umfeld dem Hauptadministrator zur Prüfung übermittelt. Dieser Nachweis bleibt zur Bearbeitung der Meldung verfügbar, auch wenn das Turnier gelöscht wird. Andere private Gespräche werden nicht geöffnet. Moderationsentscheidungen und ihre Gründe werden im Verwaltungsverlauf protokolliert."}});

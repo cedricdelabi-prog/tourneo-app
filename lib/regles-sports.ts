@@ -17,7 +17,17 @@ export const REGLES_SPORTS:Record<string,FicheRegles>={
  'Format Tourneo : 3 manches gagnantes par défaut.',
  ],sources:[{nom:'FFTT · règles du jeu, mise à jour du 13 mars 2026',url:'https://www.fftt.com/wp-content/uploads/2026/03/calameo_reglements_sportifs_2025_13-mars-2026.pdf'}]},
  volley:{titre:'Volley-ball · format FIVB',reperes:["Touches : trois contacts au maximum pour renvoyer le ballon. En volley en salle, le contre ne compte pas dans ces trois touches. Le ballon ne doit pas être tenu ni lancé.","Rotation : lorsque votre équipe reprend le service à l’adversaire, les joueurs avancent d’une position dans le sens des aiguilles d’une montre.","Service : frappez dans les huit secondes après le coup de sifflet de l’arbitre, depuis la zone de service, sans toucher la ligne de fond au moment de la frappe ou de l’appel.",'Match en 3 sets gagnants. Les quatre premiers sets se jouent à 25 points, avec 2 points d’écart.','Le cinquième set décisif se joue à 15 points, toujours avec 2 points d’écart. Une animation peut annoncer un format plus court.'],sources:[{nom:'FIVB · règles 2025–2028',url:'https://www.fivb.com/volleyball/the-game/official-volleyball-rules/'}]},
- badminton:{titre:'Badminton · choisir le format annoncé',reperes:['En France, la FFBaD applique 2 sets gagnants de 15 points depuis le 1er septembre 2026. Le format 21 points reste utilisé dans certains cadres.','Sélectionnez Badminton (15 points) pour le préréglage 15 points ; Badminton conserve le préréglage historique 21 points. Vérifiez le règlement de votre événement.'],sources:[{nom:'FFBaD · évolution du score en 2026',url:'https://www.ffbad.org/en/actualites/actualites/2026/communication-sur-le-systeme-de-score'}]},
+ badminton:{titre:'Badminton · choisir le format annoncé',reperes:[
+ 'En France, la FFBaD applique 2 sets gagnants de 15 points depuis le 1er septembre 2026. Le format 21 points reste utilisé dans certains cadres.',
+ 'Sélectionnez Badminton (15 points) pour le préréglage 15 points ; Badminton conserve le préréglage historique 21 points. Vérifiez le règlement de votre événement.',
+ 'Chaque échange gagné rapporte un point, même lorsque vous ne serviez pas.',
+ 'Format 15 points : à 14–14, deux points d’avance sont nécessaires ; à 20–20, le prochain point conclut la manche.',
+ 'Avant le match, tirez au sort : le gagnant choisit le premier service ou le côté ; son adversaire choisit l’autre option.',
+ 'Terrain : les couloirs latéraux sont exclus en simple et utilisés en double.',
+ 'Service : placez-vous à droite si votre score est pair, à gauche s’il est impair. Le vainqueur de l’échange prend ou conserve le service.',
+ 'Fautes courantes : volant dehors, sous le filet, sur le corps ou frappé deux fois ; toucher le filet ou gêner l’adversaire est également interdit.',
+ 'Changez de côté entre les manches. En troisième manche du format 15 points, changez aussi dès qu’un camp atteint 8.',
+ ],sources:[{nom:'FFBaD · règles simplifiées',url:'https://www.ffbad.org/pratiquer-comment-jouer-au-badminton'},{nom:'FFBaD · évolution du score en 2026',url:'https://www.ffbad.org/en/actualites/actualites/2026/communication-sur-le-systeme-de-score'}]},
  petanque:{titre:'Pétanque · règles du jeu',reperes:[
  'Format : en individuel ou doublette, chacun dispose de 3 boules ; en triplette, de 2 boules.',
  'Score : la partie usuelle va à 13 points. Certains tours peuvent être annoncés en 11 points ou en temps limité.',

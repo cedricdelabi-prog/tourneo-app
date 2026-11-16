@@ -16,9 +16,10 @@ export default function ReglesSport({sport,deplie=false}:{sport:string;deplie?:b
    <details className="tourneo-rule-references"><summary>{tr('Références et version')}</summary>
     <p>{tr(fiche.sources.length?'Synthèse pratique : les cas particuliers restent dans le règlement de référence.':'Cette catégorie couvre plusieurs jeux. Utilisez la notice de votre édition et annoncez vos choix.')}</p>
     {fiche.verifieLe&&<p>{trModele('Fiche revue le {0}',new Date(fiche.verifieLe+'T12:00:00Z').toLocaleDateString(localeFormat()))}</p>}
-    {!!fiche.sources.length&&<ul>{fiche.sources.map(s=><li key={s.url}>{tr(s.nom)}</li>)}</ul>}
+    {!!fiche.sources.length&&<ul>{fiche.sources.map(s=><li key={s.url}><a href={s.url} target="_blank" rel="noopener noreferrer">{tr(s.nom)}</a></li>)}</ul>}
    </details>
   </>:<p>{tr('Définissez avec les participants le nombre de joueurs, le terrain, la durée, le barème et le départage. Une fiche officielle détaillée n’est pas encore disponible pour cette discipline dans Tourneo.')}</p>}
+  <details className="tourneo-rule-references"><summary>{tr('Avant de jouer : les points à annoncer')}</summary><ul>{['Vérifiez le matériel, les dimensions de jeu et les zones de sécurité avec les participants.','Annoncez le service ou l’engagement, les changements de côté et les remplacements autorisés.','Précisez le score à atteindre, les manches gagnantes, l’écart minimum et le plafond éventuel.','Expliquez les fautes, les pénalités, les égalités et la procédure pour demander un arbitrage.'].map(t=><li key={t}>{tr(t)}</li>)}</ul><p>{tr('Ces choix d’organisation complètent la fiche ; ils ne remplacent pas le règlement officiel de votre discipline.')}</p></details>
   <p className="tourneo-tool-note">{tr('Ces repères aident à préparer l’animation. Le règlement annoncé par l’organisateur et les règles de sa fédération restent la référence.')}</p>
  </details>;
 }

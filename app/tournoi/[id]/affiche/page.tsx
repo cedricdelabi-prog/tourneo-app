@@ -1,4 +1,5 @@
 "use client";
+import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import ChoixVisuelAffiche from "@/components/ChoixVisuelAffiche";
 import {lireVisuelAffiche} from "@/lib/visuel-affiche";
 import {urlPubliqueTournoi} from '@/lib/url-publique';
@@ -36,6 +37,7 @@ export default function AfficheTournoi(){
   setInscriptions(enligne?urlPubliqueTournoi(id,'t'):'');setSurPlace(ancien?.surPlace===true||!enligne);if(c.data?.capacite)setCapacite(c.data.capacite);
   if(!p.error&&(Array.isArray(p.data)?p.data.length>0:!!p.data))setResultats(urlPubliqueTournoi(id,'partage'));
   if(ancien?.format==='A4'||ancien?.format==='A3'||ancien?.format==='social'||ancien?.format==='flyersA6')setFormat(ancien.format);if(typeof ancien?.illustration==='boolean')setIllustration(ancien.illustration);setImageSport(lireVisuelAffiche(ancien?.imageSport));
+  setSponsors(normaliserIdentiteAffiche(d.optionsV2?.identiteAffiche).sponsors);
   if(Array.isArray(ancien?.sponsors))setSponsors(ancien.sponsors.filter((v):v is string=>typeof v==='string'&&v.length<=500000&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(v)).slice(0,6));
   const demande=new URLSearchParams(window.location.search),demandeModele=demande.get('modele'),demandeFormat=demande.get('format');
   setModele(demandeModele==='inscriptions'||demandeModele==='resultats'?demandeModele:ancien?.modele==='resultats'||ancien?.modele==='inscriptions'?ancien.modele:d.cree?'resultats':'inscriptions');

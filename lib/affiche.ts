@@ -1,3 +1,4 @@
+import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import {lireVisuelAffiche,peindreVisuelAffiche} from '@/lib/visuel-affiche';
 import {peindreFlyersA6}from'@/lib/flyers-a6';
 import {peindreAffichePronostics}from'@/lib/affiche-pronostics';
@@ -9,7 +10,7 @@ export const FORMATS_AFFICHE={A4:[1240,1754],A3:[1754,2480],social:[1080,1350],f
 export type TexteAffiche={titre:string;date:string;lieu:string;message:string;logo:string;organisateur?:string};
 export type ContexteAffiche={sport:string;libelleSport:string;illustration:boolean;imageSport?:string;capacite?:number;terrains?:number;locale?:string;sponsors?:string[];liens?:{principal:string;photos?:string};cloturePronostics?:string;sansCompte?:boolean};
 const borne=(v:unknown,max=180)=>typeof v==='string'?v.slice(0,max):'';
-export function texteDepuisTournoi(nom:string,donnees:Record<string,unknown>,structure=''):TexteAffiche{const o=(donnees.optionsV2||{})as Record<string,unknown>;return{titre:borne(nom,150),date:borne(o.depart||donnees.date,100),lieu:borne(o.lieu||donnees.lieu||donnees.adresse),organisateur:borne(o.organisateur||donnees.organisateur||structure,150),message:'',logo:''};}
+export function texteDepuisTournoi(nom:string,donnees:Record<string,unknown>,structure=''):TexteAffiche{const o=(donnees.optionsV2||{})as Record<string,unknown>;return{titre:borne(nom,150),date:borne(o.depart||donnees.date,100),lieu:borne(o.lieu||donnees.lieu||donnees.adresse),organisateur:borne(o.organisateur||donnees.organisateur||structure,150),message:normaliserIdentiteAffiche(o.identiteAffiche).message,logo:normaliserIdentiteAffiche(o.identiteAffiche).logo};}
 export function appliquerPersonnalisation(base:TexteAffiche,ancien:unknown):TexteAffiche{if(!ancien||typeof ancien!=='object')return base;const a=ancien as Record<string,unknown>,modifs=(a.version===2?a.modifications:a)as Record<string,unknown>;if(!modifs||typeof modifs!=='object')return base;const copie={...base};for(const k of Object.keys(base)as(keyof TexteAffiche)[]){const v=modifs[k];if(typeof v==='string'&&v.length<=(k==='logo'?3000000:300)&&(a.version===2||v.trim())){if(k==='logo'&&v&&!/^data:image\/(png|jpeg|webp);base64,/.test(v))continue;copie[k]=v;}}return copie;}
 export function dateAffiche(date:string,locale='fr-FR'){if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(date))return date;const d=new Date(date);return Number.isFinite(d.getTime())?new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d):date;}
 const images=new Map<string,Promise<HTMLImageElement>>();
