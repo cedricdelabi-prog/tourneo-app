@@ -55,11 +55,11 @@ export default function TourneoNav({ active = "none", onLogout, primaryLabel, pr
         <Link href={accueil[0]} className="tourneo-brand-link" aria-label={tr("Tourneo — mes tournois")}><TourneoBrand compact/></Link>
         <div className="tourneo-header-actions"><AccesMessagesTourneo/><MenuCompteTourneo onLogout={onLogout}/>{primaryLabel&&primaryHref&&<Link className="tourneo-header-create" href={primaryHref}>{tr(primaryLabel)}</Link>}</div>
       </div>
-      {showBack && <div className="tourneo-context-bar"><TourneoRetour href={backHref}>{tr(backLabel)}</TourneoRetour>{tr(contextLabel) && <span className="tourneo-context-label">{tr(contextLabel)}</span>}</div>}
-      <div className="tourneo-navigation-row"><SelecteurEspace onEspace={setEspace}/><nav className="tourneo-desktop-nav" aria-label={tr("Navigation principale")}>
+
+      <div className="tourneo-navigation-row">{showBack && <div className="tourneo-context-bar"><TourneoRetour href={backHref}>{tr(backLabel)}</TourneoRetour>{tr(contextLabel) && <span className="tourneo-context-label">{tr(contextLabel)}</span>}</div>}{active!=='tournoi'&&<><SelecteurEspace onEspace={setEspace}/><nav className="tourneo-desktop-nav" aria-label={tr("Navigation principale")}>
         {principaux.filter(([href])=>!["/activite","/profil"].includes(href)).map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}
         {espace !== 'admin' && <details className="tourneo-desktop-more"><summary>{tr("Plus d’outils")}</summary><div>{sections.filter(([href]) => !["/dashboard", "/outils", "/activite", "/profil"].includes(href)).map(([href, label]) => <Link key={href} href={href} aria-current={selected(href) ? "page" : undefined}>{tr(label)}</Link>)}</div></details>}
-      </nav></div>
+      </nav></>}</div>
     </header>
     <nav className="tourneo-mobile-bottom-nav" aria-label={tr("Navigation mobile")}>
       <Link href={accueil[0]} aria-current={selected(accueil[0]) ? "page" : undefined}><span aria-hidden="true">⌂</span><small>{tr(accueil[1])}</small></Link>

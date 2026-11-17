@@ -4,6 +4,7 @@ import {tr,useLangue} from '@/lib/langue';
 export default function AffichesTournoi({id}:{id:string}){
  useLangue();const base=`/tournoi/${id}`;
  const cartes=[
+  [`${base}/tv`,'Écran TV','Résultats, appels et pauses sur un deuxième écran.'],
   [`${base}/inscriptions`,'Inscriptions en ligne','Ouvrir les inscriptions et gérer les demandes'],
   [`${base}/affiche?modele=inscriptions&format=A4`,'Annoncer le tournoi','Date, lieu et inscriptions'],
   [`${base}/affiche?modele=inscriptions&format=flyersA6`,'4 flyers A6 à découper','Une feuille A4 pour distribuer les inscriptions.'],

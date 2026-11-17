@@ -9,6 +9,7 @@ import PhotoPrivee from "@/components/PhotoPrivee";
 import { referencePhoto } from "@/lib/media-prive";
 import ModelesAffiche from '@/components/ModelesAffiche';
 import CompteUsage from '@/components/CompteUsage';
+import SecuriteCompte from '@/components/SecuriteCompte';
 import AlertesExternes from '@/components/AlertesExternes';
 import PreferencesCompte from "@/components/PreferencesCompte";
 import TourneoNav from "@/components/TourneoNav";
@@ -250,6 +251,7 @@ export default function ProfilPage() {
 
         <CompteUsage />
         <PreferencesCompte />
+        <SecuriteCompte />
         <ModelesAffiche />
         <AlertesExternes />
         <section style={s.grid}>

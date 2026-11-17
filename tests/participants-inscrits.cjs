@@ -1,10 +1,8 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');const cache=new Map();function load(file){if(cache.has(file))return cache.get(file).exports;const m={exports:{}};cache.set(file,m);new Function('require','module','exports',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(id=>id.startsWith('@/')?load(id.slice(2)+'.ts'):require(id),m,m.exports);return m.exports;}
-const {fusionnerInscriptions}=load('lib/participants-inscrits.ts');
-const manuel={id:'m',nom:'Manuel',emoji:'x',couleur:'#123456'},ancien={id:'inscription:annule',nom:'Annulé',emoji:'x',couleur:'#123456'},profil={id:'p',profilId:'account',nom:'Compte',emoji:'x',couleur:'#123456'};
-const donnees=[manuel,ancien,profil];const snapshot=JSON.stringify(donnees);
-const inscrits=[{id:'accepte',nom:'Compte',user_id:'account',type_participant:'individuel'}];
-const r=fusionnerInscriptions(donnees,inscrits);assert.equal(r.length,2);assert.ok(r.some(e=>e.id==='m'));assert.ok(!r.some(e=>e.id==='inscription:annule'));assert.equal(r.find(e=>e.id==='inscription:accepte').profilId,'account');assert.equal(JSON.stringify(donnees),snapshot);
-assert.deepEqual(fusionnerInscriptions(r,inscrits),r,'refresh is idempotent');assert.deepEqual(fusionnerInscriptions(r,[]),[manuel],'cancelled registration removed on launch recheck');
-assert.throws(()=>fusionnerInscriptions([manuel],[{id:'i',nom:' manuel '}]),/participant manuel/);
-assert.equal(fusionnerInscriptions([],[{id:'team',nom:'Équipe',type_participant:'equipe',user_id:'captain',joueurs:['A','B']}])[0].profilId,undefined,'a team is not the captain’s individual profile');
-console.log('Inscriptions : fusion sans doublons, comptes reconnus, annulations retirées au démarrage, homonymes explicites et équipes distinctes des profils : OK');
+const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/participants-inscrits.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText)(require,m,m.exports);const {fusionnerInscrits,sourcesParticipants}=m.exports;
+const inscrits=[{id:'a',nom:'Alice',joueurs:[],user_id:'u',type_participant:'individuel'}];const liste=fusionnerInscrits([],inscrits);assert.equal(liste.length,1);assert.equal(fusionnerInscrits(liste,inscrits).length,1);
+const equipe={id:'team',nom:'Bleus',membresOrigine:liste};assert.equal(fusionnerInscrits([equipe],inscrits).length,1,'grouped registration must never return as an additional player');
+assert.throws(()=>fusionnerInscrits([equipe],[]),/retirée/);
+assert.throws(()=>fusionnerInscrits([equipe],[...inscrits,{...inscrits[0],id:'b',nom:'Bob',user_id:'other'}]),/nouveaux inscrits/);
+assert.equal(sourcesParticipants([equipe,{...equipe,id:'team2'}]).length,1,'one registration split into several teams is recovered once');
+assert.equal(fusionnerInscrits([{id:'inscription:removed',nom:'Old'}],[]).length,0);
+console.log('Participants : récupération sans doublon, équipes conservées au lancement, annulation et nouveaux inscrits détectés : OK');

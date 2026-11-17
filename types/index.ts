@@ -1,4 +1,5 @@
 export type Equipe = {
+  membresOrigine?: Equipe[];
   historique?: {date:string;nom:string;joueurs:string[];capitaine?:string}[];
   capitaine?: string;
   profilId?: string;

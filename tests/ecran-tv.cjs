@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
+const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
+const {normaliserTV,pagesTV,appelTV,statutMatchTV}=m.exports;
+assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true});
+assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
+assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
+assert.equal(normaliserTV({message:'a'.repeat(200)}).message.length,180);
+const liste=Array.from({length:35},(_,id)=>({id,equipe1Id:'a',equipe2Id:'b',journee:1,score1:'',score2:''}));
+assert.deepEqual(pagesTV(liste).flat(),liste,'every match remains visible, including last page');
+assert.equal(pagesTV(liste).at(-1).length,5);
+assert.equal(appelTV(liste,[3],3),undefined,'never call a validated match');
+assert.equal(appelTV(liste,[],3).id,3);
+assert.equal(appelTV(liste,[],900),undefined,'cancelled match cannot remain called');
+assert.equal(statutMatchTV({...liste[0],score1:'0',score2:'13'},[]),'À valider');
+assert.equal(appelTV([{...liste[0],score1:'0',score2:'13'}],[],0),undefined);
+console.log('TV : pagination complète, réglages bornés, appels explicites et retrait des matchs terminés : OK');

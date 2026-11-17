@@ -6,7 +6,7 @@ import type {Classement}from'@/types';
 import {illustrationSport}from'@/lib/illustration-sport';
 export type ModeleAffiche='inscriptions'|'resultats'|'pronostics';
 export type FormatAffiche='A4'|'A3'|'social'|'flyersA6';
-export const FORMATS_AFFICHE={A4:[1240,1754],A3:[1754,2480],social:[1080,1350],flyersA6:[2480,3508]}as const;
+export const FORMATS_AFFICHE={A4:[2480,3508],A3:[3508,4961],social:[1080,1350],flyersA6:[2480,3508]}as const;
 export type TexteAffiche={titre:string;date:string;lieu:string;message:string;logo:string;organisateur?:string};
 export type ContexteAffiche={sport:string;libelleSport:string;illustration:boolean;imageSport?:string;capacite?:number;terrains?:number;locale?:string;sponsors?:string[];liens?:{principal:string;photos?:string};cloturePronostics?:string;sansCompte?:boolean};
 const borne=(v:unknown,max=180)=>typeof v==='string'?v.slice(0,max):'';

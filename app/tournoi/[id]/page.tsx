@@ -1,5 +1,7 @@
 "use client";
 import DiscussionsTournoi from "@/components/DiscussionsTournoi";
+import {fusionnerInscrits} from '@/lib/participants-inscrits';
+import ChampEntier from '@/components/ChampEntier';
 import RouletteParticipants from "@/components/RouletteParticipants";
 import AffichesTournoi from "@/components/AffichesTournoi";
 import ProchaineEdition from '@/components/ProchaineEdition';
@@ -16,8 +18,6 @@ import {libellesSports as LIBELLES_SPORT} from '@/lib/catalogue-sports';
 import AlbumTournoi from '@/components/AlbumTournoi';
 import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
-import { fusionnerInscriptions } from '@/lib/participants-inscrits';
-import ChampEntier from '@/components/ChampEntier';
 import ModelesAffiche from '@/components/ModelesAffiche';
 import {copierIdentiteAffiche} from '@/lib/modeles-affiche';
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -839,22 +839,10 @@ export default function TournoiPage() {
 
     function continuerCreation(){if(!configurationComplete){choisirEtapeCreation("configuration");return;}choisirEtapeCreation("participants");}
     const [operationTournoi, setOperationTournoi] = useState(false);
-    async function actualiserParticipantsInscrits() {
-        if (!tournoiId || operationTournoi) return;
-        setOperationTournoi(true);
-        try {
-            const r = await supabase.from('tourneo_inscriptions').select('id,nom,joueurs,user_id,type_participant').eq('tournoi_id', tournoiId).eq('statut', 'accepte');
-            if (r.error) throw r.error;
-            setEquipes(fusionnerInscriptions(equipes, r.data ?? []));
-            setMessageCloud('Inscriptions acceptées actualisées. Elles seront vérifiées à nouveau au démarrage.');
-        } catch (e) {
-            setMessageCloud(e instanceof Error ? e.message : 'Impossible de charger les inscriptions acceptées. Réessayez.');
-        } finally { setOperationTournoi(false); }
-    }
-    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' | 'pronostics' | 'pronostics/affiche' | 'affiches' = 'inscriptions') {
+    async function preparerSupport(destination: 'inscriptions' | 'affiche' | 'arbitres' | 'photos' | 'pronostics' | 'pronostics/affiche' | 'affiches' | 'tv' = 'inscriptions') {
         if (operationTournoi)
             return;
-        if (!cree&&!configurationComplete) {choisirEtapeCreation("configuration");alert(tr(erreursCreation[0]));return;}
+        if (!cree&&!configurationComplete) {setCreationEtape("configuration");alert(tr(erreursCreation[0]));return;}
         if (destination.startsWith('pronostics')&&equipes.length<2){alert(tr('Ajoutez au moins deux participants avant de préparer les pronostics.'));return;}
         if (!nomTournoi.trim()) {
             alert(tr("Ajoutez le nom du tournoi."));
@@ -897,10 +885,17 @@ export default function TournoiPage() {
             setOperationTournoi(false);
         }
     }
+    async function recupererInscrits(){
+        if(operationTournoi||!tournoiId)return;
+        setOperationTournoi(true);
+        try{const r=await supabase.from('tourneo_inscriptions').select('id,nom,joueurs,user_id,type_participant').eq('tournoi_id',tournoiId).eq('statut','accepte');if(r.error)throw r.error;setEquipes(fusionnerInscrits(equipes,r.data??[]));setMessageCloud('Inscriptions acceptées récupérées. Vérifiez la liste avant de constituer les équipes.');}
+        catch(e){setMessageCloud(e instanceof Error?e.message:'Impossible de récupérer les inscriptions. Réessayez.');}
+        finally{setOperationTournoi(false);}
+    }
     async function lancerTournoi() {
         if (operationTournoi)
             return;
-        if (!configurationComplete&&!cree) {choisirEtapeCreation("configuration");alert(tr(erreursCreation[0]));return;}
+        if (!configurationComplete&&!cree) {setCreationEtape("configuration");alert(tr(erreursCreation[0]));return;}
         if (!nomTournoi.trim()) {
             alert(tr("Ajoute un nom au tournoi."));
             return;
@@ -918,7 +913,7 @@ export default function TournoiPage() {
                 const { data: demandes, error } = await supabase.from("tourneo_inscriptions").select("id,nom,joueurs,user_id,type_participant").eq("tournoi_id", tournoiId).eq("statut", "accepte");
                 if (error)
                     throw error;
-                participants = fusionnerInscriptions(participants, demandes ?? []);
+                participants = fusionnerInscrits(participants,demandes ?? []);
             }
             const erreurConfiguration = validerConfiguration(participants);
             if (erreurConfiguration)
@@ -1771,11 +1766,11 @@ ${lienPartage}`,
               <span style={styles.pill}>{equipes.length}{tr(" participant(s)")}</span>
             </div>
 
-            <nav className="tourneo-creation-steps" aria-label={tr("Créer votre tournoi")} style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7, padding: 6, borderRadius: 16, background: "#090E17", margin: "18px 0" }}>
-              <button style={{ ...styles.ghostButton, ...(creationEtape === "configuration" ? styles.tabActive : {}) }} aria-current={creationEtape === "configuration" ? "step" : undefined} onClick={() => choisirEtapeCreation("configuration")}>{tr("1 \u00B7 Configuration")}</button>
-              <button style={{ ...styles.ghostButton, ...(creationEtape === "participants" ? styles.tabActive : {}) }} disabled={!configurationComplete} aria-current={creationEtape === "participants" ? "step" : undefined} onClick={continuerCreation}>{tr("2 \u00B7 Participants")}</button>
-              <button style={{ ...styles.ghostButton, ...(creationEtape === "communication" ? styles.tabActive : {}) }} disabled={!configurationComplete} aria-current={creationEtape === "communication" ? "step" : undefined} onClick={() => choisirEtapeCreation("communication")}>{tr("3 · Communication")}</button>
-            </nav>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7, padding: 6, borderRadius: 16, background: "#090E17", margin: "18px 0" }}>
+              <button style={{ ...styles.ghostButton, ...(creationEtape === "configuration" ? styles.tabActive : {}) }} onClick={() => choisirEtapeCreation("configuration")}>{tr("1 \u00B7 Configuration")}</button>
+              <button style={{ ...styles.ghostButton, ...(creationEtape === "participants" ? styles.tabActive : {}) }} disabled={!configurationComplete} onClick={continuerCreation}>{tr("2 \u00B7 Participants")}</button>
+              <button style={{ ...styles.ghostButton, ...(creationEtape === "communication" ? styles.tabActive : {}) }} disabled={!configurationComplete} onClick={() => choisirEtapeCreation("communication")}>{tr("3 · Communication")}</button>
+            </div>
 
             {creationEtape === "configuration" ? (<>
                 <details className="tourneo-optional-panel"><summary>{tr("Partir d’un modèle")}</summary><ModelesAffiche onChoisir={m=>{changerSport(m.sport);setNomTournoi(m.titre);setOptionsV2(o=>({...o,lieu:m.lieu,organisateur:m.organisateur,identiteAffiche:copierIdentiteAffiche(m.identite)}));}}/></details>
@@ -1836,8 +1831,7 @@ ${lienPartage}`,
 
                 <p style={styles.muted}>{tr('Ajoutez les participants vous-même, ou ouvrez les inscriptions en ligne.')}</p>
                 <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => void preparerSupport('inscriptions')}>{tr('Préparer les inscriptions par lien / QR')}</button>
-                {tournoiId && <button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void actualiserParticipantsInscrits()}>{tr('Actualiser les inscriptions acceptées')}</button>}
-                <RouletteParticipants participants={equipes} onAppliquer={setEquipes}/>
+                {tournoiId&&<button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void recupererInscrits()}>{tr('Récupérer les inscriptions acceptées')}</button>}
 
                 <button className="tourneo-add-player-main" style={styles.primaryButton} onClick={() => {
                     setEquipeAModifier(null);
@@ -1887,6 +1881,7 @@ ${lienPartage}`,
                     }} onSupprimer={() => setEquipes((actuelles) => actuelles.filter((item) => item.id !== equipe.id))}/>)))}
                 </div>
 
+                <RouletteParticipants participants={equipes} onAppliquer={setEquipes}/>
                 <button style={styles.primaryButton} disabled={operationTournoi} onClick={() => choisirEtapeCreation('communication')}>{tr('Continuer vers la communication →')}</button>
                 {equipes.length>=2&&equipes.length<=128&&<ConseillerTournoi etapeParticipants effectif={equipes.length} terrains={optionsV2.terrains} duree={optionsV2.duree} repos={optionsV2.repos} onAppliquer={(p,b)=>{setFormatTournoi(p.format);setOptionsV2(o=>({...o,terrains:b.terrains,duree:b.duree,repos:b.repos,rondes:p.format==='suisse'||p.format==='rotation'?p.rondes:o.rondes,budgetMinutes:b.minutes,participantsPrevus:b.participants}));}}/>}
 
@@ -1897,6 +1892,7 @@ ${lienPartage}`,
                 <p style={styles.muted}>{tr('Affiches, inscriptions, spectateurs et résultats : tous les supports sont réunis ici. Le tournoi peut rester en brouillon pendant les inscriptions.')}</p>
                 {retourPronostics&&<p role="status">{tr('Pronostics enregistrés. Votre affiche spectateurs est prête à partager.')}</p>}
                 <div className="tourneo-affiches-hub">
+                  <button type="button" disabled={operationTournoi} onClick={()=>void preparerSupport('tv')}><h3>{tr('Écran TV')}</h3><p>{tr('Résultats, appels et pauses sur un deuxième écran.')}</p></button>
                   <button type="button" disabled={operationTournoi} onClick={()=>void preparerSupport('affiche')}><h3>{tr('Annoncer le tournoi')}</h3><p>{tr('Date, lieu et inscriptions')}</p></button>
                   <button type="button" disabled={operationTournoi} onClick={()=>void preparerSupport('inscriptions')}><h3>{tr('Inscriptions en ligne')}</h3><p>{tr('Ouvrir les inscriptions et gérer les demandes')}</p></button>
                   <button type="button" disabled={operationTournoi||equipes.length<2} onClick={()=>void preparerSupport('pronostics')}><h3>{tr('Pronostics du public')}</h3><p>{tr('Préparez le jeu de pronostics, puis ouvrez son affiche avec QR pour le public.')}</p></button>
@@ -1906,7 +1902,6 @@ ${lienPartage}`,
                   <button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void preparerSupport('arbitres')}>{tr('Désigner les arbitres')}</button>
                   <button type="button" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void preparerSupport('photos')}>{tr('Préparer les photos')}</button>
                 </details>
-                {tournoiId&&<p style={styles.muted}>{tr('Les inscriptions acceptées seront récupérées et vérifiées au démarrage, même si la liste ci-dessous est vide.')} <button type="button" disabled={operationTournoi} onClick={()=>void actualiserParticipantsInscrits()}>{tr('Actualiser les inscriptions acceptées')}</button></p>}
                 <section className="tourneo-preflight" aria-label={tr('Vérification avant lancement')}><strong>{tr('Prêt à jouer ?')}</strong>{validerConfiguration(equipes)&&<p role="status">{tr(validerConfiguration(equipes))}</p>}{verifierPreparation(equipes,[],optionsV2).length?<ul>{verifierPreparation(equipes,[],optionsV2).map((a,i)=><li key={i}>{tr(a.texte)}</li>)}</ul>:<p>{tr('La liste des participants et les réglages sont prêts.')}</p>}{optionsV2.participantsPrevus&&optionsV2.participantsPrevus!==equipes.length&&<p>{trModele('La simulation prévoyait {0} participants ; vous en avez ajouté {1}. Vérifiez la durée avec cet effectif.',optionsV2.participantsPrevus,equipes.length)}</p>}</section>
                 <button style={styles.primaryButton} disabled={operationTournoi||(!tournoiId&&(!!validerConfiguration(equipes)||verifierPreparation(equipes,[],optionsV2).some(a=>a.niveau==='bloquant')))} onClick={lancerTournoi}>{operationTournoi ? tr("Enregistrement…") : tr("Démarrer le tournoi")}</button>
                 <TourneoRetour onClick={()=>choisirEtapeCreation('participants')}>{tr('Participants')}</TourneoRetour>
@@ -2291,9 +2286,11 @@ ${lienPartage}`,
           </div>
 
           <div className="tourneo-header-actions" style={styles.headerActions}>
+            <button type="button" className="tourneo-tv-shortcut" style={styles.secondaryButton} disabled={operationTournoi} onClick={()=>void preparerSupport('tv')}>{tr("Écran TV")}</button>
             <button style={styles.secondaryButton} onClick={partagerTournoi}>{tr("Partager")}</button>
-            <a className="tourneo-header-tool-link" href="/outils">{tr("Outils arbitre")}</a>
             <details className="tourneo-tournament-more"><summary>{tr("G\u00E9rer le tournoi")}</summary><div>
+            <a className="tourneo-header-tool-link" href="/outils">{tr("Outils arbitre")}</a>
+
             <button style={styles.secondaryButton} onClick={() => { window.location.href = `/tournoi/${tournoiId}/inscriptions`; }}>{tr("Inscriptions / pointage")}</button>
             <button style={styles.secondaryButton} onClick={() => setQrOuvert(true)}>{tr("QR code")}</button>
             <button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('affiche')}>{tr('Créer une affiche')}</button><button style={styles.secondaryButton} disabled={operationTournoi} onClick={() => preparerSupport('pronostics')}>{tr('Pronostics du public')}</button>
@@ -2301,7 +2298,7 @@ ${lienPartage}`,
             <button style={styles.secondaryButton} onClick={exporterPDF}>{tr("Imprimer / PDF")}</button>
             <button style={styles.secondaryButton} onClick={exporterClassement}>{tr("Classement CSV")}</button>
             <button style={styles.secondaryButton} onClick={sauvegarderFichier}>{tr("Sauvegarder les r\u00E9sultats")}</button>
-            <label style={styles.secondaryButton}>{tr("Restaurer une sauvegarde")}<input type="file" accept=".json,application/json" onChange={restaurerFichier} style={{ maxWidth: 180, display: "block", fontSize: 11, marginTop: 6 }}/></label>
+            <label style={styles.secondaryButton}>{tr("Restaurer une sauvegarde")}<input type="file" accept=".json,application/json" onChange={restaurerFichier} style={{ maxWidth: 180, display: "block", fontSize: 14, marginTop: 6 }}/></label>
             <button style={styles.secondaryButton} onClick={() => setOnglet("participants")}>{tr("Modifier les \u00E9quipes")}</button>
             <button style={styles.primarySmall} onClick={() => (window.location.href = "/tournoi/nouveau")}>{tr("Nouveau tournoi")}</button>
             <ProchaineEdition nom={nomTournoi} source={{sport,formatTournoi,modePoules,nombrePoules,taillePoules,qualifiesParPoule,optionsV2,equipes}} />
@@ -2323,28 +2320,18 @@ ${lienPartage}`,
           </div>
         </section>
 
-        <nav className="tourneo-tabs" style={styles.nav}>
-          {([
-            ["matchs", "Matchs"],
-            ["classement", "Classement"],
-            ["statistiques", "Statistiques"],
-            ["arbitrage", "Arbitrage"],
-            ["photos", "Photos"],
-            ["affiches", "Communication"],
-            ["discussions", "Échanges du tournoi"],
-        ] as [
-            Onglet,
-            string
-        ][]).map(([value, label]) => (<button key={value} style={{ ...styles.tab, ...(onglet === value ? styles.tabActive : {}) }} onClick={() => setOnglet(value)}>
-              {tr(label)}
-            </button>))}
+        <nav className="tourneo-tabs" aria-label={tr('Vues du tournoi')}>
+          {([['matchs','Matchs'],['classement','Classement'],['affiches','Communication']] as [Onglet,string][]).map(([value,label])=><button key={value} type="button" aria-pressed={onglet===value} onClick={()=>setOnglet(value)}>{tr(label)}</button>)}
+          <details className="tourneo-other-views" key={onglet}><summary>{tr(({'statistiques':'Statistiques','arbitrage':'Arbitrage','photos':'Photos','discussions':'Échanges du tournoi'} as Record<string,string>)[onglet]||'Autres vues')}</summary><div>
+            {([['statistiques','Statistiques'],['arbitrage','Arbitrage'],['photos','Photos'],['discussions','Échanges du tournoi']] as [Onglet,string][]).map(([value,label])=><button key={value} type="button" aria-pressed={onglet===value} onClick={()=>setOnglet(value)}>{tr(label)}</button>)}
+          </div></details>
         </nav>
 
         {onglet === "discussions" && cree && tournoiId && <DiscussionsTournoi tournoiId={tournoiId}/>}
         {onglet === "affiches" && cree && tournoiId && <AffichesTournoi id={tournoiId}/>}
         {onglet === "matchs" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
         {onglet === "affiches" && cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
-        {onglet !== "affiches" && cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
+        {(onglet === "classement" || onglet === "affiches") && cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
         {onglet === "participants" && (<section style={styles.card}>
             <div style={styles.formHeader}>
               <div>
@@ -2463,10 +2450,7 @@ ${lienPartage}`,
             </div>
           </section>)}
 
-        {onglet === "matchs" && <div className="tourneo-referee-shortcut"><div><strong>{tr('Arbitres et résultats proposés')}</strong><p>{tr('Désignez les arbitres du tournoi et vérifiez leurs transferts.')}</p></div><button type="button" onClick={() => setOnglet('arbitrage')}>{tr('Gérer les arbitres')}</button></div>}
-        {onglet === "matchs" && <ReglesSport key={sport} sport={sport}/>}
-        {onglet === "matchs" && <RepereJournee matchs={matchs} equipes={equipes} valides={matchsValides} options={optionsV2} format={formatTournoi}/>}
-        {onglet === "matchs" && <ImprevusTournoi matchs={matchs} equipes={equipes} valides={matchsValides} options={optionsV2} onChange={setOptionsV2}/>}
+        {onglet === "matchs" && <details className="tourneo-organisation-aides"><summary>{tr('Organisation et aides')}</summary><p>{tr('Règles, annonces de la journée et ajustements du planning.')}</p><ReglesSport key={sport} sport={sport}/><RepereJournee matchs={matchs} equipes={equipes} valides={matchsValides} options={optionsV2} format={formatTournoi}/><ImprevusTournoi matchs={matchs} equipes={equipes} valides={matchsValides} options={optionsV2} onChange={setOptionsV2}/></details>}
         {onglet === "matchs" && <PlanningTournoi tournoiId={tournoiId} equipes={equipes} matchs={matchs} options={optionsV2} onChange={setMatchs} valides={matchsValides} titreTour={titreJournee} detailsTour={journee => optionsV2.exemptions.filter(e => e.ronde === journee).map(e => <p key={e.id} style={styles.muted}>{tr("Exempt : ")}{trouverEquipe(e.id)?.nom} (+{optionsV2.pointsVictoire}{tr(" pts)")}</p>)} renderMatch={(match, reperes) => {
                 const equipe1 = trouverEquipe(match.equipe1Id);
                 const equipe2 = trouverEquipe(match.equipe2Id);
@@ -2824,7 +2808,7 @@ const styles: Record<string, CSSProperties> = {
     appBarActions: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" },
     brand: { display: "flex", alignItems: "center", gap: 11 },
     brandName: { fontWeight: 900, letterSpacing: "-.04em", lineHeight: 1 },
-    brandBaseline: { color: "#7F8798", fontSize: 11, marginTop: 4, letterSpacing: ".02em" },
+    brandBaseline: { color: "#7F8798", fontSize: 14, marginTop: 4, letterSpacing: ".02em" },
     creationLayout: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -2843,16 +2827,16 @@ const styles: Record<string, CSSProperties> = {
         flexDirection: "column",
         justifyContent: "center",
     },
-    heroTitle: { margin: "10px 0 16px", fontSize: "clamp(42px, 7vw, 72px)", lineHeight: .96, letterSpacing: "-.055em" },
+    heroTitle: { margin: "10px 0 16px", fontSize: "clamp(42px, 7vw, 72px)", lineHeight: 1.1, letterSpacing: "-.055em" },
     heroText: { margin: 0, color: "#A8AFBF", fontSize: 18, lineHeight: 1.6, maxWidth: 560 },
     heroFeatureGrid: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 10, marginTop: 34 },
     heroFeature: { padding: 15, borderRadius: 18, background: "linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.045))", border: "1px solid rgba(255,255,255,.12)", display: "grid", gap: 4, backdropFilter: "blur(10px)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.06)" },
     formCard: { padding: "clamp(22px, 4vw, 32px)", borderRadius: 28, background: "linear-gradient(180deg,rgba(23,29,48,.90),rgba(14,18,31,.94))", border: "1px solid rgba(148,163,184,.15)", backdropFilter: "blur(18px)", boxShadow: "0 28px 90px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.05)" },
     formHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" },
-    eyebrow: { display: "block", color: "#64D8FF", textTransform: "uppercase", letterSpacing: ".12em", fontSize: 11, fontWeight: 900 },
+    eyebrow: { display: "block", color: "#64D8FF", textTransform: "uppercase", letterSpacing: ".12em", fontSize: 14, fontWeight: 900 },
     sectionTitle: { margin: "5px 0 0", fontSize: "clamp(24px, 4vw, 32px)", letterSpacing: "-.035em" },
     smallTitle: { margin: "5px 0 0", fontSize: 20, letterSpacing: "-.02em" },
-    label: { display: "block", margin: "20px 0 8px", color: "#C7CCDA", fontSize: 13, fontWeight: 750 },
+    label: { display: "block", margin: "20px 0 8px", color: "#C7CCDA", fontSize: 14, fontWeight: 750 },
     input: { width: "100%", boxSizing: "border-box", padding: "14px 15px", borderRadius: 14, border: "1px solid rgba(148,163,184,.22)", outline: "none", background: "rgba(7,11,21,.68)", color: "#F7F8FC", fontSize: 15, boxShadow: "inset 0 1px 0 rgba(255,255,255,.03)" },
     twoColumns: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px,1fr))", gap: 14 },
     configBox: { marginTop: 20, padding: 16, borderRadius: 18, background: "#0E1118", border: "1px solid #242A38" },
@@ -2864,7 +2848,7 @@ const styles: Record<string, CSSProperties> = {
     secondaryButton: { padding: "11px 14px", borderRadius: 13, border: "1px solid rgba(148,163,184,.18)", background: "linear-gradient(180deg,rgba(33,40,62,.78),rgba(17,22,36,.78))", color: "#EDF3FF", fontWeight: 780, cursor: "pointer", boxShadow: "inset 0 1px 0 rgba(255,255,255,.05)" },
     ghostButton: { padding: "10px 12px", borderRadius: 11, border: "1px solid transparent", background: "transparent", color: "#AEB5C5", fontWeight: 700, cursor: "pointer" },
     dangerButton: { width: "100%", marginTop: 10, padding: "13px 16px", borderRadius: 13, border: "1px solid rgba(248,113,113,.25)", background: "rgba(248,113,113,.08)", color: "#FDA4AF", fontWeight: 800, cursor: "pointer" },
-    statusLine: { marginTop: 12, textAlign: "center", color: "#8D95A7", fontSize: 13 },
+    statusLine: { marginTop: 12, textAlign: "center", color: "#8D95A7", fontSize: 14 },
     formatExplanation: {
         marginTop: 10,
         padding: "12px 14px",
@@ -2874,17 +2858,17 @@ const styles: Record<string, CSSProperties> = {
         background: "rgba(114,231,255,.045)",
         border: "1px solid rgba(114,231,255,.10)",
         color: "#8D95A7",
-        fontSize: 13,
+        fontSize: 14,
         lineHeight: 1.5,
         textAlign: "left",
     },
     tournamentHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 22, flexWrap: "wrap", padding: "34px 0 22px" },
     metaRow: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-    formatBadge: { padding: "7px 11px", borderRadius: 999, background: "linear-gradient(90deg,rgba(124,92,255,.20),rgba(34,211,238,.13))", border: "1px solid rgba(92,207,255,.28)", color: "#BFEAFF", fontSize: 12, fontWeight: 900, boxShadow: "0 6px 18px rgba(34,211,238,.08)" },
-    metaText: { color: "#8D95A7", fontSize: 13, fontWeight: 700 },
-    tournamentTitle: { margin: "12px 0 6px", fontSize: "clamp(38px, 7vw, 66px)", lineHeight: .96, letterSpacing: "-.055em", overflowWrap: "anywhere", textShadow: "0 10px 40px rgba(59,130,246,.12)" },
+    formatBadge: { padding: "7px 11px", borderRadius: 999, background: "linear-gradient(90deg,rgba(124,92,255,.20),rgba(34,211,238,.13))", border: "1px solid rgba(92,207,255,.28)", color: "#BFEAFF", fontSize: 14, fontWeight: 900, boxShadow: "0 6px 18px rgba(34,211,238,.08)" },
+    metaText: { color: "#8D95A7", fontSize: 14, fontWeight: 700 },
+    tournamentTitle: { margin: "12px 0 6px", fontSize: "clamp(30px, 4vw, 44px)", lineHeight: 1.1, letterSpacing: "-.055em", overflowWrap: "anywhere", textShadow: "0 10px 40px rgba(59,130,246,.12)" },
     tournamentSubtitle: { margin: 0, color: "#8D95A7", fontSize: 15 },
-    syncBadge: { marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, color: "#8FA99E", fontSize: 12, fontWeight: 750 },
+    syncBadge: { marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, color: "#8FA99E", fontSize: 14, fontWeight: 750 },
     syncDot: { width: 7, height: 7, borderRadius: 999, background: "#2ED3B7", boxShadow: "0 0 0 4px rgba(46,211,183,.09)" },
     headerActions: { display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" },
     progressCard: { padding: 19, borderRadius: 21, background: "linear-gradient(135deg,rgba(24,30,50,.92),rgba(12,18,32,.92))", border: "1px solid rgba(148,163,184,.14)", marginBottom: 16, boxShadow: "0 18px 50px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04)" },
@@ -2897,28 +2881,28 @@ const styles: Record<string, CSSProperties> = {
     tab: { padding: "12px 10px", border: 0, borderRadius: 11, background: "transparent", color: "#7F8798", fontWeight: 800, cursor: "pointer" },
     tabActive: { background: "linear-gradient(110deg,rgba(124,92,255,.30),rgba(59,130,246,.22),rgba(34,211,238,.12))", color: "#FFFFFF", boxShadow: "0 8px 24px rgba(59,130,246,.15), inset 0 1px 0 rgba(255,255,255,.07)", border: "1px solid rgba(125,211,252,.13)" },
     card: { padding: "clamp(18px, 3vw, 26px)", borderRadius: 24, background: "linear-gradient(155deg,rgba(25,31,51,.92),rgba(13,18,31,.92))", border: "1px solid rgba(148,163,184,.14)", marginBottom: 16, backdropFilter: "blur(14px)", boxShadow: "0 22px 65px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04)" },
-    pill: { display: "inline-flex", alignItems: "center", padding: "6px 9px", borderRadius: 999, background: "#1D2230", color: "#9EA6B8", fontSize: 11, fontWeight: 800, whiteSpace: "nowrap" },
+    pill: { display: "inline-flex", alignItems: "center", padding: "6px 9px", borderRadius: 999, background: "#1D2230", color: "#9EA6B8", fontSize: 14, fontWeight: 800, whiteSpace: "nowrap" },
     poolGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px,1fr))", gap: 12, marginTop: 18 },
     poolCard: { padding: 16, borderRadius: 17, background: "#0D1017", border: "1px solid #252B3A", minWidth: 0 },
     poolHeader: { display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start", marginBottom: 12 },
     poolTitle: { margin: 0, fontSize: 17, letterSpacing: "-.02em" },
     poolTeams: { display: "grid", gap: 8 },
     poolTeam: { display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "#121620" },
-    terrainLabel: { display: "inline-block", marginBottom: 12, color: "#8E88FF", fontSize: 12, fontWeight: 800 },
+    terrainLabel: { display: "inline-block", marginBottom: 12, color: "#8E88FF", fontSize: 14, fontWeight: 800 },
     roundHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 18 },
     matchList: { display: "grid", gap: 10 },
     matchCard: { padding: 15, borderRadius: 18, background: "linear-gradient(135deg,rgba(13,18,31,.96),rgba(18,25,42,.92))", border: "1px solid rgba(148,163,184,.15)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.025)" },
     matchDone: { borderColor: "rgba(34,211,238,.30)", boxShadow: "0 10px 28px rgba(34,211,238,.05), inset 3px 0 0 rgba(52,211,153,.60)" },
-    matchMeta: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", marginBottom: 10, color: "#7F8798", fontSize: 11, fontWeight: 800 },
+    matchMeta: { display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", marginBottom: 10, color: "#7F8798", fontSize: 14, fontWeight: 800 },
     matchGrid: { display: "grid", gridTemplateColumns: "minmax(0,1fr) 54px 16px 54px minmax(0,1fr)", alignItems: "center", gap: 8 },
     teamLeft: { display: "flex", minWidth: 0, alignItems: "center", justifyContent: "flex-end", gap: 9, textAlign: "right", overflowWrap: "anywhere" },
     teamRight: { display: "flex", minWidth: 0, alignItems: "center", gap: 9, overflowWrap: "anywhere" },
     scoreInput: { width: "100%", minWidth: 0, boxSizing: "border-box", padding: "11px 4px", borderRadius: 12, border: "1px solid rgba(96,165,250,.28)", background: "linear-gradient(180deg,rgba(30,41,59,.95),rgba(16,24,40,.95))", color: "#FFFFFF", textAlign: "center", fontWeight: 950, fontSize: 18, fontVariantNumeric: "tabular-nums", boxShadow: "0 8px 20px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04)" },
     scoreLocked: { opacity: .62, cursor: "not-allowed" },
     scoreSeparator: { textAlign: "center", color: "#6F778A", fontWeight: 900 },
-    inlineWarning: { marginTop: 10, padding: "9px 11px", borderRadius: 10, background: "rgba(248,113,113,.08)", color: "#FDA4AF", fontSize: 12, textAlign: "center" },
+    inlineWarning: { marginTop: 10, padding: "9px 11px", borderRadius: 10, background: "rgba(248,113,113,.08)", color: "#FDA4AF", fontSize: 14, textAlign: "center" },
     tableWrap: { overflowX: "auto", marginTop: 16 },
-    table: { width: "100%", minWidth: 680, borderCollapse: "collapse", textAlign: "center", fontSize: 13 },
+    table: { width: "100%", minWidth: 680, borderCollapse: "collapse", textAlign: "center", fontSize: 14 },
     teamCell: { display: "flex", alignItems: "center", gap: 10, textAlign: "left" },
     podiumModern: { display: "grid", gridTemplateColumns: "repeat(3,minmax(150px,1fr))", gap: 10, marginTop: 22, overflowX: "auto" },
     podiumModernCard: { minWidth: 150, padding: 18, borderRadius: 18, background: "#0D1017", border: "1px solid #252B3A", display: "grid", justifyItems: "center", gap: 9, textAlign: "center" },
@@ -2928,27 +2912,27 @@ const styles: Record<string, CSSProperties> = {
     podiumColumnFirst: { transform: "translateY(-10px)" },
     podiumPlayer: { position: "relative", display: "grid", justifyItems: "center", gap: 8, textAlign: "center", padding: "18px 12px 16px", margin: "0 7px 10px", borderRadius: 22, background: "linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028))", border: "1px solid rgba(148,163,184,.16)", boxShadow: "0 18px 45px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.05)" },
     podiumPlayerFirst: { background: "radial-gradient(circle at 50% 0%,rgba(250,204,21,.18),transparent 45%),linear-gradient(180deg,rgba(124,92,255,.16),rgba(255,255,255,.035))", border: "1px solid rgba(250,204,21,.30)", boxShadow: "0 22px 60px rgba(124,92,255,.18),inset 0 1px 0 rgba(255,255,255,.08)" },
-    podiumRankBadge: { position: "absolute", top: 10, left: 10, width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 999, background: "rgba(5,10,20,.68)", border: "1px solid rgba(255,255,255,.12)", color: "#EAF4FF", fontWeight: 950, fontSize: 12 },
+    podiumRankBadge: { position: "absolute", top: 10, left: 10, width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 999, background: "rgba(5,10,20,.68)", border: "1px solid rgba(255,255,255,.12)", color: "#EAF4FF", fontWeight: 950, fontSize: 14 },
     podiumMedal: { fontSize: 28, lineHeight: 1 },
-    podiumScore: { color: "#9DB1C8", fontSize: 12, fontWeight: 800 },
+    podiumScore: { color: "#9DB1C8", fontSize: 14, fontWeight: 800 },
     podiumBlock: { display: "grid", placeItems: "center", alignContent: "center", gap: 5, borderRadius: "20px 20px 8px 8px", border: "1px solid rgba(255,255,255,.14)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.12),0 18px 40px rgba(0,0,0,.18)" },
     podiumBlockFirst: { background: "linear-gradient(180deg,#EED06C 0%,#C58B22 56%,#9F6310 100%)", color: "#FFF9E8" },
     podiumBlockSecond: { background: "linear-gradient(180deg,#C6D2E1 0%,#8193AA 58%,#5B6B80 100%)", color: "#F8FBFF" },
     podiumBlockThird: { background: "linear-gradient(180deg,#D49A6A 0%,#9B6240 58%,#6D3E27 100%)", color: "#FFF4EC" },
     podiumPlace: { fontSize: 38, lineHeight: 1, textShadow: "0 4px 18px rgba(0,0,0,.20)" },
-    podiumPlaceLabel: { fontSize: 10, fontWeight: 900, letterSpacing: ".08em", textTransform: "uppercase", opacity: .82 },
-    rankNumber: { width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 999, background: "#23293A", color: "#B7BDCC", fontWeight: 900, fontSize: 12 },
+    podiumPlaceLabel: { fontSize: 14, fontWeight: 900, letterSpacing: ".08em", textTransform: "uppercase", opacity: .82 },
+    rankNumber: { width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 999, background: "#23293A", color: "#B7BDCC", fontWeight: 900, fontSize: 14 },
     finalResult: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12, marginTop: 22, alignItems: "stretch" },
     finalistCard: { padding: 22, borderRadius: 18, background: "#0D1017", border: "1px solid #252B3A", display: "grid", justifyItems: "center", gap: 8, textAlign: "center" },
     championCard: { padding: 24, borderRadius: 22, background: "radial-gradient(circle at 50% 0%,rgba(34,211,238,.22),transparent 38%),linear-gradient(145deg,rgba(124,92,255,.34),rgba(17,25,45,.98))", border: "1px solid rgba(96,165,250,.42)", display: "grid", justifyItems: "center", gap: 8, textAlign: "center", boxShadow: "0 24px 60px rgba(59,130,246,.18), inset 0 1px 0 rgba(255,255,255,.08)" },
-    championLabel: { color: "#B9B6FF", fontSize: 10, fontWeight: 950, letterSpacing: ".16em" },
+    championLabel: { color: "#B9B6FF", fontSize: 14, fontWeight: 950, letterSpacing: ".16em" },
     championName: { fontSize: 26, letterSpacing: "-.03em" },
     finalName: { fontSize: 18, letterSpacing: "-.02em" },
     statsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 12, marginBottom: 16 },
     metricCard: { padding: 21, borderRadius: 20, background: "radial-gradient(circle at 100% 0%,rgba(59,130,246,.12),transparent 34%),linear-gradient(160deg,rgba(25,31,51,.94),rgba(13,18,31,.94))", border: "1px solid rgba(148,163,184,.14)", display: "grid", gap: 7, boxShadow: "0 18px 45px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.04)" },
-    metricLabel: { color: "#8D95A7", fontSize: 12, fontWeight: 750 },
+    metricLabel: { color: "#8D95A7", fontSize: 14, fontWeight: 750 },
     metricValue: { fontSize: 34, letterSpacing: "-.04em" },
-    metricHint: { color: "#6F778A", fontSize: 11 },
+    metricHint: { color: "#6F778A", fontSize: 14 },
     activityList: { display: "grid", gap: 0, marginTop: 16, borderTop: "1px solid #232837" },
     activityRow: { display: "flex", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "1px solid #232837", color: "#9DA5B6" },
     modalBackdrop: { position: "fixed", inset: 0, zIndex: 100, display: "grid", placeItems: "center", padding: 18, background: "rgba(5,7,11,.82)", backdropFilter: "blur(10px)" },
@@ -2959,20 +2943,20 @@ const styles: Record<string, CSSProperties> = {
     qrBox: { width: "fit-content", margin: "20px auto 0", padding: 14, borderRadius: 16, background: "white" },
     playerCodeBox: { padding: 16, margin: "14px 0", borderRadius: 18, display: "grid", gap: 12, background: "rgba(59,130,246,.07)", border: "1px solid rgba(96,165,250,.16)" },
     selfAddLine: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 7, margin: "8px 2px 2px" },
-    selfAddHint: { color: "#6F8097", fontSize: 10 },
-    selfAddButton: { padding: "5px 9px", borderRadius: 999, border: "1px solid rgba(148,163,184,.12)", background: "rgba(255,255,255,.025)", color: "#91A2B8", fontSize: 10, fontWeight: 750, cursor: "pointer" },
+    selfAddHint: { color: "#6F8097", fontSize: 14 },
+    selfAddButton: { padding: "5px 9px", borderRadius: 999, border: "1px solid rgba(148,163,184,.12)", background: "rgba(255,255,255,.025)", color: "#91A2B8", fontSize: 14, fontWeight: 750, cursor: "pointer" },
     scanButton: { width: "100%", padding: "11px 13px", borderRadius: 13, border: "1px solid rgba(34,211,238,.20)", background: "rgba(34,211,238,.07)", color: "#A5F3FC", fontWeight: 850, cursor: "pointer" },
     scannerModal: { width: "min(440px,100%)", padding: 20, borderRadius: 24, background: "#0B1323", border: "1px solid rgba(148,163,184,.18)", color: "white", boxShadow: "0 24px 70px rgba(0,0,0,.48)" },
     scannerViewport: { position: "relative", width: "100%", aspectRatio: "1 / 1", marginTop: 14, overflow: "hidden", borderRadius: 20, background: "#030712" },
     scannerVideo: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
     scannerFrame: { position: "absolute", inset: "18%", border: "2px solid #67E8F9", borderRadius: 18, boxShadow: "0 0 0 999px rgba(0,0,0,.26),0 0 24px rgba(34,211,238,.28)" },
-    scannerHelp: { margin: "12px 0 0", color: "#91A4BC", lineHeight: 1.5, textAlign: "center", fontSize: 13 },
+    scannerHelp: { margin: "12px 0 0", color: "#91A4BC", lineHeight: 1.5, textAlign: "center", fontSize: 14 },
     playerCodeActions: { display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center" },
     helpModal: { width: "min(760px,100%)", maxHeight: "88vh", overflowY: "auto", padding: 24, borderRadius: 28, background: "linear-gradient(145deg,#11192a,#0a1220)", border: "1px solid rgba(148,163,184,.16)", boxShadow: "0 35px 90px rgba(0,0,0,.55)" },
     helpGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, margin: "18px 0" },
     helpItem: { display: "grid", gap: 6, padding: 15, borderRadius: 16, background: "rgba(255,255,255,.035)", border: "1px solid rgba(148,163,184,.10)", color: "#9fb1c8" },
     legalBox: { padding: 16, marginTop: 10, borderRadius: 16, background: "rgba(124,92,255,.055)", border: "1px solid rgba(124,92,255,.14)", color: "#aabbd0", lineHeight: 1.55 },
-    shareLink: { color: "#858DA0", fontSize: 12, overflowWrap: "anywhere", textAlign: "center" },
+    shareLink: { color: "#858DA0", fontSize: 14, overflowWrap: "anywhere", textAlign: "center" },
     ghostWide: { width: "100%", marginTop: 8, padding: "12px 14px", borderRadius: 12, border: "1px solid #313748", background: "transparent", color: "#B1B8C8", fontWeight: 750, cursor: "pointer" },
     souvenirTools: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 14 },
     photoButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "11px 14px", borderRadius: 13, background: "linear-gradient(110deg,rgba(124,92,255,.28),rgba(34,211,238,.16))", border: "1px solid rgba(114,231,255,.24)", color: "white", fontWeight: 850, cursor: "pointer" },
@@ -2984,13 +2968,13 @@ const styles: Record<string, CSSProperties> = {
     souvenirMeta: { margin: 0, color: "#9CB1C9", fontWeight: 700, lineHeight: 1.35, overflowWrap: "anywhere" },
     souvenirPhotoFrame: { marginTop: 24, padding: 8, borderRadius: 24, background: "rgba(255,255,255,.055)", border: "1px solid rgba(255,255,255,.10)", position: "relative", display: "block", cursor: "pointer", overflow: "hidden" },
     souvenirPhoto: { width: "100%", height: "clamp(220px,38vw,360px)", objectFit: "cover", borderRadius: 18, display: "block" },
-    photoCaption: { position: "absolute", left: 20, bottom: 18, padding: "8px 11px", borderRadius: 999, background: "rgba(6,12,24,.78)", color: "white", fontSize: 12, fontWeight: 800, backdropFilter: "blur(10px)" },
+    photoCaption: { position: "absolute", left: 20, bottom: 18, padding: "8px 11px", borderRadius: 999, background: "rgba(6,12,24,.78)", color: "white", fontSize: 14, fontWeight: 800, backdropFilter: "blur(10px)" },
     souvenirPhotoPlaceholder: { marginTop: 24, minHeight: 180, display: "grid", placeItems: "center", alignContent: "center", gap: 7, padding: 22, borderRadius: 22, border: "1px dashed rgba(114,231,255,.28)", background: "rgba(255,255,255,.025)", color: "#9DB0C8", textAlign: "center", cursor: "pointer" },
-    photoTapHint: { marginTop: 5, padding: "7px 10px", borderRadius: 999, color: "#8EEBFF", background: "rgba(34,211,238,.07)", border: "1px solid rgba(34,211,238,.12)", fontSize: 11, fontWeight: 850 },
+    photoTapHint: { marginTop: 5, padding: "7px 10px", borderRadius: 999, color: "#8EEBFF", background: "rgba(34,211,238,.07)", border: "1px solid rgba(34,211,238,.12)", fontSize: 14, fontWeight: 850 },
     souvenirPodium: { display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 7, alignItems: "end", marginTop: 22, overflow: "hidden", minWidth: 0, position: "relative", zIndex: 1 },
     souvenirPodiumColumn: { minWidth: 0, display: "grid", justifyItems: "center", alignItems: "end", textAlign: "center" },
     souvenirPlayerName: { marginTop: 7, fontSize: 15, maxWidth: "100%", overflowWrap: "anywhere" },
-    souvenirPoints: { margin: "4px 0 10px", color: "#A9BDD2", fontSize: 12, fontWeight: 750 },
+    souvenirPoints: { margin: "4px 0 10px", color: "#A9BDD2", fontSize: 14, fontWeight: 750 },
     souvenirPodiumBlock: { width: "100%", minWidth: 0, display: "grid", placeItems: "center", alignContent: "center", gap: 4, borderRadius: "17px 17px 5px 5px", border: "1px solid rgba(255,255,255,.14)", fontSize: 31, fontWeight: 950, boxShadow: "inset 0 1px 0 rgba(255,255,255,.12),0 16px 30px rgba(0,0,0,.18)" },
     souvenirFirst: { background: "linear-gradient(180deg,#E5BE60,#A96D13)", color: "#FFF8E7" },
     souvenirSecond: { background: "linear-gradient(180deg,#AEBED2,#596D87)", color: "#F7FAFF" },
@@ -3027,7 +3011,7 @@ const styles: Record<string, CSSProperties> = {
         color: "#dbeafe",
         fontWeight: 900,
     },
-    eliminationStatus: { color: "#8be9ff", fontSize: 13, fontWeight: 800 },
+    eliminationStatus: { color: "#8be9ff", fontSize: 14, fontWeight: 800 },
     eliminationGroup: {
         padding: 16,
         borderRadius: 18,
@@ -3037,7 +3021,7 @@ const styles: Record<string, CSSProperties> = {
     eliminationGroupTitle: {
         marginBottom: 10,
         color: "#8fa3bf",
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 900,
         textTransform: "uppercase",
         letterSpacing: 1.1,
@@ -3051,7 +3035,7 @@ const styles: Record<string, CSSProperties> = {
         borderRadius: 999,
         background: "rgba(255,255,255,.05)",
         border: "1px solid rgba(148,163,184,.12)",
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: 700,
     },
 };

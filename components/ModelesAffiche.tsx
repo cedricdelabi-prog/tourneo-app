@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import ConseilsLogos from '@/components/ConseilsLogos';
 import { logoAffiche } from '@/lib/affiche';
 import { IDENTITE_VIDE, normaliserIdentiteAffiche, type ModelePersonnel } from '@/lib/modeles-affiche';
 import { libellesSports } from '@/lib/catalogue-sports';
@@ -40,8 +41,8 @@ export default function ModelesAffiche({ onChoisir }: { onChoisir?: (modele: Mod
  {(['nom','titre','organisateur','lieu'] as const).map(k => <label key={k}>{tr({nom:'Nom du modèle',titre:'Nom habituel du tournoi',organisateur:'Club, camping ou organisateur',lieu:'Lieu ou terrain habituel'}[k])}<input required={k==='nom'} value={form[k]} maxLength={{nom:100,titre:150,organisateur:150,lieu:180}[k]} onChange={e => setForm(f => ({...f,[k]:e.target.value}))}/></label>)}
  <label>{tr('Activité')}<select value={form.sport} onChange={e => setForm(f => ({...f,sport:e.target.value}))}>{Object.entries(libellesSports).map(([code,nom]) => <option key={code} value={code}>{tr(nom)}</option>)}</select></label>
  <label>{tr('Informations complémentaires (facultatif)')}<textarea maxLength={200} value={form.identite.message} onChange={e => setForm(f => ({...f,identite:{...f.identite,message:e.target.value}}))}/></label>
- <label>{tr('Logo de mon organisation')}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => { const f=e.target.files?.[0];e.target.value='';if(f)void images([f],false); }}/></label>{form.identite.logo && <div><img src={form.identite.logo} alt={tr('Logo de mon organisation')} width={80} height={80}/><button type="button" onClick={() => setForm(f => ({...f,identite:{...f.identite,logo:''}}))}>{tr('Retirer mon logo')}</button></div>}
- <label>{tr('Logos des sponsors (6 maximum)')}<input type="file" multiple disabled={form.identite.sponsors.length>=6} accept="image/png,image/jpeg,image/webp" onChange={e => { const f=Array.from(e.target.files||[]).slice(0,6-form.identite.sponsors.length);e.target.value='';void images(f,true); }}/></label>
+ <ConseilsLogos/><label>{tr('Logo de mon organisation')}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => { const f=e.target.files?.[0];e.target.value='';if(f)void images([f],false); }}/></label>{form.identite.logo && <div><img src={form.identite.logo} alt={tr('Logo de mon organisation')} width={80} height={80} style={{objectFit:'contain',background:'white'}}/><button type="button" onClick={() => setForm(f => ({...f,identite:{...f.identite,logo:''}}))}>{tr('Retirer mon logo')}</button></div>}
+ <ConseilsLogos sponsors/><label>{tr('Logos des sponsors (6 maximum)')}<input type="file" multiple disabled={form.identite.sponsors.length>=6} accept="image/png,image/jpeg,image/webp" onChange={e => { const f=Array.from(e.target.files||[]).slice(0,6-form.identite.sponsors.length);e.target.value='';void images(f,true); }}/></label>
  <div className="tourneo-sponsor-list">{form.identite.sponsors.map((s,i) => <div key={i}><img src={s} alt={`${tr('Sponsor')} ${i+1}`}/><button type="button" aria-label={`${tr('Retirer le sponsor')} ${i+1}`} onClick={() => setForm(f => ({...f,identite:{...f.identite,sponsors:f.identite.sponsors.filter((_,j)=>j!==i)}}))}>{tr('Retirer')}</button></div>)}</div>
  <button type="submit">{tr('Enregistrer le modèle')}</button><button type="button" onClick={() => setEdition(false)}>{tr('Annuler')}</button></fieldset></form>}{message && <p role="status">{tr(message)}</p>}</section>;
 }

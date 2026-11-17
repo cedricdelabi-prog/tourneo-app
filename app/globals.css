@@ -442,3 +442,45 @@ body.tourneo-arena{background:radial-gradient(ellipse at 0% 8%,#0965b86b,transpa
 @media print{body.tourneo-arena{background:#fff!important}.tourneo-auth-card,.tourneo-create-card{background:#fff!important;box-shadow:none!important}}
 
 .tourneo-report-form{margin:12px 0;padding:12px;border:1px solid #315272;border-radius:12px}.tourneo-report-form summary,.tournoi-report summary{cursor:pointer;min-height:44px;display:flex;align-items:center}.tourneo-moderation-context{list-style:none;padding:0;margin:16px 0}.tourneo-moderation-context li{padding:14px;margin:10px 0;border:1px solid #315272;border-radius:12px}.tourneo-moderation-context li.is-reported{border-color:#ffc16b;background:#61421a33}.tourneo-moderation-context small{display:block;color:#b5cfdf}.tournoi-report,.tourneo-moderation-decision{overflow-wrap:anywhere}.tourneo-security-alert{border-color:#ffc16b}.tourneo-security-alert button{margin-left:16px}.tourneo-moderation-decision{border:1px solid #64e3e3;padding:18px;border-radius:16px;margin-top:24px}
+
+.tourneo-tv{min-height:100vh;background:#061426;color:#f5faff;padding:2vw}.tourneo-tv-shell{max-width:1800px;margin:auto}.tourneo-tv-heading{display:flex;align-items:center;gap:24px;justify-content:space-between;flex-wrap:wrap}.tourneo-tv-heading h1{font-size:clamp(24px,3vw,54px);overflow-wrap:anywhere;flex:1}.tourneo-tv-heading>strong{color:#58e7dc}.tourneo-tv button,.tourneo-tv-open{min-height:44px;padding:12px 18px;border:1px solid #50708e;border-radius:12px;background:#113047;color:white;font:inherit}.tourneo-tv-open{display:inline-block;margin:8px 0 20px;text-decoration:none}.tourneo-tv-board{background:#0b2135;color:#f5faff;padding:clamp(12px,2vw,32px);border-radius:20px;overflow-wrap:anywhere}.tourneo-tv-board h2{font-size:clamp(22px,2.5vw,44px);margin:12px 0}.tourneo-tv-matches{display:grid;gap:12px}.tourneo-tv-matches article{padding:14px 18px;border:1px solid #3e5c77;border-radius:12px}.tourneo-tv-matches article>div{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:20px;font-size:clamp(20px,2.3vw,42px);font-weight:650}.tourneo-tv-matches article>div>span:last-child{text-align:right}.tourneo-tv-matches small{font-size:clamp(14px,1.2vw,24px);color:#b8d8eb}.tourneo-tv-matches strong{color:#65efde}.tourneo-tv-board footer{display:flex;gap:15px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:20px;font-size:16px}.tourneo-tv-board footer button{margin:4px}.tourneo-tv-annonce,.tourneo-tv-call{padding:24px;margin:12px 0;background:#164656;border:2px solid #61e7d3;border-radius:14px;font-size:clamp(22px,2.3vw,42px)}.tourneo-tv-warning{padding:18px;background:#654608;color:#fff4c7;font-size:18px}.tourneo-tv-ranking article{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:16px;padding:20px 12px;border-bottom:1px solid #41647e;font-size:clamp(22px,2.4vw,44px)}#securite-compte details{padding:16px 0;border-top:1px solid #3f5770}#securite-compte summary{cursor:pointer;min-height:44px;font-weight:650}#securite-compte button{min-height:44px}#securite-compte input{box-sizing:border-box;width:100%;min-width:0}
+@media(max-width:600px){.tourneo-tv-matches article>div{gap:8px;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.tourneo-tv-ranking article{grid-template-columns:32px minmax(0,1fr) auto;gap:8px}.tourneo-tv-heading{gap:10px}.tourneo-tv-annonce,.tourneo-tv-call{padding:14px}}
+.tourneo-logo-guide{border:1px solid #36576d;border-left:4px solid #4ee2d4;background:#102b3d;border-radius:12px;padding:14px 16px;margin:12px 0;color:#d8e9f4;font-size:14px;line-height:1.6}.tourneo-logo-guide strong{color:#79eee0}.tourneo-logo-guide p{margin:8px 0}.tourneo-logo-guide small{display:block;font-size:13px;color:#bed3e0}
+body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
+
+/* Lecture cohérente : hiérarchie commune sur les écrans de gestion, sans modifier les documents imprimés. */
+@media screen{
+ main:has(.tourneo-top-nav),.v2-page{font-size:16px;line-height:1.55}
+ main:has(.tourneo-top-nav) :is(h1,h2,h3),.v2-page :is(h1,h2,h3){line-height:1.25;letter-spacing:-.025em}
+ main:has(.tourneo-top-nav) h1{font-size:clamp(30px,4vw,44px)!important}
+ main:has(.tourneo-top-nav) h2,.v2-card h2{font-size:24px;font-weight:750}
+ main:has(.tourneo-top-nav) h3,.v2-card h3{font-size:19px;font-weight:700}
+ main:has(.tourneo-top-nav) :is(label,summary,small),.v2-settings label{font-size:14px;line-height:1.5}
+ main:has(.tourneo-top-nav) button:not(.tourneo-language-trigger):not(.tourneo-language-list button){font-size:15px;min-height:44px}
+ .tourneo-tool-note,.tourneo-field-help,.tourneo-section-heading p{font-size:14px;line-height:1.6;color:#b9ccdd}
+ .tourneo-top-nav{margin-bottom:20px;padding:18px 22px!important;border-radius:18px!important}
+ .tourneo-nav-heading{gap:16px!important}.tourneo-brand-link img{width:64px!important;height:64px!important;object-fit:contain}
+ .tourneo-navigation-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px!important;padding-top:12px!important}
+ .tourneo-navigation-row .tourneo-context-bar{margin:0;padding:0;border:0}
+ .tourneo-top-nav :is(.tourneo-desktop-nav a,.tourneo-desktop-more summary,.tourneo-espace-select,.tourneo-header-actions a,.tourneo-header-actions button){font-size:14px!important}
+ .tourneo-affiches-hub{grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px}
+ .tourneo-affiches-hub>a,.tourneo-affiches-hub>button{padding:22px;gap:8px;min-height:190px;box-shadow:none}
+ .tourneo-affiches-hub h3{font-size:20px}.tourneo-affiches-hub p{font-size:15px;line-height:1.6}.tourneo-affiches-hub strong{font-size:15px}
+}
+.tourneo-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px;padding:7px;background:#0a1b2c;border:1px solid #34516a;border-radius:16px;margin-bottom:22px;overflow:visible!important}
+.tourneo-tabs>button,.tourneo-other-views>summary{display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:#c4d5e4;cursor:pointer;font-size:15px;font-weight:650;line-height:1.4;text-align:center}
+.tourneo-tabs>button[aria-pressed=true]{background:#175777;color:white;box-shadow:inset 0 0 0 1px #4dd5dd66}
+.tourneo-other-views{position:relative;min-width:0}.tourneo-other-views>summary{list-style:none;gap:8px}.tourneo-other-views>summary::after{content:'⌄'}.tourneo-other-views[open]>summary{background:#183850;color:#fff}
+.tourneo-other-views>div{position:absolute;right:0;top:calc(100% + 10px);z-index:45;display:grid;min-width:230px;padding:8px;border:1px solid #52718b;background:#0c2438;border-radius:14px;box-shadow:0 14px 35px #0006}
+.tourneo-other-views button{text-align:left;padding:12px;border:0;border-radius:8px;background:transparent;color:#e2eef7;font:inherit;min-height:44px}.tourneo-other-views button:hover,.tourneo-other-views button[aria-pressed=true]{background:#21516b}
+.tourneo-tv-shortcut{background:#12627a!important;border:1px solid #59cddd!important;color:#fff!important;min-height:46px;font-weight:750}
+.tourneo-organisation-aides{border:1px solid #34516a;border-radius:14px;background:#0c2031;margin:0 0 22px;padding:0 18px}.tourneo-organisation-aides>summary{min-height:54px;display:flex;align-items:center;gap:10px;color:#d8e9f5;font-weight:650;cursor:pointer}.tourneo-organisation-aides>summary::before{content:'▸';color:#63d9d9}.tourneo-organisation-aides[open]>summary::before{content:'▾'}.tourneo-organisation-aides>p{font-size:15px;color:#b4cada;margin:0 0 18px}.tourneo-organisation-aides>*:not(summary){margin-bottom:18px}
+@media(max-width:650px){.tourneo-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tourneo-tabs>button{min-width:0!important}.tourneo-top-nav{padding:14px!important}.tourneo-nav-heading{flex-wrap:wrap}.tourneo-nav-heading .tourneo-header-actions{gap:6px}.tourneo-navigation-row{gap:10px}.tourneo-affiches-hub{grid-template-columns:1fr}.tourneo-other-views>div{max-width:calc(100vw - 48px);min-width:210px}}
+@media screen{
+ main:has(.tourneo-top-nav) :is([style*="font-size: 10px"],[style*="font-size: 11px"],[style*="font-size: 12px"],[style*="font-size: 13px"]){font-size:14px!important;line-height:1.5}
+ .tourneo-inbox-label,.tourneo-account-menu>summary>span,.tourneo-account-panel :is(a,p,button),.tourneo-account-language{font-size:14px!important}
+ .tourneo-arena::before{opacity:.09!important}
+ .tourneo-arena :is(.v2-card,.v2-planning){background:#0d2234;border-color:#34516a;box-shadow:0 8px 22px #02091124}
+ .tourneo-progress-card{padding:14px 18px!important;box-shadow:none!important}
+}
+@media screen{main:has(.tourneo-top-nav),.v2-page{font-family:var(--font-geist-sans),system-ui,sans-serif!important}}
