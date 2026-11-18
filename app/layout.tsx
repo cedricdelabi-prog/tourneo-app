@@ -1,3 +1,4 @@
+import DemandeAvisTourneo from '@/components/DemandeAvisTourneo';
 import PiedLegalTourneo from '@/components/PiedLegalTourneo';
 import AlertesAndroidCompte from '@/components/AlertesAndroidCompte';
 import type { Metadata } from "next";
@@ -51,6 +52,7 @@ export default function RootLayout({
         <OfflineV2 />
         <LangueCompte /><AlertesAndroidCompte />
         {children}
+        <DemandeAvisTourneo />
         <PiedLegalTourneo />
       </body>
     </html>
