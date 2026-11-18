@@ -510,3 +510,5 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(3):last-child) .tourneo-phase-match,
 .tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(2):last-child) .tourneo-phase-match,
 .tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(1):last-child) .tourneo-phase-match{padding:18px 20px}
+
+.tourneo-tv-countdown{display:grid;justify-items:center;gap:12px;margin:28px auto;max-width:100%;text-align:center}.tourneo-tv-countdown small{font-size:clamp(20px,2.5vw,40px);font-weight:600}.tourneo-tv-countdown strong{font-size:clamp(50px,10vw,160px);line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:.03em}
