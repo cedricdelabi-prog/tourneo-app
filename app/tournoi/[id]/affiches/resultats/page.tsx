@@ -5,6 +5,7 @@ import {QRCodeSVG} from 'qrcode.react';
 import TourneoRetour from '@/components/TourneoRetour';
 import {supabase} from '@/lib/supabase';
 import {pagesPhases,type PagePhase} from '@/lib/affiche-phases';
+import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import {nomParticipant} from '@/lib/rotation';
 import {urlPubliqueTournoi} from '@/lib/url-publique';
 import {tr,trModele,useLangue,localeFormat} from '@/lib/langue';
@@ -17,7 +18,7 @@ export default function ResultatsPhases(){
   const a=await supabase.auth.getUser();if(!a.data.user)throw new Error('Connectez-vous pour créer une affiche.');
   const r=await supabase.from('tournois').select('nom,donnees').eq('id',id).eq('user_id',a.data.user.id).single();if(r.error||!r.data)throw new Error('Tournoi introuvable ou accès organisateur requis.');
   const p=await supabase.rpc('tourneo_public_v2',{p_id:id});if(!actif)return;
-  const t=r.data.donnees||{};setD({nom:r.data.nom,format:t.formatTournoi||'complet',equipes:t.equipes||[],matchs:t.matchs||[],valides:t.matchsValides||[]});setInstant(new Date().toISOString());
+  const t=r.data.donnees||{};setD({nom:r.data.nom,format:t.formatTournoi||'complet',equipes:t.equipes||[],matchs:t.matchs||[],valides:t.matchsValides||[]});setInstant(new Date().toISOString());setSponsors(normaliserIdentiteAffiche(t.optionsV2?.identiteAffiche).sponsors);
   if(!p.error&&(Array.isArray(p.data)?p.data.length>0:!!p.data))setLien(urlPubliqueTournoi(id));
   try{const ancien=JSON.parse(localStorage.getItem(`tourneo-affiche:${a.data.user.id}:${id}`)||'null');if(Array.isArray(ancien?.sponsors))setSponsors(ancien.sponsors.filter((v:unknown)=>typeof v==='string'&&v.length<=500000&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(v)).slice(0,6));}catch{}
  })().catch(()=>{if(actif)setErreur('Impossible de charger les résultats. Vérifiez votre connexion et votre accès au tournoi.');});return()=>{actif=false;};},[id]);
