@@ -35,7 +35,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  const ordre=[...matchs].sort((a,b)=>(planning.find(p=>p.matchId===a.id)?.debut??a.ordre??a.id)-(planning.find(p=>p.matchId===b.id)?.debut??b.ordre??b.id));
  const attendus=ordre.filter(m=>statutMatchTV(m,valides)==='À jouer'),appel=appelTV(matchs,valides,reglages.appel);
  const classement=tournoi?classementTournoi(tournoi.format,equipes,matchs.filter(m=>valides.includes(m.id)),tournoi.options):[];
- const slides=[...(reglages.afficherSponsors&&tournoi?.sponsors.length?[{type:'sponsors' as const}]:[]),...(reglages.message?[{type:'annonce' as const}]:[]),...(appel?[{type:'appel' as const}]:[]),...pagesTV(ordre,4).map(lignes=>({type:'matchs' as const,lignes})),...pagesTV(classement).map(lignes=>({type:'classement' as const,lignes}))];
+ const slides=[...(reglages.message?[{type:'annonce' as const}]:[]),...(appel?[{type:'appel' as const}]:[]),...pagesTV(ordre,4).map(lignes=>({type:'matchs' as const,lignes})),...pagesTV(classement).map(lignes=>({type:'classement' as const,lignes}))];
  const index=slides.length?page%slides.length:0,slide=slides[index];
  const nom=(m:Match,cote:1|2)=>nomParticipant(cote===1?m.equipe1Id:m.equipe2Id,equipes);
  async function pleinEcran(){try{await document.documentElement.requestFullscreen();setPleinEcranErreur('');}catch{setPleinEcranErreur('Utilisez F11 ou le mode plein écran de votre navigateur.');}}
@@ -57,5 +57,6 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  </>}
  <footer><span>{trModele('Page {0} / {1}',index+1,Math.max(1,slides.length))}</span><span>{tr('Dernière actualisation')} : {maj}</span>{!reglages.pause&&<div><button onClick={()=>setPage(p=>(p+Math.max(1,slides.length)-1)%Math.max(1,slides.length))}>{tr('Précédent')}</button><button onClick={()=>setPage(p=>p+1)}>{tr('Suivant')}</button></div>}</footer></section>}
  {!ecran&&<p><Link href={`/tournoi/${id}`}>{tr('Retour au tournoi')}</Link></p>}
+ {ecran&&reglages.afficherSponsors&&<aside className="tourneo-tv-sponsors-bottom" aria-label="Sponsors du tournoi"><strong>{tr('Nos partenaires')}</strong><div>{tournoi?.sponsors.length?tournoi.sponsors.map((src,i)=><img key={i} src={src} alt={`${tr('Sponsor')} ${i+1}`}/>):<span className="tourneo-tv-sponsors-empty">{tr('Espace partenaires')}</span>}</div></aside>}
  </div></main>;
 }
