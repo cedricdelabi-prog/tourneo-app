@@ -484,3 +484,14 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
  .tourneo-progress-card{padding:14px 18px!important;box-shadow:none!important}
 }
 @media screen{main:has(.tourneo-top-nav),.v2-page{font-family:var(--font-geist-sans),system-ui,sans-serif!important}}
+
+/* V2 — Lisibilité de la diffusion publique et des champs date/heure */
+.tourneo-tv-brand{display:flex;align-items:center;justify-content:center;min-width:100px}
+.tourneo-tv-brand img{display:block;max-width:clamp(90px,12vw,180px);max-height:85px;object-fit:contain}
+.tourneo-tv-annonce-full,.tourneo-tv-call-full{min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:clamp(16px,3vw,44px);padding:clamp(24px,5vw,90px)}
+.tourneo-tv-annonce-full h2,.tourneo-tv-call-full strong{font-size:clamp(24px,3vw,52px);line-height:1.15}
+.tourneo-tv-annonce-full p,.tourneo-tv-call-full h2{font-size:clamp(38px,5.5vw,110px);font-weight:800;line-height:1.14;overflow-wrap:anywhere;max-width:100%}
+.tourneo-date-heure{display:flex;flex-wrap:wrap;gap:12px;width:100%;min-width:0}
+.tourneo-date-heure>span{display:flex;flex:1 1 175px;min-width:0;flex-direction:column;gap:6px}
+.tourneo-date-heure input[type=date],.tourneo-date-heure input[type=time]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:46px;font-size:16px;padding:10px 12px;color:inherit;color-scheme:light dark}
+@media(max-width:420px){.tourneo-date-heure>span{flex-basis:100%}}
