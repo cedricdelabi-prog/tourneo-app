@@ -495,3 +495,18 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-date-heure>span{display:flex;flex:1 1 175px;min-width:0;flex-direction:column;gap:6px}
 .tourneo-date-heure input[type=date],.tourneo-date-heure input[type=time]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:46px;font-size:16px;padding:10px 12px;color:inherit;color-scheme:light dark}
 @media(max-width:420px){.tourneo-date-heure>span{flex-basis:100%}}
+
+/* V2 — affiches de résultats, pied de page discret et pages peu remplies */
+.tourneo-phase-footer-brand{display:flex!important;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tourneo-phase-footer-identity{display:flex;align-items:center;gap:9px}
+.tourneo-phase-footer-identity img{width:34px;height:34px;object-fit:contain}
+.tourneo-phase-footer-identity>span{display:grid;gap:2px}
+.tourneo-phase-footer-identity small{font-size:9px;color:#536c7e}
+.tourneo-phase-footer-qr{display:flex;align-items:center;gap:7px}
+.tourneo-phase-footer-qr small{font-size:9px;max-width:55px}
+.tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(1):last-child) .tourneo-phase-matches,
+.tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(2):last-child) .tourneo-phase-matches,
+.tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(3):last-child) .tourneo-phase-matches{grid-template-columns:minmax(0,1fr);max-width:660px;width:100%;margin:24px auto 0;gap:18px}
+.tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(3):last-child) .tourneo-phase-match,
+.tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(2):last-child) .tourneo-phase-match,
+.tourneo-phase-sheet:has(.tourneo-phase-match:nth-child(1):last-child) .tourneo-phase-match{padding:18px 20px}
