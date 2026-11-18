@@ -527,3 +527,21 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 
 /* Bandeau sponsors TV permanent sous les résultats, annonces et pauses */
 .tourneo-tv-sponsors-bottom{position:fixed;bottom:0;left:0;right:0;z-index:20;min-height:112px;background:#f8fafc;color:#12304b;border-top:3px solid #42d6c9;display:flex;align-items:center;gap:28px;padding:12px clamp(20px,4vw,64px);box-shadow:0 -8px 25px #0003}.tourneo-tv-sponsors-bottom>strong{font-size:clamp(14px,1.3vw,20px);white-space:nowrap}.tourneo-tv-sponsors-bottom>div{display:flex;align-items:center;justify-content:space-evenly;gap:20px;flex:1;min-width:0;flex-wrap:wrap}.tourneo-tv-sponsors-bottom img{max-width:min(180px,18vw);max-height:75px;object-fit:contain}.tourneo-tv-sponsors-empty{font-size:16px;color:#64748b}.tourneo-tv:has(.tourneo-tv-sponsors-bottom){padding-bottom:125px}@media(max-width:650px){.tourneo-tv-sponsors-bottom{min-height:85px;padding:8px 12px;gap:10px}.tourneo-tv-sponsors-bottom>strong{font-size:12px}.tourneo-tv-sponsors-bottom img{max-width:95px;max-height:52px}.tourneo-tv:has(.tourneo-tv-sponsors-bottom){padding-bottom:100px}}
+
+/* TV V2 : tableau de diffusion sans défilement, hauteur adaptée à l'écran. */
+@media screen {
+ body:has(.tourneo-tv){overflow:hidden!important}
+ .tourneo-tv{height:100dvh!important;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;padding:clamp(8px,1.5vh,20px)!important;box-sizing:border-box!important}
+ .tourneo-tv-shell{height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;gap:clamp(6px,1vh,14px)!important;overflow:hidden!important}
+ .tourneo-tv-heading{flex:0 0 auto!important;margin:0!important;padding:0!important}
+ .tourneo-tv-board{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;padding:clamp(10px,2vh,30px)!important;margin:0!important}
+ .tourneo-tv-board>h2{flex:0 0 auto!important;margin:0 0 1vh!important;font-size:clamp(22px,3.5vh,48px)!important}
+ .tourneo-tv-matches,.tourneo-tv-ranking{flex:1 1 auto!important;min-height:0!important;display:flex!important;flex-direction:column!important;justify-content:space-evenly!important;gap:clamp(4px,.8vh,14px)!important;overflow:hidden!important}
+ .tourneo-tv-matches article,.tourneo-tv-ranking article{min-height:0!important;flex:1 1 0!important;display:flex!important;flex-direction:column!important;justify-content:center!important;padding:clamp(6px,1.2vh,16px)!important}
+ .tourneo-tv-matches article>div{font-size:clamp(18px,3.3vh,44px)!important}
+ .tourneo-tv-board footer{flex:0 0 auto!important;margin-top:clamp(4px,1vh,12px)!important}
+ .tourneo-tv-annonce-full,.tourneo-tv-call-full,.tourneo-tv-annonce{min-height:0!important;flex:1 1 auto!important}
+ .tourneo-tv-sponsors-bottom{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;flex:0 0 auto!important;min-height:0!important;height:clamp(64px,12vh,115px)!important;padding:8px 18px!important}
+ .tourneo-tv:has(.tourneo-tv-sponsors-bottom){padding-bottom:clamp(8px,1.5vh,20px)!important}
+ .tourneo-tv-sponsors-bottom img{max-height:clamp(40px,8vh,85px)!important}
+}
