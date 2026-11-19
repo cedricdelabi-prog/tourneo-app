@@ -81,3 +81,11 @@
 - Quand il n'y a aucune page de scores, classement, sponsors ou annonce, la TV affiche une page d'accueil plutôt qu'un écran noir.
 - Cette page conserve le nom et le logo du tournoi, rassure le public et indique que le planning est en préparation.
 - Aucun chiffre n'est inventé ; les rencontres apparaissent dès qu'elles sont enregistrées et diffusables.
+
+## Appels et annonces temporisés
+- Durée réglable d'une annonce : 15/30/60/120 secondes (défaut 30).
+- Durée réglable d'un appel : 30/60/90/120 secondes (défaut 90).
+- Message rapide ou appel en cours : lancement immédiat avec temps restant visible au poste de pilotage.
+- À expiration, les réglages TV sont nettoyés et le défilement reprend automatiquement, même après suspension de l'onglet.
+- Appel d'un match terminé : retour automatique à la diffusion; démarrer une pause interrompt les actions temporaires.
+- Options uniquement locales au profil navigateur, sans migration de base ni modification de V1.

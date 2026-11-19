@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV}=m.exports;
-assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
+const {actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV}=m.exports;
+assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
 assert.equal(normaliserTV({defilement:false}).defilement,false,'organizer may disable auto-scroll');
@@ -29,6 +29,17 @@ assert.equal(pageCouranteTV({...synchronise,debutDefilement:40000,pageManuelle:5
 
 assert.equal(normaliserTV({pause:true,repriseA:1730000000000}).pause,true);
 assert.equal(normaliserTV({message:'a'.repeat(200)}).message.length,180);
+assert.equal(normaliserTV({dureeAnnonce:60,dureeAppel:120}).dureeAnnonce,60);
+assert.equal(normaliserTV({dureeAnnonce:60,dureeAppel:120}).dureeAppel,120);
+assert.equal(normaliserTV({dureeAnnonce:999}).dureeAnnonce,30,'invalid announcement duration falls back');
+assert.equal(normaliserTV({dureeAppel:-100}).dureeAppel,90,'invalid call duration falls back');
+assert.equal(normaliserTV({annonceExpireA:123456,appelExpireA:123456}).appelExpireA,123456);
+assert.equal(normaliserTV({annonceExpireA:NaN}).annonceExpireA,null,'non-finite expiry rejected');
+assert.equal(actionTVExpiree(4999,5000),false,'temporary action stays until deadline');
+assert.equal(actionTVExpiree(5000,5000),true,'action ends at deadline');
+assert.equal(actionTVExpiree(9999,5000),true,'action ends after suspended tab resumes');
+assert.equal(actionTVExpiree(9999,null),false,'persistent banner is not timed');
+assert.equal(actionTVExpiree(9999,-1),false,'invalid deadline ignored');
 const liste=Array.from({length:35},(_,id)=>({id,equipe1Id:'a',equipe2Id:'b',journee:1,score1:'',score2:''}));
 assert.deepEqual(pagesTV(liste).flat(),liste,'every match remains visible, including last page');
 assert.equal(pagesTV(liste).at(-1).length,5);

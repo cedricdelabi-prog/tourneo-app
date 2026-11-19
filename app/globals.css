@@ -642,3 +642,7 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-welcome-slide h2{font-size:clamp(28px,5vw,64px);margin:0}
 .tourneo-tv-welcome-slide>strong{font-size:clamp(24px,4vw,56px);line-height:1.2;max-width:100%;overflow-wrap:anywhere}
 .tourneo-tv-welcome-slide>p{font-size:clamp(16px,2vw,28px);max-width:800px;line-height:1.45;opacity:.85}
+
+/* TV timed notifications remain visible to organizer, not over public scores. */
+.tourneo-tv-remaining{margin:4px 0 10px;font-size:14px;font-weight:650;color:#a5efdc;font-variant-numeric:tabular-nums}
+.tourneo-tv-active-call-timer{font-size:13px;color:#afd3d8;font-weight:500;white-space:normal}
