@@ -8,8 +8,8 @@ const read=n=>fs.readFileSync(path.join(__dirname,'../docs/sql',n),'utf8');
 const phase15=read('compatibilite_v1_v2_staging_PHASE15_EQUIPES_INSCRITES.sql');
 const phase16=read('compatibilite_v1_v2_staging_PHASE16_DISCUSSIONS.sql');
 const verify=read('verification_phase16_staging.sql');
-const PLAYER='10000000-0000-4000-8000-000000000003';
-const OUTSIDE='10000000-0000-4000-8000-000000000004';
+const PLAYER='10000001-0000-4000-8000-000000000003';
+const OUTSIDE='10000002-0000-4000-8000-000000000004';
 const IDS=['80000000-0000-4000-8000-000000000001','80000000-0000-4000-8000-000000000002',
 '80000000-0000-4000-8000-000000000003','80000000-0000-4000-8000-000000000004'];
 const esc=s=>s.replace(/'/g,"''");
