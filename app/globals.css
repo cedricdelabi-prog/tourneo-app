@@ -556,3 +556,5 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-page-controls button:focus-visible{outline:3px solid #0c8ca0;outline-offset:2px}
 .tourneo-tv-page-controls button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:600px){.tourneo-tv-page-controls button{flex:1 1 135px}}
+
+.tourneo-tv-pilot-status{padding:12px 14px;border:1px solid #b9d4de;border-radius:10px;background:#f3f9fc;color:#12304b;font-size:clamp(14px,1rem,17px);font-weight:650;line-height:1.5}
