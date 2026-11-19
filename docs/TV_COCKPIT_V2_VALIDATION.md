@@ -89,3 +89,9 @@
 - À expiration, les réglages TV sont nettoyés et le défilement reprend automatiquement, même après suspension de l'onglet.
 - Appel d'un match terminé : retour automatique à la diffusion; démarrer une pause interrompt les actions temporaires.
 - Options uniquement locales au profil navigateur, sans migration de base ni modification de V1.
+
+## Brouillon d'annonce (confidentialité de l'interface)
+- Le champ de préparation des annonces utilise `brouillonAnnonce` : taper une phrase ne l'affiche plus sur la TV.
+- Le bouton « Diffuser l'annonce maintenant » copie explicitement le brouillon vers le message public, avec son délai de disparition.
+- Lancer un appel interrompt l'annonce précédente et donne la priorité aux joueurs; le brouillon est conservé.
+- Compatibilité avec les anciens paramètres locaux : un message public antérieur peut être repris comme brouillon sans perdre sa saisie.

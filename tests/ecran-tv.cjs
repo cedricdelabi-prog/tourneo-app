@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
 const {actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV}=m.exports;
-assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
+assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',brouillonAnnonce:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
 assert.equal(normaliserTV({defilement:false}).defilement,false,'organizer may disable auto-scroll');
@@ -29,6 +29,9 @@ assert.equal(pageCouranteTV({...synchronise,debutDefilement:40000,pageManuelle:5
 
 assert.equal(normaliserTV({pause:true,repriseA:1730000000000}).pause,true);
 assert.equal(normaliserTV({message:'a'.repeat(200)}).message.length,180);
+assert.equal(normaliserTV({brouillonAnnonce:'b'.repeat(300)}).brouillonAnnonce.length,180,'draft is size bounded');
+assert.equal(normaliserTV({message:'legacy'}).brouillonAnnonce,'legacy','older saved announcements remain editable');
+assert.equal(normaliserTV({brouillonAnnonce:'draft',message:'live'}).message,'live','writing draft does not broadcast');
 assert.equal(normaliserTV({dureeAnnonce:60,dureeAppel:120}).dureeAnnonce,60);
 assert.equal(normaliserTV({dureeAnnonce:60,dureeAppel:120}).dureeAppel,120);
 assert.equal(normaliserTV({dureeAnnonce:999}).dureeAnnonce,30,'invalid announcement duration falls back');
