@@ -129,3 +129,11 @@ Le script refuse toute exécution sans validation explicite de la copie V1 resta
 **Phase 9** : `docs/sql/compatibilite_v1_v2_staging_PHASE9_OLYMPIADES.sql` prépare les olympiades et le suivi de révision des tournois. Le partage public des olympiades est limité aux noms d'équipes, épreuves validées et mesures, avec pseudonymisation des identifiants internes. Le wrapper public filtré garde l'accès au schéma privé fermé pour `anon` : l'ancienne migration V2 accordait cet accès, ce que le script de compatibilité évite. Test : `tests/migration-olympiades-v2.cjs`.
 
 Ces scripts exigent toujours une **copie V1 restaurée et confirmée sur un staging indépendant**, conservent les lignes historiques, refusent les migrations partielles et sont éprouvés sur une base locale fictive PGlite. Ils ne constituent pas une restauration des comptes réels, une validation mobile sur appareils réels ou une autorisation de déploiement. Les migrations additionnelles (photos, compte/admin, albums, notification externe, TV, pronostics et discussions) restent à ordonner et adapter.
+
+## Phase 10 — appels au match et modèles d'affiches personnels
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE10_APPELS_AFFICHES.sql` prépare les **appels internes des participants** (dans l'application et non des notifications push garanties sur un téléphone) ainsi que la **conservation de modèles d'affiches personnels**. Elle reprend les migrations V2 existantes avec leurs contrôles organisateur, anti-doublon, limite de fréquence, consentement aux alertes, RLS et protection des modèles. Les anciennes données de la V1 restent intactes.
+
+Le script exige une **copie V1 réellement restaurée**, une confirmation manuelle sur cette connexion, les neuf premières phases installées et la présence des anciens identifiants de partage. `tests/migration-appels-affiches-v2.cjs` simule les appels entre comptes et vérifie les interdictions anonymes et les modèles privés, sur une base PGlite fictive. `docs/sql/verification_phase10_staging.sql` permet le contrôle de la copie restaurée en lecture seule.
+
+Important : aucun appel réel n'a été envoyé et aucune photo ou affiche de production n'a été lue, créée ou modifiée. Les tests automatiques ne remplacent pas les essais sur une restauration authentique de la V1 ni la validation des clients existants avant la bascule.
