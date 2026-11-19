@@ -98,3 +98,14 @@ export function terminerActionsTV(reglages:ReglagesTV,maintenant:number,appelExi
  else {patch.pageManuelle=0;patch.defilement=true;patch.debutDefilement=maintenant;}
  return patch;
 }
+
+/** Only published settings travel to the authenticated remote display. */
+export function reglagesPourPilotageDistant(reglages:ReglagesTV):ReglagesTV{
+ return {...normaliserTV(reglages),brouillonAnnonce:''};
+}
+export function fusionnerPilotageDistant(distant:unknown,local:ReglagesTV):ReglagesTV{
+ return {...normaliserTV(distant),brouillonAnnonce:local.brouillonAnnonce};
+}
+export function synchroniserModificationDistant(patch:Partial<ReglagesTV>):boolean{
+ return Object.keys(patch).some(cle=>cle!=='brouillonAnnonce');
+}
