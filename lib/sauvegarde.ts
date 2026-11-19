@@ -59,8 +59,10 @@ export function lireSauvegarde(texte:string):SauvegardeTournoi{
    if(!brouillonSansPoules){
      if(!Array.isArray(d.poules)||d.poules.length<2||d.poules.length>128)throw new Error('Répartition des poules absente ou invalide.');
      poules=d.poules.map((p:PouleSauvegarde)=>{if(!p||typeof p.id!=='string'||typeof p.nom!=='string'||!Array.isArray(p.equipes)||p.equipes.some(e=>!ids.has(e.id)))throw new Error('Poule invalide.');return{id:p.id.slice(0,100),nom:p.nom.slice(0,100),terrain:typeof p.terrain==='string'?p.terrain.slice(0,100):'',equipes:p.equipes.map(e=>equipes.find(a=>a.id===e.id)!)};});
+     const repartis=poules.flatMap(p=>p.equipes.map(e=>e.id));
+     if(repartis.length!==equipes.length||new Set(repartis).size!==equipes.length)
+       throw new Error('Chaque participant doit appartenir à une seule poule.');
    }
-   const repartis=poules.flatMap(p=>p.equipes.map(e=>e.id));if(repartis.length!==equipes.length||new Set(repartis).size!==equipes.length)throw new Error('Chaque participant doit appartenir à une seule poule.');
  }
  const entier=(v:unknown,min:number,max:number,defaut:number)=>Number.isSafeInteger(v)&&typeof v==='number'&&v>=min&&v<=max?v:defaut;
  return{poules,version:2,nomTournoi:d.nomTournoi,sport:d.sport,formatTournoi:d.formatTournoi,equipes,matchs,
