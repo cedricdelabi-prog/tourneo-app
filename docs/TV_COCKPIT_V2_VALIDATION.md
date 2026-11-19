@@ -51,3 +51,13 @@
 - Réutilisation possible des modèles du profil, en copiant **uniquement** l'identité sans modifier discipline, nom ou résultats.
 - Les données restent dans `optionsV2.identiteAffiche` et sont sauvegardées avec la synchronisation métier habituelle.
 - Accès direct à ce réglage depuis le cockpit TV.
+
+## Lot : liaison second écran et dépannage
+- L'écran public publie toutes les cinq secondes un signal local minimal (heure du signal et de la dernière réception des données), sans données personnelles ni scores.
+- Le poste organisateur vérifie toutes les trois secondes la présence d'une ou plusieurs fenêtres TV du **même navigateur**.
+- Trois états : TV détectée et à jour, TV détectée mais sans réception récente, TV non détectée / signal trop ancien.
+- Bouton d'actualisation immédiate : recharge les données Supabase dans la fenêtre organisateur et les fenêtres TV associées; le polling automatique de 15 secondes reste disponible.
+- Après 45 secondes sans actualisation réussie, la TV montre une alerte et conserve le dernier tableau connu plutôt que de masquer les scores.
+- À la fermeture normale de la TV, son signal est nettoyé; après crash, le signal devient périmé en 15 secondes.
+- Échanges par `localStorage` strictement locaux au même navigateur/profil : **aucune fonction de télécommande à distance n'est revendiquée**.
+- Tests unitaires inclus : signal présent, absent, périmé, données périmées, plusieurs écrans, messages invalides et faible dérive horaire.

@@ -37,3 +37,19 @@ export function filtrerMatchsTV(matchs:readonly Match[],valides:readonly number[
  const attendu=filtre==='aJouer'?'À jouer':filtre==='aValider'?'À valider':'Validé';
  return matchs.filter(m=>statutMatchTV(m,valides)===attendu);
 }
+
+// A live TV reports a short-lived local heartbeat; no tournament data is disclosed here.
+export type SignalTV={vuA:number;donneesA:number};
+export type EtatConnexionTV='connecte'|'actualisationEnRetard'|'deconnecte';
+export function etatConnexionTV(signaux:readonly unknown[],maintenant:number):EtatConnexionTV{
+ if(!Number.isFinite(maintenant)||maintenant<0)return 'deconnecte';
+ let actif=false;
+ for(const signal of signaux){
+  if(!signal||typeof signal!=='object')continue;
+  const s=signal as Partial<SignalTV>;
+  if(typeof s.vuA!=='number'||!Number.isFinite(s.vuA)||s.vuA>maintenant+5000||maintenant-s.vuA>15000)continue;
+  actif=true;
+  if(typeof s.donneesA==='number'&&Number.isFinite(s.donneesA)&&s.donneesA<=maintenant+5000&&maintenant-s.donneesA<=45000)return 'connecte';
+ }
+ return actif?'actualisationEnRetard':'deconnecte';
+}

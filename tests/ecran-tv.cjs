@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV}=m.exports;
+const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -48,6 +48,16 @@ assert.equal(repriseSonoreDansDelai(20000,10000),true,'beep within ten seconds')
 assert.equal(repriseSonoreDansDelai(20001,10000),false,'no stale beep');
 assert.equal(repriseSonoreDansDelai(9999,10000),false,'no early beep');
 assert.equal(repriseSonoreDansDelai(20000,null),false,'no alert without return time');
+assert.equal(etatConnexionTV([],100000),'deconnecte','TV closed or not yet opened');
+assert.equal(etatConnexionTV([{vuA:100000,donneesA:100000}],100000),'connecte','recent data and heartbeat');
+assert.equal(etatConnexionTV([{vuA:88000,donneesA:100000}],100000),'connecte','heartbeat remains valid for fifteen seconds');
+assert.equal(etatConnexionTV([{vuA:84999,donneesA:100000}],100000),'deconnecte','stale TV heartbeat is disconnected');
+assert.equal(etatConnexionTV([{vuA:100000,donneesA:54999}],100000),'actualisationEnRetard','TV still open but data stale');
+assert.equal(etatConnexionTV([{vuA:100000,donneesA:0}],100000),'actualisationEnRetard','TV awaiting its first successful fetch');
+assert.equal(etatConnexionTV([{vuA:85000,donneesA:100000},{vuA:100000,donneesA:95000}],100000),'connecte','choose working TV among multiple windows');
+assert.equal(etatConnexionTV([null,{},'bad',{vuA:Infinity,donneesA:100000}],100000),'deconnecte','malformed local messages ignored');
+assert.equal(etatConnexionTV([{vuA:106000,donneesA:100000}],100000),'deconnecte','future timestamps rejected');
+assert.equal(etatConnexionTV([{vuA:104000,donneesA:104000}],100000),'connecte','minor clock drift tolerated');
 const a={exports:{}};
 new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/modeles-affiche.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,a,a.exports);
 const {normaliserIdentiteAffiche,copierIdentiteAffiche}=a.exports;

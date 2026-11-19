@@ -599,3 +599,14 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-identite-erreur{color:#ffb4b4}.tourneo-identite-note{opacity:.8;font-size:.9rem}
 @media(max-width:650px){.tourneo-identite-sponsors{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:410px){.tourneo-identite-sponsors{grid-template-columns:1fr}}
+
+/* Same-browser second screen heartbeat, connection warnings and manual refresh. */
+.tourneo-tv-signal{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;margin:12px 0;border:1px solid #60758b;border-radius:14px;background:#132539}
+.tourneo-tv-signal strong{font-size:1rem;line-height:1.4}
+.tourneo-tv-signal p{font-size:.9rem;line-height:1.45;opacity:.85;margin:5px 0 0}
+.tourneo-tv-signal-dot{flex:0 0 12px;width:12px;height:12px;border-radius:50%;margin-top:5px;background:#a5acba;box-shadow:0 0 0 3px #ffffff15}
+.tourneo-tv-signal[data-etat="connecte"] .tourneo-tv-signal-dot{background:#34d399}
+.tourneo-tv-signal[data-etat="actualisationEnRetard"] .tourneo-tv-signal-dot{background:#fbbf24}
+.tourneo-tv-refresh-button{display:inline-flex;justify-content:center;align-items:center;min-height:44px;padding:10px 16px;margin:0 0 16px;border-radius:11px;border:1px solid #6b849f;background:#183452;color:#fff;font-weight:650;cursor:pointer}
+.tourneo-tv-refresh-button:disabled{opacity:.5;cursor:not-allowed}
+.tourneo-tv-refresh-button:hover:not(:disabled){background:#244b6b}
