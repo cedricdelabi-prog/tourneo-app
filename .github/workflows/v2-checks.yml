@@ -56,6 +56,8 @@ jobs:
           NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED: 'false'
           NEXT_TELEMETRY_DISABLED: '1'
         run: npm run build
+      - name: Vérifier la syntaxe des tests navigateur
+        run: node --check tests/experience-browser.cjs && node --check tests/tv-multi-appareils-browser.cjs
       - name: Installer Chromium pour le parcours TV simulé
         run: npx playwright install chromium
       - name: Tester la télécommande et la TV dans deux navigateurs isolés

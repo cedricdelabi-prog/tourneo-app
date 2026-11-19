@@ -33,7 +33,11 @@ await page.screenshot({path:`tests/screenshots/conseiller-${width}.png`,fullPage
  await cockpit.getByRole('heading',{name:'Suivi du tournoi en direct'}).waitFor({timeout:30000});
  assert.equal(await cockpit.locator('.tourneo-cockpit-metrics>div').count(),4,'organizer match dashboard has four distinct status counters');
  assert.equal(await cockpit.getByRole('progressbar').getAttribute('aria-valuenow'),String(Math.round(100/matchs.length)),'validated match progress is calculated accurately');
- assert.match(await cockpit.getByRole('link',{name:'Piloter l’écran TV'}).getAttribute('href'),new RegExp('/tournoi/'+tid+'/tvawait incident.getByLabel('Autre retard (minutes)',{exact:true}).fill('15');await incident.getByLabel('Terrain 2',{exact:true}).check();await incident.getByRole('button',{name:'Comparer les plannings',exact:true}).click();await incident.getByRole('button',{name:'Confirmer le nouveau planning',exact:true}).waitFor();
+ assert.equal(await cockpit.getByRole('link',{name:'Piloter l’écran TV'}).getAttribute('href'),'/tournoi/'+tid+'/tv','TV link opens the right tournament');
+ await cockpit.getByRole('button',{name:'Gérer un imprévu'}).click();
+ const incident=page.locator('.tourneo-assistant').filter({hasText:'Gérer un imprévu'});
+ assert.equal(await incident.getAttribute('open'),'','cockpit opens the incident assistant');
+ await incident.getByLabel('Autre retard (minutes)',{exact:true}).fill('15');await incident.getByLabel('Terrain 2',{exact:true}).check();await incident.getByRole('button',{name:'Comparer les plannings',exact:true}).click();await incident.getByRole('button',{name:'Confirmer le nouveau planning',exact:true}).waitFor();
  assert.equal(await incident.locator('.tourneo-imprevus-metrics>div').count(),4,'four impact indicators are visible');
  const [comparatif]=await Promise.all([page.waitForEvent('download'),incident.getByRole('button',{name:'Télécharger le comparatif CSV',exact:true}).click()]);
  assert.equal(comparatif.suggestedFilename(),'tourneo-comparatif-planning.csv');
