@@ -9,6 +9,7 @@ $ancienWorkdir=$env:SUPABASE_WORKDIR
 $racine=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $global:MockTourneoRef='gjtxlzhfqcecyfciyllc'
 $global:MockAuthMissing=$false
+$global:MockEmptyAuthRows=$false
 $global:MockHistory=New-Object System.Collections.Generic.List[string]
 function global:Read-Host { param([string]$Prompt); return 'SAUVEGARDER' }
 function global:supabase {
@@ -30,12 +31,25 @@ function global:supabase {
         $content="-- Fictive, aucune donnee reelle." + [Environment]::NewLine
         if($sortie -like '*04-data-public.sql') {
             $content+='COPY public.profiles (id, display_name) FROM stdin;' + [Environment]::NewLine
+            $content+='10000000-0000-4000-8000-000000000001'+[char]9+'Alpha' + [Environment]::NewLine
+            $content+='10000000-0000-4000-8000-000000000002'+[char]9+'Bravo' + [Environment]::NewLine
+            $content+='\.' + [Environment]::NewLine
             $content+='COPY public.tournois (id, nom) FROM stdin;' + [Environment]::NewLine
+            $content+='20000000-0000-4000-8000-000000000001'+[char]9+'Tournoi fictif' + [Environment]::NewLine
+            $content+='\.' + [Environment]::NewLine
         }
         if($sortie -like '*05-data-auth.sql') {
             $content+='COPY auth.users (id, email) FROM stdin;' + [Environment]::NewLine
+            if(-not $global:MockEmptyAuthRows) {
+                $content+='10000000-0000-4000-8000-000000000001'+[char]9+'alpha@invalid.example' + [Environment]::NewLine
+                $content+='10000000-0000-4000-8000-000000000002'+[char]9+'bravo@invalid.example' + [Environment]::NewLine
+            }
+            $content+='\.' + [Environment]::NewLine
             if(-not $global:MockAuthMissing) {
                 $content+='COPY auth.identities (id, user_id) FROM stdin;' + [Environment]::NewLine
+                $content+='30000000-0000-4000-8000-000000000001'+[char]9+'10000000-0000-4000-8000-000000000001' + [Environment]::NewLine
+                $content+='30000000-0000-4000-8000-000000000002'+[char]9+'10000000-0000-4000-8000-000000000002' + [Environment]::NewLine
+                $content+='\.' + [Environment]::NewLine
             }
         }
         Set-Content -LiteralPath $sortie -Value $content
@@ -58,7 +72,16 @@ try {
     if(@($global:MockHistory | Where-Object {$_ -match '^db dump --linked'}).Count -ne 6){throw 'Six commandes dump uniquement.'}
     if(@($global:MockHistory | Where-Object {$_ -match 'db (reset|push)'}).Count -gt 0){throw 'Commande dangereuse.'}
 
-    $global:MockTourneoRef='kmjfmjhdnokkaiolxiin'
+        # L'archive doit aussi passer l'audit offline, sans lire ni envoyer de données.
+    $manifesteOK=@($exports | Where-Object {$_.Name -eq 'controle-hash.json'})[0]
+    & (Join-Path $racine 'scripts/verifier-archive-v1.ps1') -Dossier $manifesteOK.Directory.FullName
+    $archiveTamper=Join-Path $manifesteOK.Directory.FullName '04-data-public.sql'
+    Add-Content -LiteralPath $archiveTamper -Value '-- test de corruption fictif'
+    $refuse=$false
+    try { & (Join-Path $racine 'scripts/verifier-archive-v1.ps1') -Dossier $manifesteOK.Directory.FullName } catch {$refuse=$true}
+    if(-not $refuse){throw 'Archive falsifiee acceptee.'}
+
+$global:MockTourneoRef='kmjfmjhdnokkaiolxiin'
     $env:USERPROFILE=Join-Path $base 'profil-mauvais-lien'
     New-Item -ItemType Directory -Path $env:USERPROFILE -Force | Out-Null
     $avant=$global:MockHistory.Count
@@ -78,7 +101,15 @@ try {
     if(-not $refuse){throw 'Authentification incomplete acceptee.'}
     $hashes=@(Get-ChildItem -Path $env:USERPROFILE -Recurse -Filter 'controle-hash.json')
     if($hashes.Count -ne 0){throw 'Une archive incomplete a ete declaree valide.'}
-    Write-Host 'Sauvegarde V1 fictive : fichiers locaux, lien V2 intact, mauvaise cible et Auth incomplete refusees : OK'
+    # Des entetes COPY seules, sans lignes Auth, ne prouvent pas une sauvegarde.
+    $global:MockAuthMissing=$false
+    $global:MockEmptyAuthRows=$true
+    $env:USERPROFILE=Join-Path $base 'profil-auth-vide'
+    New-Item -ItemType Directory -Path $env:USERPROFILE -Force | Out-Null
+    $refuse=$false
+    try { & (Join-Path $racine 'scripts/sauvegarder-v1-prive.ps1') } catch {$refuse=$true}
+    if(-not $refuse){throw 'Archive Auth sans lignes acceptee.'}
+    Write-Host 'Sauvegarde V1 fictive : empreintes, lignes COPY, corruption et Auth vide refusees : OK'
 } finally {
     $env:USERPROFILE=$ancienProfile
     $env:SUPABASE_WORKDIR=$ancienWorkdir

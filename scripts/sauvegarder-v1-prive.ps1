@@ -90,6 +90,8 @@ foreach($operation in $operations) {
     commentaire='Archive brute : pas de restauration repetee, pas de preuve de migration'
     fichiers=$empreintes
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $dossier 'controle-hash.json') -Encoding UTF8
+# Avant d'annoncer l'archive, controler les empreintes ET la presence effective des lignes.
+& (Join-Path $PSScriptRoot 'verifier-archive-v1.ps1') -Dossier $dossier
 Write-Host "Archive creee : $dossier"
 Write-Warning 'Proteger et conserver cette archive dans un emplacement chiffre, puis realiser une restauration isolee.'
 Write-Warning "Ne JAMAIS executer 'supabase db reset --linked' ou une migration V2 sur la V1."

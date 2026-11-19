@@ -86,6 +86,7 @@ on:
       - 'lib/compatibilite-v1.ts'
       - 'tests/compatibilite-v1.cjs'
       - 'scripts/sauvegarder-v1-prive.ps1'
+      - 'scripts/verifier-archive-v1.ps1'
       - 'tests/sauvegarde-cli-v1.cjs'
       - 'tests/sauvegarde-cli-v1.ps1'
       - 'docs/SAUVEGARDE_V1_GRATUITE.md'
