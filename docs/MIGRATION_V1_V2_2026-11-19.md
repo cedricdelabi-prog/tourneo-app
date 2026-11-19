@@ -99,3 +99,11 @@ Le fichier `docs/sql/compatibilite_v1_v2_staging_PHASE4_NOTIFICATIONS.sql` prép
 Cette phase exige explicitement les phases 1 à 3 et une copie V1 restaurée et validée. Elle conserve les tables et valeurs historiques, refuse un partage manquant ou une réinstallation et ne touche pas au RPC de partage public. Les tests `tests/migration-notifications-v2.cjs` exécutent le véritable SQL sous PGlite avec des comptes fictifs, vérifient une notification d'arbitrage et la prise en compte du consentement. Les données de production n'ont pas été utilisées.
 
 La fonction de partage public et les migrations restantes (TV, photos, clubs, album, règlements, statistiques, etc.) doivent encore être intégrées dans un ordre vérifié, puis réessayées sur une véritable copie restaurée avant tout feu vert de production.
+
+## Phase 5 de partage V1/V2 : projection publique avec filtrage obligatoire
+
+Le script `docs/sql/compatibilite_v1_v2_staging_PHASE5_PARTAGES.sql` crée sur une copie V1 restaurée les deux nouveaux RPC de partage (ID de tournoi V1 ou ancien `partage_id`). Il réutilise la projection V2 qui masque les références internes des participants et applique obligatoirement le filtre `est_public=true` au RPC direct et au RPC de compatibilité.
+
+Le script conserve temporairement le RPC brut V1 `get_tourneo_public` pour ne pas casser les anciennes installations avant leur retrait contrôlé. **Cette ancienne fonction doit être désactivée uniquement après migration et retrait de tous les anciens clients**, selon `docs/sql/desactiver_rpc_v1_non_filtre_post_migration.sql`. L'installation phase 5 refuse un doublon de lien, un partage manquant, une étape précédente absente ou une exécution sans confirmation explicite du staging.
+
+Le vrai SQL est éprouvé par `tests/migration-partages-v2.cjs` sur PGlite avec comptes et tournois fictifs : les deux formats de liens, le refus des tournois privés, le masquage du JSON interne et les privilèges anonymes. Ces contrôles ne valident ni une restauration réelle ni la mise en service sur le site public.
