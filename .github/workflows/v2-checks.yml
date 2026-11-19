@@ -57,6 +57,12 @@ on:
       - 'docs/sql/compatibilite_v1_v2_staging_PHASE13_ALBUM_PARTAGE.sql'
       - 'docs/sql/verification_phase13_staging.sql'
       - 'tests/migration-album-partage-v2.cjs'
+      - 'supabase/functions/purge-photos-v2/index.js'
+      - 'supabase/functions/purge-photos-v2/config.mjs'
+      - 'supabase/functions/purge-photos-v2/purge.mjs'
+      - 'tests/purge-photos.cjs'
+      - 'tests/purge-boundary.cjs'
+      - 'docs/PURGE_V2_PASSAGE_PRODUCTION.md'
       - 'lib/imprevus-tournoi.ts'
       - 'lib/planning.ts'
       - 'lib/sauvegarde.ts'
@@ -106,6 +112,8 @@ jobs:
         run: npm test
       - name: Vérifier la procédure de sauvegarde gratuite V1
         run: node tests/sauvegarde-cli-v1.cjs
+      - name: Vérifier la purge et le ciblage du bon projet Supabase
+        run: npm run test:purge
       - name: Tester le vrai script de sauvegarde avec une fausse CLI PowerShell
         shell: pwsh
         run: ./tests/sauvegarde-cli-v1.ps1

@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const root=path.resolve(__dirname,'../supabase/functions/purge-photos-v2');
+(async()=>{
+ const {environnementPurgeValide:valid}=await import(pathToFileURL(path.join(root,'config.mjs')).href);
+ const testRef='kmjfmjhdnokkaiolxiin';
+ const prodRef='gjtxlzhfqcecyfciyllc';
+ assert.equal(valid('https://'+testRef+'.supabase.co',testRef),true);
+ assert.equal(valid('https://'+prodRef+'.supabase.co',prodRef),true);
+ assert.equal(valid('https://'+prodRef+'.supabase.co',testRef),false,'block purge cross-project');
+ assert.equal(valid('https://'+testRef+'.supabase.co',prodRef),false,'block prod credentials on test');
+ assert.equal(valid('https://'+prodRef+'.supabase.co.evil.invalid',prodRef),false,'reject lookalike host');
+ assert.equal(valid('http://'+prodRef+'.supabase.co',prodRef),false,'https required');
+ assert.equal(valid('https://'+prodRef+'.supabase.co/anything',prodRef),false);
+ assert.equal(valid('https://'+prodRef+'.supabase.co',''),false);
+ assert.equal(valid('https://'+prodRef+'.supabase.co','evil'),false);
+ assert.equal(valid(undefined,prodRef),false);
+ const edge=fs.readFileSync(path.join(root,'index.js'),'utf8');
+ assert.match(edge,/environnementPurgeValide\(url,ref\)/);
+ assert.match(edge,/TOURNEO_PURGE_PROJECT_REF/);
+ const old=fs.readFileSync(path.resolve(root,'../../migrations/20261112095634_tourneo_v2_purge_photos_horaire.sql'),'utf8');
+ assert.match(old,/kmjfmjhdnokkaiolxiin/,'old cron hardcodes V2 test; never copy it to production');
+ console.log('Purge Tourneo V2 : identité Supabase obligatoire, mauvais projet refusé, URL trompeuse bloquée : OK');
+})().catch(e=>{console.error(e);process.exitCode=1;});
