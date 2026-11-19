@@ -12,7 +12,7 @@ import {heureCreneau,planifierMatchs} from '@/lib/planning';
 import {appelTV,normaliserTV,pagesTV,statutMatchTV,TV_DEFAUT,type ReglagesTV} from '@/lib/ecran-tv';
 import {tr,trModele,useLangue,localeFormat} from '@/lib/langue';
 import type {Equipe,Match} from '@/types';
-type TournoiTV={nom:string;equipes:Equipe[];matchs:Match[];valides:number[];format:string;options:ReturnType<typeof normaliserOptionsV2>;sponsors:string[]};
+type TournoiTV={nom:string;equipes:Equipe[];matchs:Match[];valides:number[];format:string;options:ReturnType<typeof normaliserOptionsV2>;sponsors:string[];logo:string};
 export default function EcranTV({ecran=false}:{ecran?:boolean}){
  useLangue();const {id}=useParams<{id:string}>();
  const [tournoi,setTournoi]=useState<TournoiTV|null>(null),[erreur,setErreur]=useState(''),[maj,setMaj]=useState('');
@@ -24,7 +24,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
   const a=await supabase.auth.getUser();if(a.error||!a.data.user)throw Error('Connectez-vous avec le compte organisateur pour ouvrir cet écran.');
   const r=await supabase.from('tournois').select('nom,donnees').eq('id',id).eq('user_id',a.data.user.id).single();if(r.error||!r.data)throw Error('Impossible de charger ce tournoi. Vérifiez la connexion et le compte organisateur.');
   const d=typeof r.data.donnees==='string'?JSON.parse(r.data.donnees):r.data.donnees||{};
-  if(!actif)return;setTournoi({nom:r.data.nom,equipes:d.equipes||[],matchs:d.matchs||[],valides:d.matchsValides||[],format:d.formatTournoi||'complet',options:normaliserOptionsV2(d.optionsV2),sponsors:normaliserIdentiteAffiche(d.optionsV2?.identiteAffiche).sponsors});setErreur('');setMaj(new Date().toLocaleTimeString(localeFormat()));setCle(`tourneo-tv-v1:${a.data.user.id}:${id}`);
+  if(!actif)return;setTournoi({nom:r.data.nom,equipes:d.equipes||[],matchs:d.matchs||[],valides:d.matchsValides||[],format:d.formatTournoi||'complet',options:normaliserOptionsV2(d.optionsV2),sponsors:normaliserIdentiteAffiche(d.optionsV2?.identiteAffiche).sponsors,logo:normaliserIdentiteAffiche(d.optionsV2?.identiteAffiche).logo});setErreur('');setMaj(new Date().toLocaleTimeString(localeFormat()));setCle(`tourneo-tv-v1:${a.data.user.id}:${id}`);
  }catch(e){if(actif)setErreur(e instanceof Error?e.message:'Actualisation impossible.');}finally{enCours=false;}}
  void charger();const timer=setInterval(()=>void charger(),15000);return()=>{actif=false;clearInterval(timer);};},[id]);
  useEffect(()=>{if(!cle)return;function lire(){try{const v=normaliserTV(JSON.parse(localStorage.getItem(cle)||'null'));reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}lire();function changement(e:StorageEvent){if(e.key===cle)lire();}window.addEventListener('storage',changement);return()=>window.removeEventListener('storage',changement);},[cle]);
@@ -50,7 +50,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  <label className="v2-check"><input type="checkbox" checked={reglages.afficherSponsors} disabled={!cle} onChange={e=>modifier({afficherSponsors:e.target.checked})}/>{tr('Diffuser les sponsors sur la TV')}</label>
  <label>{tr('Reprise prévue (heure locale)')}<input type="datetime-local" value={reglages.repriseA?new Date(reglages.repriseA-new Date(reglages.repriseA).getTimezoneOffset()*60000).toISOString().slice(0,16):''} disabled={!cle} onChange={e=>modifier({repriseA:e.target.value?new Date(e.target.value).getTime():null})}/></label>
  <label>{tr('Appeler un match sur la TV')}<select value={appel?.id??''} disabled={!cle} onChange={e=>modifier({appel:e.target.value?Number(e.target.value):null})}><option value="">{tr('Aucun appel')}</option>{attendus.map(m=><option key={m.id} value={m.id}>#{m.id} · {nom(m,1)} / {nom(m,2)}</option>)}</select></label><p>{tr('Seul le match choisi ici est appelé. Les autres rencontres sont affichées comme prévues.')}</p></div></section>}
- {ecran&&<header className="tourneo-tv-heading"><span className="tourneo-tv-brand tourneo-tv-brand-logo" aria-label="Logo Tourneo"><img src="/tourneo-icon.png" alt="Logo Tourneo" width={88} height={88}/></span><h1>{tournoi?.nom||tr('Écran TV')}</h1><button onClick={()=>void pleinEcran()}>{tr('Plein écran')}</button></header>}
+ {ecran&&<header className="tourneo-tv-heading"><span className="tourneo-tv-brand tourneo-tv-brand-logo" aria-label="Logo Tourneo"><img src={tournoi?.logo||"/tourneo-icon.png"} alt={tournoi?.logo?tr("Logo du tournoi"):"Logo Tourneo"} width={88} height={88}/></span><h1>{tournoi?.nom||tr('Écran TV')}</h1><button onClick={()=>void pleinEcran()}>{tr('Plein écran')}</button></header>}
  {erreur&&<p className="tourneo-tv-warning" role="alert">{tr(erreur)} {tournoi&&tr('Les dernières données reçues restent affichées.')}</p>}{pleinEcranErreur&&<p role="status">{tr(pleinEcranErreur)}</p>}
  {!tournoi&&!erreur&&<p role="status">{tr('Chargement…')}</p>}
  {tournoi&&<section className="tourneo-tv-board">
