@@ -34,3 +34,11 @@
 2. Faire un `npm run build`, `npm run test:tv`, puis tester sur le projet V2.
 3. Vérifier: ouverture TV, connexion organisateur, affichage et synchronisation des pages entre fenêtres, annonce, pause/reprise, tonalité, sponsors et logo, commandes mobiles.
 4. Traiter les problèmes constatés avant toute proposition de déploiement de production. Ne pas migrer les données V1 sans procédure d'accord explicite.
+
+## Lot suivant : vue opérationnelle et filtres de diffusion
+- Statistiques organisateur : total des rencontres, à jouer, à valider et validées.
+- Liste des quatre prochains matchs (terrain et créneau si planifiés).
+- Sélection des pages de matchs et de classement; filtre de matchs `tous / à jouer / à valider / validés`.
+- Les filtres TV n'altèrent ni les scores ni les données métier du tournoi.
+- Tests unitaires ajoutés pour les comptes, les filtres et la compatibilité des anciens réglages.
+- **À vérifier au prochain déploiement** : pages vides, filtres, défilement, affichage mobile et pertinence des créneaux selon le format sportif.

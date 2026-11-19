@@ -569,3 +569,17 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 /* TV organizer: separate sections without adding heavy cards or visual clutter. */
 .v2-page .tourneo-tv-settings-heading{margin:22px 0 3px;padding:0 0 9px;border-bottom:1px solid #4c657f;font-size:clamp(17px,1.3rem,22px);font-weight:750;line-height:1.25;color:#f1f6ff}
 .v2-page .v2-form>.tourneo-tv-settings-heading:first-child{margin-top:6px}
+
+/* TV V2: match selection and readable organizer dashboard. */
+.tourneo-tv-filter-settings{min-width:0;display:grid;gap:12px;margin:0;padding:14px;border:1px solid #506683;border-radius:12px}
+.tourneo-tv-filter-settings legend{padding:0 8px;font-weight:700}
+.tourneo-tv-dashboard{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}
+.tourneo-tv-dashboard article{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;padding:16px 8px;border:1px solid #536783;border-radius:12px;background:#102339;text-align:center}
+.tourneo-tv-dashboard strong{font-size:clamp(24px,3vw,34px);line-height:1.15;font-variant-numeric:tabular-nums;color:#fff}
+.tourneo-tv-dashboard span{font-size:13px;color:#b5c8dd;line-height:1.35;margin-top:6px}
+.tourneo-tv-next h3{font-size:17px;margin:8px 0 10px}
+.tourneo-tv-next ol{margin:0;padding-left:28px}
+.tourneo-tv-next li{padding:10px 0;border-bottom:1px solid #536783}
+.tourneo-tv-next li span{display:block;font-weight:650;overflow-wrap:anywhere}
+.tourneo-tv-next li small{display:block;color:#a9bcd2;margin-top:4px}
+@media(max-width:620px){.tourneo-tv-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.tourneo-tv-dashboard article{padding:12px 6px}}
