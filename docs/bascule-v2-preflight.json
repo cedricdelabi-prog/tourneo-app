@@ -4,7 +4,7 @@
   "sourceProduction": "gjtxlzhfqcecyfciyllc",
   "cibleDeMigration": "gjtxlzhfqcecyfciyllc",
   "baseEssaisIndependante": "kmjfmjhdnokkaiolxiin",
-  "branchePreparation": "release-v2-preparation-2026-11-19",
+  "branchePreparation": "tourneo-v2-dev",
   "inventaireV1": {
     "comptes": 59,
     "profils": 59,
@@ -20,12 +20,15 @@
   "inventaireEssais": {
     "comptes": 2,
     "profils": 1,
-    "tournois": 0
+    "tournois": 0,
+    "comptesSansProfil": 1,
+    "identitesAuth": 2,
+    "objetsStorage": 1
   },
   "preuves": {
     "inventaireProductionActualise": {
       "statut": "a_faire",
-      "preuve": ""
+      "preuve": "Lecture seule le 2026-11-19 : 59 comptes, 59 profils, 60 identités Auth, 24 tournois, 24 liens sans anomalie. Manque le rapprochement avec une sauvegarde réelle restaurable : statut toujours a_faire."
     },
     "sauvegardeRestaurableComplete": {
       "statut": "a_faire",
@@ -49,7 +52,7 @@
     },
     "droitsRlsEtFonctionsVerifies": {
       "statut": "a_faire",
-      "preuve": ""
+      "preuve": "V1 inspection metadata 2026-11-19 : ancienne RPC get_tourneo_public SECURITY DEFINER accessible à anon, renvoyant donnees JSON sans filtre est_public. La sécurisation reste impérative sur une copie puis à la bascule, SANS couper la V1 actuelle."
     },
     "parcoursTournoiEtTvReelsVerifies": {
       "statut": "a_faire",
@@ -68,5 +71,47 @@
       "preuve": ""
     }
   },
-  "notes": "Mesure V1 du 19/11/2026 : 59 comptes, 59 profils, 60 identités Auth et 24 tournois. Le premier inventaire comptait 25 tournois ; ne jamais supposer que ces chiffres resteront stables. Avant toute bascule, refaire l'inventaire et contrôler sa cohérence avec la sauvegarde."
+  "notes": "Mesure V1 du 19/11/2026 : 59 comptes, 59 profils, 60 identités Auth et 24 tournois. Le premier inventaire comptait 25 tournois ; ne jamais supposer que ces chiffres resteront stables. Avant toute bascule, refaire l'inventaire et contrôler sa cohérence avec la sauvegarde.",
+  "controleLectureSeule": {
+    "date": "2026-11-19",
+    "type": "SQL SELECT uniquement sur production et test ; aucune écriture ni export de comptes",
+    "requete": "docs/sql/preflight_v1_v2.sql",
+    "production": {
+      "comptes": 59,
+      "identitesAuth": 60,
+      "profils": 59,
+      "tournois": 24,
+      "tournoisPublics": 24,
+      "identifiantsPartage": 24,
+      "objetsStorage": 0,
+      "tournoisOrphelins": 0,
+      "profilsOrphelins": 0,
+      "comptesSansProfil": 0,
+      "liensManquants": 0,
+      "liensDupliques": 0,
+      "donneesJsonMalformees": 0,
+      "equipesJsonMalformees": 0,
+      "matchsJsonMalformes": 0,
+      "nomsTournoisIncompatibles": 0,
+      "nomsProfilsIncompatibles": 0
+    },
+    "essaiV2": {
+      "comptes": 2,
+      "profils": 1,
+      "identitesAuth": 2,
+      "comptesSansProfil": 1,
+      "tournois": 0,
+      "objetsStorage": 1
+    },
+    "partageV1": {
+      "fonction": "public.get_tourneo_public(uuid)",
+      "accessibleAnonyme": true,
+      "fonctionSecurityDefiner": true,
+      "filtreEstPublic": false,
+      "projectionDonneesJsonBrutes": true,
+      "tournoisPrivesActuellement": 0,
+      "consigne": "NE PAS changer cette RPC sur la V1 active. Préparer un remplacement compatible sur une copie restaurée, tester les anciens liens et retirer l'accès brut uniquement lors de la bascule validée."
+    },
+    "conclusion": "Inventaire réel cohérent, mais ni sauvegarde, ni rapprochement de la sauvegarde, ni restauration indépendante réalisés. Le préflight reste BLOQUÉ."
+  }
 }
