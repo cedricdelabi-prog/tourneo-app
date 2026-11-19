@@ -583,3 +583,19 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-next li span{display:block;font-weight:650;overflow-wrap:anywhere}
 .tourneo-tv-next li small{display:block;color:#a9bcd2;margin-top:4px}
 @media(max-width:620px){.tourneo-tv-dashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.tourneo-tv-dashboard article{padding:12px 6px}}
+
+/* Central tournament branding editor: reusable on TV and published materials. */
+.tourneo-identite-tournoi{margin:14px 0 24px;min-width:0}
+.tourneo-identite-fieldset{display:grid;gap:16px;border:0;padding:0;min-width:0}
+.tourneo-identite-fieldset label{display:grid;gap:8px;max-width:720px}
+.tourneo-identite-fieldset textarea,.tourneo-identite-fieldset input[type=file]{max-width:100%;min-width:0}
+.tourneo-identite-logo{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.tourneo-identite-logo img{width:112px;height:112px;object-fit:contain;background:white;padding:8px;border-radius:12px;box-sizing:border-box}
+.tourneo-identite-sponsors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tourneo-identite-sponsor{min-width:0;display:grid;gap:10px;padding:10px;border:1px solid #506683;border-radius:12px}
+.tourneo-identite-sponsor img{width:100%;height:110px;object-fit:contain;background:#fff;border-radius:8px;padding:8px;box-sizing:border-box}
+.tourneo-identite-sponsor>div{display:flex;flex-wrap:wrap;gap:7px}
+.tourneo-identite-sponsor button{min-width:40px;min-height:40px}
+.tourneo-identite-erreur{color:#ffb4b4}.tourneo-identite-note{opacity:.8;font-size:.9rem}
+@media(max-width:650px){.tourneo-identite-sponsors{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:410px){.tourneo-identite-sponsors{grid-template-columns:1fr}}

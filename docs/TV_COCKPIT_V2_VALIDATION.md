@@ -44,3 +44,10 @@
 - Trois annonces rapides (buvette, remise des prix, reprise des matchs) et retour en un clic au défilement, avec texte personnalisable ensuite.
 - Tests unitaires ajoutés pour les comptes, les filtres et la compatibilité des anciens réglages.
 - **À vérifier au prochain déploiement** : pages vides, filtres, défilement, affichage mobile et pertinence des créneaux selon le format sportif.
+
+## Configuration des logos après la création
+- Un éditeur de l'identité visuelle apparaît dans Communication pour les tournois existants.
+- Logo, ordre et suppression des six sponsors, message pour l'affiche; fichiers contrôlés et normalisés.
+- Réutilisation possible des modèles du profil, en copiant **uniquement** l'identité sans modifier discipline, nom ou résultats.
+- Les données restent dans `optionsV2.identiteAffiche` et sont sauvegardées avec la synchronisation métier habituelle.
+- Accès direct à ce réglage depuis le cockpit TV.

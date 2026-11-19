@@ -19,6 +19,7 @@ import AlbumTournoi from '@/components/AlbumTournoi';
 import {deconnecterTourneo} from "@/lib/push-client";
 import {tr,trModele,useLangue,localeFormat} from "@/lib/langue";
 import ModelesAffiche from '@/components/ModelesAffiche';
+import IdentiteVisuelleTournoi from '@/components/IdentiteVisuelleTournoi';
 import {copierIdentiteAffiche} from '@/lib/modeles-affiche';
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent } from "react";
@@ -2328,7 +2329,7 @@ ${lienPartage}`,
         </nav>
 
         {onglet === "discussions" && cree && tournoiId && <DiscussionsTournoi tournoiId={tournoiId}/>}
-        {onglet === "affiches" && cree && tournoiId && <AffichesTournoi id={tournoiId}/>}
+        {onglet === "affiches" && cree && tournoiId && <><IdentiteVisuelleTournoi valeur={optionsV2.identiteAffiche} onChanger={identite=>setOptionsV2(o=>({...o,identiteAffiche:copierIdentiteAffiche(identite)}))}/><details className="tourneo-optional-panel"><summary>{tr('Réutiliser un modèle de logos et sponsors')}</summary><ModelesAffiche onChoisir={modele=>setOptionsV2(o=>({...o,identiteAffiche:copierIdentiteAffiche(modele.identite)}))}/></details><AffichesTournoi id={tournoiId}/></>}
         {onglet === "matchs" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
         {onglet === "affiches" && cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
         {(onglet === "classement" || onglet === "affiches") && cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
