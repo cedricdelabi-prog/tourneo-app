@@ -143,3 +143,13 @@ Important : aucun appel réel n'a été envoyé et aucune photo ou affiche de pr
 `docs/sql/compatibilite_v1_v2_staging_PHASE11_JOUEURS.sql` ajoute à la copie V1 restaurée l'accès `tourneo_mes_participations` : un utilisateur connecté ne consulte que les rencontres où son profil participe. Le résultat transmet les adversaires, le terrain et les scores **validés**, pas le JSON historique complet ni les contacts privés. L'appel est interdit aux visiteurs anonymes. L'album photo est volontairement **exclu**, car ses règles de stockage, d'expiration et de partage nécessitent une phase de sécurité distincte.
 
 `tests/migration-joueurs-v2.cjs` reproduit les contrôles sur PGlite et des joueurs entièrement fictifs : refus anon, absence de JWT, accès aux seuls matchs du joueur, exclusion des autres rencontres et préservation des données V1. Il ne remplace pas un essai de restauration réelle. Le contrôle SQL agrégé en lecture seule est `docs/sql/verification_phase11_staging.sql`.
+
+## Phase 12 — album privé et conservation des photographies
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE12_ALBUM_PRIVE.sql` prépare le stockage privé, la table d'album du propriétaire, la limite de 200 photos, le refus d'accès anonyme et la conservation des photos : 15 jours pour un tournoi classique, 90 jours en mode expert après sa fin. Le script ne recrée pas les colonnes de conservation déjà présentes depuis la phase 1. Les règles Storage refusent aussi la création ou modification de fichiers sur un tournoi expiré.
+
+Un script distinct recense les objets à supprimer ; **la suppression physique doit obligatoirement passer par l'API Storage**, et non par un `DELETE` SQL. Le déclenchement et l'exploitation opérationnelle de la tâche de nettoyage (Edge Function / Cron) restent à vérifier sur un environnement réel avant publication.
+
+Le test `tests/migration-album-prive-v2.cjs` applique le vrai SQL sur PGlite avec des utilisateurs fictifs : droits du propriétaire, refus d'un autre utilisateur, expiration des fichiers, préparation de la purge, conservation des données V1 et refus d'exécution sur une mauvaise copie. `docs/sql/verification_phase12_staging.sql` produit les contrôles agrégés.
+
+**Aucun partage public d'album n'est activé à cette étape.** La publication volontaire de photos dérivées nécessite une phase de migration séparée, notamment pour éviter la consultation ou le référencement d'originaux privés.
