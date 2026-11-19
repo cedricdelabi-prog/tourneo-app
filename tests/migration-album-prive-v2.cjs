@@ -16,7 +16,7 @@ const pathOwner=OWNER+'/tournois/'+TOURNOI+'/album-'+ALBUM+'.jpg';
 async function preparer(){
  const db=await preparerPhase4();
  for(const s of stages)await db.exec(s);
- await db.exec('create role service_role nologin');
+ await db.exec('create role service_role nologin bypassrls'); // Supabase service_role contourne RLS, contrairement à anon/authenticated
  await db.exec('grant usage on schema storage to service_role');
  await db.exec('grant select on storage.objects to service_role');
  await db.exec('alter table storage.objects add column created_at timestamptz not null default now()');
