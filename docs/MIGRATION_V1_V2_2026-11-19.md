@@ -83,3 +83,11 @@ Nouveau relevé en lecture seule : **59 comptes, 59 profils, 60 identités Auth 
 ## Deuxième phase additive V1 → V2 — reprise de la branche de préparation
 
 Les fichiers `docs/sql/compatibilite_v1_v2_staging_PHASE2_SOCLE.sql` et `docs/sql/verification_socle_phase2_staging.sql` sont intégrés à la branche V2. Ils ajoutent `player_results`, un bucket privé `tourneo-media` et l'espace de fonctions privé **uniquement sur une copie restaurée de V1**, après la phase 1. Ils contrôlent le trigger de création de profil, les UUID des tournois et leurs anciens liens. Ils refusent une exécution sans un drapeau local de confirmation de staging et refusent de refaire aveuglément l'installation. Les tests `tests/migration-socle-v2.cjs` tournent sur des identités, scores et liens fictifs, sans toucher à Supabase V1 ni à la base V2 de test. **Ce n'est pas encore la migration complète** : les migrations applicatives suivantes doivent être adaptées aux tables V1 conservées avant toute bascule.
+
+## Phase 3 applicative : installations uniquement sur une copie restaurée
+
+Le fichier `docs/sql/compatibilite_v1_v2_staging_PHASE3_APPLICATIF.sql` reprend la création des six tables V2 d'inscriptions, événements et arbitrage, leurs fonctions métier et politiques RLS, tout en conservant les anciens comptes, profils, scores et URLs de partage. Son installation exige la phase 2, une copie V1 restaurée et un drapeau de confirmation défini manuellement sur cette connexion de staging. L'installation est transactionnelle et refuse une réinstallation ou un schéma partiel.
+
+Le script **exclut volontairement** `tourneo_public_v2` : cette fonction doit être adaptée et protégée par `est_public` avant activation des liens publics. Les nouveaux RPC liés aux inscriptions et arbitres sont encore à tester en conditions réelles sur une copie complète, puis sous les rôles anonymes et authentifiés.
+
+`tests/migration-applicatif-v2.cjs` valide cette phase sur des utilisateurs fictifs PGlite, et `docs/sql/verification_phase3_staging.sql` vérifie, en lecture seule, les protections des tables et des RPC. Ce n'est ni une sauvegarde, ni une autorisation d'installer la V2 sur la production, ni la fin des migrations : notifications, albums, TV et autres modules restent à adapter.
