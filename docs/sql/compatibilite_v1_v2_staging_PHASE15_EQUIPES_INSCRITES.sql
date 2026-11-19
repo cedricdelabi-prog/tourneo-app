@@ -37,7 +37,7 @@ revoke all on function tourneo_private.equipes_inscrites_marqueur() from public,
 -- Seul l'organisateur peut démarrer; chaque inscription acceptée doit figurer
 -- parmi les équipes, les profils individuels ou les membres d'équipe.
 create or replace function public.tourneo_demarrer(p_tournoi uuid, p_donnees jsonb, p_nom text, p_sport text)
-returns uuid language plpgsql security definer set search_path='' as $
+returns uuid language plpgsql security definer set search_path='' as $$
 declare t public.tournois;
 begin
   select * into t from public.tournois where id=p_tournoi for update;

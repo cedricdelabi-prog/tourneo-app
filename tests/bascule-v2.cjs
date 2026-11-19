@@ -133,6 +133,7 @@ assert.match(phase15,/tourneo\.v1_copy_verified/);
 assert.match(phase15,/membresOrigine/);
 assert.match(phase15,/type_participant='individuel'/);
 assert.match(phase15,/security definer set search_path=''/);
+assert.match(phase15,/security definer set search_path='' as \$\$\s*declare/,'PL/pgSQL dollar quoting must remain valid');
 assert.match(phase15,/tourneo_private\.equipes_inscrites_marqueur/);
 assert.doesNotMatch(phase15,/\bdrop\s+(?:table|column)\b/i);
 console.log('Tourneo V2 : lancement bloqué sans sauvegarde/restauration/accord, inventaire agrégé et protection production : OK');

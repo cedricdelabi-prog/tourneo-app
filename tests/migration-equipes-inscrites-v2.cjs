@@ -33,6 +33,7 @@ assert.match(phase15,/tourneo\.v1_copy_verified/);
 assert.match(phase15,/e->'membresOrigine'/);
 assert.match(phase15,/e->>'profilId'/);
 assert.match(phase15,/security definer set search_path=''/);
+assert.match(phase15,/security definer set search_path='' as \$\$\s*declare/,'PL/pgSQL dollar quoting must remain valid');
 assert.doesNotMatch(phase15,/\bdrop\s+(?:table|column)\b/i);
 (async()=>{
  const db=await preparer();
