@@ -91,3 +91,11 @@ Le fichier `docs/sql/compatibilite_v1_v2_staging_PHASE3_APPLICATIF.sql` reprend 
 Le script **exclut volontairement** `tourneo_public_v2` : cette fonction doit être adaptée et protégée par `est_public` avant activation des liens publics. Les nouveaux RPC liés aux inscriptions et arbitres sont encore à tester en conditions réelles sur une copie complète, puis sous les rôles anonymes et authentifiés.
 
 `tests/migration-applicatif-v2.cjs` valide cette phase sur des utilisateurs fictifs PGlite, et `docs/sql/verification_phase3_staging.sql` vérifie, en lecture seule, les protections des tables et des RPC. Ce n'est ni une sauvegarde, ni une autorisation d'installer la V2 sur la production, ni la fin des migrations : notifications, albums, TV et autres modules restent à adapter.
+
+## Phase 4 applicative : notifications et préférences sur staging
+
+Le fichier `docs/sql/compatibilite_v1_v2_staging_PHASE4_NOTIFICATIONS.sql` prépare trois autres tables V2 (`tourneo_preferences`, `tourneo_notifications`, `tourneo_evaluations`), les triggers d'alertes et de consentement, les contrôles de droits ainsi que les index et politiques de la phase 3.
+
+Cette phase exige explicitement les phases 1 à 3 et une copie V1 restaurée et validée. Elle conserve les tables et valeurs historiques, refuse un partage manquant ou une réinstallation et ne touche pas au RPC de partage public. Les tests `tests/migration-notifications-v2.cjs` exécutent le véritable SQL sous PGlite avec des comptes fictifs, vérifient une notification d'arbitrage et la prise en compte du consentement. Les données de production n'ont pas été utilisées.
+
+La fonction de partage public et les migrations restantes (TV, photos, clubs, album, règlements, statistiques, etc.) doivent encore être intégrées dans un ordre vérifié, puis réessayées sur une véritable copie restaurée avant tout feu vert de production.
