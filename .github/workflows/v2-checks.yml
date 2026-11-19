@@ -58,4 +58,5 @@ jobs:
       - name: Tester les scénarios d'imprévus en navigateur mobile
         env:
           TEST_WIDTHS: '390'
+          TEST_INCIDENT_ONLY: '1'
         run: node tests/experience-browser.cjs
