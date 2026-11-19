@@ -17,7 +17,10 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  useLangue();const {id}=useParams<{id:string}>();
  const [tournoi,setTournoi]=useState<TournoiTV|null>(null),[erreur,setErreur]=useState(''),[maj,setMaj]=useState('');
  const [cle,setCle]=useState(''),[reglages,setReglages]=useState<ReglagesTV>(TV_DEFAUT),[pleinEcranErreur,setPleinEcranErreur]=useState(''),[etatTV,setEtatTV]=useState<EtatConnexionTV>('deconnecte');
- const reglagesRef=useRef(reglages);const cleRef=useRef('');const derniereReceptionRef=useRef(0);const [maintenant,setMaintenant]=useState(0);const [sponsorIndex,setSponsorIndex]=useState(0);const sonReprise=useRef(false);const audioRef=useRef<AudioContext|null>(null);const [audioActif,setAudioActif]=useState(false);
+ const reglagesRef=useRef(reglages);const cleRef=useRef('');const derniereReceptionRef=useRef(0);
+ const revisionDistantRef=useRef(0),ecrituresDistantesRef=useRef(0),initialisationDistantRef=useRef(false);
+ const fileDistantRef=useRef<Promise<void>>(Promise.resolve());
+ const [etatDistant,setEtatDistant]=useState<'connexion'|'actif'|'indisponible'>('connexion');const [maintenant,setMaintenant]=useState(0);const [sponsorIndex,setSponsorIndex]=useState(0);const sonReprise=useRef(false);const audioRef=useRef<AudioContext|null>(null);const [audioActif,setAudioActif]=useState(false);
  useEffect(()=>{const actualiser=()=>setMaintenant(Date.now());actualiser();const timer=setInterval(actualiser,1000);return()=>clearInterval(timer);},[]);
  useEffect(()=>()=>{const contexte=audioRef.current;audioRef.current=null;if(contexte)void contexte.close().catch(()=>{});},[]);
  useEffect(()=>{if(!ecran||!reglages.afficherSponsors)return;const timer=setInterval(()=>setSponsorIndex(i=>i+1),8000);return()=>clearInterval(timer);},[ecran,reglages.afficherSponsors]);
@@ -60,7 +63,58 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
   try{localStorage.setItem(`${cle}:rafraichir`,String(Date.now()));}catch{/* Keep this window functional if local storage is full. */}
   window.dispatchEvent(new Event('tourneo-tv-rafraichir'));
  }
- function modifier(p:Partial<ReglagesTV>){if(!cle)return;const v=normaliserTV({...reglagesRef.current,...p});try{localStorage.setItem(cle,JSON.stringify(v));reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}
+ function modifier(p:Partial<ReglagesTV>){
+  if(!cle)return;
+  const v=normaliserTV({...reglagesRef.current,...p});
+  try{localStorage.setItem(cle,JSON.stringify(v));reglagesRef.current=v;setReglages(v);}
+  catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}
+  // Drafts stay on the organizer's device. Viewers never write remote commands.
+  if(ecran||!Object.keys(p).some(k=>k!=='brouillonAnnonce'))return;
+  ecrituresDistantesRef.current++;
+  fileDistantRef.current=fileDistantRef.current.catch(()=>{}).then(async()=>{
+   try{
+    const contenu={...reglagesRef.current,brouillonAnnonce:''};
+    const r=await supabase.from('tourneo_tv_pilotage').upsert({tournoi_id:id,reglages:contenu},{onConflict:'tournoi_id'}).select('revision').single();
+    if(r.error||!r.data)throw Error(r.error?.message||'Sauvegarde distante indisponible');
+    revisionDistantRef.current=Math.max(revisionDistantRef.current,Number(r.data.revision)||0);
+    setEtatDistant('actif');
+   }catch{setEtatDistant('indisponible');}
+   finally{ecrituresDistantesRef.current--;}
+  });
+ }
+ useEffect(()=>{if(!cle||!id)return;
+  let actif=true,enCours=false;
+  revisionDistantRef.current=0;initialisationDistantRef.current=false;setEtatDistant('connexion');
+  async function lirePilotage(){
+   if(enCours||ecrituresDistantesRef.current>0)return;enCours=true;
+   try{
+    const r=await supabase.from('tourneo_tv_pilotage').select('reglages,revision').eq('tournoi_id',id).maybeSingle();
+    if(!actif)return;
+    if(r.error)throw Error(r.error.message);
+    setEtatDistant('actif');
+    if(!r.data){
+     if(!ecran&&!initialisationDistantRef.current){
+      initialisationDistantRef.current=true;
+      modifier({debutDefilement:reglagesRef.current.debutDefilement||Date.now()});
+     }
+     return;
+    }
+    const revision=Number(r.data.revision)||0;
+    if(revision>revisionDistantRef.current&&ecrituresDistantesRef.current===0){
+     revisionDistantRef.current=revision;
+     const distant=normaliserTV(r.data.reglages);
+     const prochain={...distant,brouillonAnnonce:reglagesRef.current.brouillonAnnonce};
+     reglagesRef.current=prochain;setReglages(prochain);
+     try{localStorage.setItem(cle,JSON.stringify(prochain));}catch{/* Remote settings remain usable without local persistence. */}
+    }
+   }catch{if(actif)setEtatDistant('indisponible');}
+   finally{enCours=false;}
+  }
+  void lirePilotage();
+  const timer=setInterval(()=>void lirePilotage(),4000);
+  return()=>{actif=false;clearInterval(timer);};
+ },[cle,id,ecran]);
+
  // The 1-second countdown must not regenerate tournament planning and ranking.
  const donnees=useMemo(()=>{
   const matchs=tournoi?.matchs||[],valides=tournoi?.valides||[],equipes=tournoi?.equipes||[];
@@ -91,10 +145,11 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  <div className="tourneo-tv-signal" role="status" aria-live="polite" data-etat={etatTV}>
  <span className="tourneo-tv-signal-dot" aria-hidden="true"/>
  <div><strong>{etatTV==='connecte'?tr('Fenêtre TV active'):etatTV==='actualisationEnRetard'?tr('Fenêtre TV active · données à vérifier'):tr('Fenêtre TV non détectée')}</strong>
- <p>{etatTV==='connecte'?tr('La fenêtre de diffusion fonctionne dans ce navigateur. Le branchement physique HDMI n’est pas vérifié.'):etatTV==='actualisationEnRetard'?tr('La fenêtre est active, mais les données n’ont pas été actualisées récemment.'):tr('Ouvrez la fenêtre TV avec le même profil de navigateur pour établir la liaison.')}</p></div>
+ <p>{etatTV==='connecte'?tr('La fenêtre de diffusion fonctionne dans ce navigateur. Le branchement physique HDMI n’est pas vérifié.'):etatTV==='actualisationEnRetard'?tr('La fenêtre est active, mais les données n’ont pas été actualisées récemment.'):tr('Aucune fenêtre TV détectée sur ce navigateur. Une TV ouverte sur un autre appareil ne peut pas être détectée ici.')}</p></div>
  </div>
+ <p className="tourneo-tv-remote-status" role="status">{etatDistant==='actif'?tr('Pilotage à distance synchronisé avec votre compte organisateur.'):etatDistant==='connexion'?tr('Connexion au pilotage distant en cours…'):tr('Pilotage distant indisponible : la diffusion locale reste utilisable.')}</p>
  <button className="tourneo-tv-refresh-button" type="button" disabled={!cle} onClick={rafraichirEcrans}>{tr('Actualiser les écrans maintenant')}</button>
- <details><summary>{tr('Comment brancher le deuxième écran ?')}</summary><ol><li>{tr('Branchez la TV en HDMI et choisissez la bonne entrée sur la TV.')}</li><li>{tr('Sur Windows : appuyez sur Windows + P, puis choisissez Étendre. Sur Mac : Réglages Système → Moniteurs → utiliser comme écran étendu.')}</li><li>{tr('Ouvrez la fenêtre TV. Si elle apparaît en onglet, détachez cet onglet en le faisant glisser hors de Chrome.')}</li><li>{tr('Faites glisser la fenêtre vers la TV. Sur Windows, Windows + Maj + flèche gauche ou droite permet aussi de la déplacer.')}</li><li>{tr('Sur la TV, cliquez sur Plein écran. Gardez les commandes du tournoi sur votre PC.')}</li></ol><p>{tr('Utilisez le même profil Chrome pour les deux fenêtres. Ce mode pilote une TV reliée à ce PC ; il ne diffuse pas automatiquement vers une TV distante.')}</p></details>
+ <details><summary>{tr('Comment brancher le deuxième écran ?')}</summary><ol><li>{tr('Branchez la TV en HDMI et choisissez la bonne entrée sur la TV.')}</li><li>{tr('Sur Windows : appuyez sur Windows + P, puis choisissez Étendre. Sur Mac : Réglages Système → Moniteurs → utiliser comme écran étendu.')}</li><li>{tr('Ouvrez la fenêtre TV. Si elle apparaît en onglet, détachez cet onglet en le faisant glisser hors de Chrome.')}</li><li>{tr('Faites glisser la fenêtre vers la TV. Sur Windows, Windows + Maj + flèche gauche ou droite permet aussi de la déplacer.')}</li><li>{tr('Sur la TV, cliquez sur Plein écran. Gardez les commandes du tournoi sur votre PC.')}</li></ol><p>{tr('Le même profil Chrome fonctionne sans connexion distante. Pour une TV sur un autre appareil, ouvrez cette page avec votre propre compte organisateur : les commandes sont synchronisées par la base V2 lorsque le pilotage distant est disponible. Ne laissez pas votre compte connecté sur un appareil public.')}</p></details>
  <div className="v2-form"><details className="tourneo-tv-fold" open><summary>{tr('Diffusion et navigation')}</summary><div className="tourneo-tv-fold-body"><label>{tr('Temps par page')}<select value={reglages.secondes} disabled={!cle} onChange={e=>modifier({secondes:Number(e.target.value),pageManuelle:index,debutDefilement:Date.now()})}>{[10,15,20,30,45,60].map(n=><option key={n} value={n}>{n} s</option>)}</select></label><label className="v2-check"><input type="checkbox" checked={reglages.defilement} disabled={!cle} onChange={e=>modifier({defilement:e.target.checked,pageManuelle:index,debutDefilement:Date.now()})}/>{tr('Défilement automatique')}</label>
  <fieldset className="tourneo-tv-filter-settings"><legend>{tr('Pages à afficher au public')}</legend>
  <label className="v2-check"><input type="checkbox" checked={reglages.afficherMatchs} disabled={!cle} onChange={e=>modifier({afficherMatchs:e.target.checked,pageManuelle:0,debutDefilement:Date.now()})}/>{tr('Matchs et résultats')}</label>
@@ -148,6 +203,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  {appel&&<div className="tourneo-tv-active-call" role="status"><strong>{tr('Appel en cours')} : {nom(appel,1)} / {nom(appel,2)}{reglages.appelExpireA&&<small className="tourneo-tv-active-call-timer"> · {tr('Retour automatique dans')} {compteAReboursTV(maintenant,reglages.appelExpireA)||'--:--:--'}</small>}</strong><button type="button" disabled={!cle} onClick={()=>modifier(demarrerAppelTV(reglages,null,Date.now()))}>{tr('Terminer l’appel et reprendre la diffusion')}</button></div>}
  {attendus.length>0&&<div className="tourneo-tv-next"><h3>{tr('Prochains matchs à jouer')}</h3><ol>{attendus.slice(0,4).map(m=>{const c=planning.find(p=>p.matchId===m.id);return <li key={m.id}><span>{nom(m,1)} / {nom(m,2)}</span><small>#{m.id} · {tr('Terrain')} {c?.terrain??m.terrain??'—'}{c?` · ${heureCreneau(c.debut,tournoi?.options.depart||'')}`:''}</small><button type="button" disabled={!cle||reglages.pause} onClick={()=>modifier(demarrerAppelTV(reglages,m.id,Date.now()))}>{tr('Appeler sur la TV')}</button></li>;})}</ol></div>}</div></details></div></section>}
  {ecran&&<header className="tourneo-tv-heading"><span className="tourneo-tv-brand tourneo-tv-brand-logo" aria-label="Logo Tourneo"><img src={tournoi?.logo||"/tourneo-icon.png"} alt={tournoi?.logo?tr("Logo du tournoi"):"Logo Tourneo"} width={88} height={88}/></span><h1>{tournoi?.nom||tr('Écran TV')}</h1><button onClick={()=>void activerSon()}>{audioActif?tr('Tester le son'):tr('Activer le son de reprise')}</button><button onClick={()=>void pleinEcran()}>{tr('Plein écran')}</button></header>}
+ {ecran&&etatDistant==='indisponible'&&<p className="tourneo-tv-warning" role="status">{tr('Synchronisation distante indisponible : dernières commandes locales conservées.')}</p>}
  {ecran&&derniereReceptionRef.current>0&&maintenant-derniereReceptionRef.current>45000&&<p className="tourneo-tv-warning" role="alert">{tr('Connexion aux données interrompue : les derniers résultats reçus restent visibles. Vérifiez le réseau.')}</p>}
  {erreur&&<p className="tourneo-tv-warning" role="alert">{tr(erreur)} {tournoi&&tr('Les dernières données reçues restent affichées.')}</p>}{pleinEcranErreur&&<p role="status">{tr(pleinEcranErreur)}</p>}
  {!tournoi&&!erreur&&<p role="status">{tr('Chargement…')}</p>}
