@@ -34,6 +34,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Vérifier l'écran TV
         run: npm run test:tv
+      - name: Vérifier les retours de connexion sécurisés
+        run: node tests/pronostics.cjs
       - name: Compiler la V2 hors publication
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://kmjfmjhdnokkaiolxiin.supabase.co

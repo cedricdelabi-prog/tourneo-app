@@ -112,3 +112,8 @@
 - Le deuxième appareil doit se connecter au **même compte organisateur** : l'accès public sans authentification n'est pas proposé.
 - La mise à jour distante utilise une **capture immuable des réglages et de l'identifiant du tournoi** au moment de l'action : évite d'écrire par erreur les réglages du tournoi suivant dans le tournoi précédent pendant une navigation rapide.
 - Extraction testée des données publiques envoyées au serveur ; le brouillon privé n'est jamais transmis à la table de pilotage distant.
+
+## Connexion au second appareil
+- Un spectateur/organisateur non connecté qui ouvre le QR code du second écran reçoit un lien explicite pour se connecter.
+- Le retour après connexion accepte strictement `/tournoi/<uuid>/tv?ecran=1` ; les URLs externes, paramètres non autorisés et identifiants invalides restent rejetés.
+- Les tests de retour de connexion sont désormais lancés avec les tests TV dans le workflow GitHub V2.
