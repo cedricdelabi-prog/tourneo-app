@@ -55,6 +55,10 @@ assert.doesNotMatch(phase10,/create or replace function public\.tourneo_public_v
   await db.exec('begin');
   await db.exec('set local role anon');
   await assert.rejects(db.exec(api('false')),/permission|denied/i,'appel anonyme interdit');
+  // PostgreSQL annule la transaction après un refus de permission. Isoler le second test.
+  await db.exec('rollback').catch(()=>{});
+  await db.exec('begin');
+  await db.exec('set local role anon');
   await assert.rejects(db.exec('select * from public.tourneo_modeles_affiche'),/permission|denied/i,'modèles privés anonymes interdits');
   await db.exec('rollback').catch(()=>{});
 
