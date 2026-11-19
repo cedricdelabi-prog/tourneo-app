@@ -677,3 +677,9 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-remote-presence{display:flex;align-items:flex-start;gap:10px;margin:10px 0 14px;padding:12px 14px;border:1px solid #5c7187;border-radius:12px;background:#11263a;font-size:.9rem;line-height:1.5}
 .tourneo-tv-presence-dot{display:inline-block;flex:0 0 12px;width:12px;height:12px;margin-top:5px;border-radius:50%;background:#8f9ba8}
 .tourneo-tv-remote-presence[data-presence=active] .tourneo-tv-presence-dot{background:#34d399}
+
+/* Organizer acknowledgement: an unsent command must never be presented as synchronized. */
+.tourneo-tv-unsynced{border:1px solid #b9904a;border-radius:12px;padding:14px 16px;margin:10px 0 18px;background:#392b19;color:#ffe6b4}
+.tourneo-tv-unsynced strong{font-size:1rem}
+.tourneo-tv-unsynced p{margin:9px 0 12px;line-height:1.5}
+.tourneo-tv-unsynced button{min-height:44px;padding:10px 14px;border:1px solid #d9b776;border-radius:9px;background:#543b1b;color:#fff;font-weight:700;cursor:pointer}

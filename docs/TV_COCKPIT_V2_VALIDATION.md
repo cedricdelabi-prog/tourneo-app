@@ -141,3 +141,11 @@
 - Vérifie absence d'exception JS et absence de débordement horizontal.
 - Le navigateur ne se connecte **jamais** à un compte réel ni aux données V1; les appels vers la base V2 sont interceptés dans la session de test.
 - Le parcours fonctionne sans déploiement Vercel, mais reste un **test simulé**; l'essai avec deux appareils réels demeure nécessaire.
+
+## Lot : confirmation d'envoi et sécurité des écrans publics
+- À l'expiration d'un appel ou d'une annonce, une fenêtre **TV publique** met à jour uniquement son affichage local, sans écrire les commandes du poste organisateur dans `localStorage` ni dans la base distante.
+- Les commandes de l'organisateur sont écrites dans une file séquentielle. Lorsqu'une transmission échoue, les champs non envoyés sont conservés dans le navigateur, avec une alerte visible et un bouton `Réessayer l'envoi des commandes`.
+- Un rafraîchissement de page retrouve les commandes en attente, limitées aux clés autorisées, et **jamais les brouillons privés**.
+- En cas d'échec, la lecture distante ne remplace pas les commandes locales en attente. Un simple rafraîchissement des données ne suffit pas à masquer l'erreur d'envoi.
+- Les données du tournoi restent intactes ; seuls les réglages de diffusion sont concernés.
+- À confirmer en test navigateur : panne RPC, alerte, récupération, réessai manuel et réception sur second écran.

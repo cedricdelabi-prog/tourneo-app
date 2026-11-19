@@ -22,6 +22,8 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  const reglagesRef=useRef(reglages);const cleRef=useRef('');const derniereReceptionRef=useRef(0);
  const revisionDistantRef=useRef(0),ecrituresDistantesRef=useRef(0),initialisationDistantRef=useRef(false);
  const fileDistantRef=useRef<Promise<void>>(Promise.resolve());
+ const commandesManquantesRef=useRef<{tournoiId:string;patch:Partial<ReglagesTV>}|null>(null);
+ const [commandesNonEnvoyees,setCommandesNonEnvoyees]=useState(false);
  const [etatDistant,setEtatDistant]=useState<'connexion'|'actif'|'indisponible'>('connexion');const [maintenant,setMaintenant]=useState(0);const [sponsorIndex,setSponsorIndex]=useState(0);const sonReprise=useRef(false);const audioRef=useRef<AudioContext|null>(null);const [audioActif,setAudioActif]=useState(false);
  useEffect(()=>{const actualiser=()=>setMaintenant(Date.now());actualiser();const timer=setInterval(actualiser,1000);return()=>clearInterval(timer);},[]);
  useEffect(()=>{setUrlEcran(`${window.location.origin}/tournoi/${encodeURIComponent(id)}/tv?ecran=1`);},[id]);
@@ -42,6 +44,24 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  window.addEventListener('storage',actualiserAutreFenetre);
  return()=>{actif=false;clearInterval(timer);window.removeEventListener('tourneo-tv-rafraichir',actualiserMaintenant);window.removeEventListener('storage',actualiserAutreFenetre);};},[id]);
  useEffect(()=>{if(!cle)return;function lire(){try{const v=normaliserTV(JSON.parse(localStorage.getItem(cle)||'null'));if(!v.debutDefilement){v.debutDefilement=Date.now();localStorage.setItem(cle,JSON.stringify(v));}reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}lire();function changement(e:StorageEvent){if(e.key===cle)lire();}window.addEventListener('storage',changement);return()=>window.removeEventListener('storage',changement);},[cle]);
+ useEffect(()=>{if(!cle||ecran)return;
+  // A failed remote command survives a page reload but never includes drafts.
+  commandesManquantesRef.current=null;setCommandesNonEnvoyees(false);
+  try{
+   const brut=JSON.parse(localStorage.getItem(`${cle}:commandes-en-attente`)||'null');
+   if(!brut||typeof brut!=='object'||Array.isArray(brut))return;
+   const cles=Object.keys(TV_DEFAUT).filter(k=>k!=='brouillonAnnonce'&&Object.prototype.hasOwnProperty.call(brut,k));
+   if(!cles.length)return;
+   const normalises=normaliserTV({...reglagesRef.current,...brut}) as unknown as Record<string,unknown>;
+   const patch=Object.fromEntries(cles.map(k=>[k,normalises[k]])) as Partial<ReglagesTV>;
+   commandesManquantesRef.current={tournoiId:id,patch};setCommandesNonEnvoyees(true);
+  }catch{/* An invalid saved retry cannot affect the tournament. */}
+ },[cle,ecran,id]);
+ function relancerEnvoi(){
+  const commande=commandesManquantesRef.current;
+  if(!commande||commande.tournoiId!==id)return;
+  modifier(commande.patch);
+ }
  useEffect(()=>{if(!cle||!ecran)return;
   const instance=`${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const signalCle=`${cle}:signal:${instance}`;
@@ -78,17 +98,33 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
   catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}
   // Drafts stay on the organizer's device. Viewers never write remote commands.
   if(ecran||!synchroniserModificationDistant(p))return;
-  const valeurAEnvoyer=patchPourPilotageDistant(p,v);const tournoiCible=id;
+  const valeurAEnvoyer=patchPourPilotageDistant(p,v);
+  const tournoiCible=id,cleEcriture=cle;
   ecrituresDistantesRef.current++;
   fileDistantRef.current=fileDistantRef.current.catch(()=>{}).then(async()=>{
+   const dejaManquantes=commandesManquantesRef.current;
+   const valeurs={
+    ...(dejaManquantes?.tournoiId===tournoiCible?dejaManquantes.patch:{}),
+    ...valeurAEnvoyer
+   };
    try{
-    const r=await supabase.rpc('tv_pilotage_appliquer',{p_tournoi_id:tournoiCible,p_patch:valeurAEnvoyer});
+    const r=await supabase.rpc('tv_pilotage_appliquer',{p_tournoi_id:tournoiCible,p_patch:valeurs});
     const resultat=Array.isArray(r.data)?r.data[0]:null;
     if(r.error||!resultat)throw Error(r.error?.message||'Sauvegarde distante indisponible');
     revisionDistantRef.current=Math.max(revisionDistantRef.current,Number(resultat.nouvelle_revision)||0);
-    setEtatDistant('actif');
-   }catch{setEtatDistant('indisponible');}
-   finally{ecrituresDistantesRef.current--;}
+    if(commandesManquantesRef.current?.tournoiId===tournoiCible)commandesManquantesRef.current=null;
+    try{localStorage.removeItem(`${cleEcriture}:commandes-en-attente`);}catch{/* Local storage may be unavailable. */}
+    if(cleRef.current===cleEcriture){setCommandesNonEnvoyees(false);setEtatDistant('actif');}
+   }catch{
+    const precedentes=commandesManquantesRef.current;
+    const enAttente={
+     ...(precedentes?.tournoiId===tournoiCible?precedentes.patch:{}),
+     ...valeurs
+    };
+    commandesManquantesRef.current={tournoiId:tournoiCible,patch:enAttente};
+    try{localStorage.setItem(`${cleEcriture}:commandes-en-attente`,JSON.stringify(enAttente));}catch{/* This session can still retry manually. */}
+    if(cleRef.current===cleEcriture){setCommandesNonEnvoyees(true);setEtatDistant('indisponible');}
+   }finally{ecrituresDistantesRef.current--;}
   });
  }
  useEffect(()=>{if(!cle||!id)return;
@@ -100,7 +136,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
     const r=await supabase.from('tourneo_tv_pilotage').select('reglages,revision,derniere_tv_at').eq('tournoi_id',id).maybeSingle();
     if(!actif)return;
     if(r.error)throw Error(r.error.message);
-    setEtatDistant('actif');
+    setEtatDistant(commandesManquantesRef.current?.tournoiId===id?'indisponible':'actif');
     if(!r.data){
      setDerniereTVDistante(0);
      if(!ecran&&!initialisationDistantRef.current){
@@ -112,7 +148,8 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
     const dateSignal=r.data.derniere_tv_at?Date.parse(String(r.data.derniere_tv_at)):0;
     setDerniereTVDistante(Number.isFinite(dateSignal)?dateSignal:0);
     const revision=Number(r.data.revision)||0;
-    if(revision>revisionDistantRef.current&&ecrituresDistantesRef.current===0){
+    if(revision>revisionDistantRef.current&&ecrituresDistantesRef.current===0
+      &&(ecran||commandesManquantesRef.current?.tournoiId!==id)){
      revisionDistantRef.current=revision;
      const prochain=fusionnerPilotageDistant(r.data.reglages,reglagesRef.current);
      reglagesRef.current=prochain;setReglages(prochain);
@@ -160,8 +197,13 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  useEffect(()=>{
   if(!cle||!tournoi)return;
   const patch=terminerActionsTV(reglages,maintenant,!!appel);
-  if(patch)modifier(patch);
- },[cle,maintenant,tournoi,reglages,appel]);
+  if(!patch)return;
+  if(ecran){
+   // Public screens do not modify the organizer's saved commands, even on expiry.
+   const suivant=normaliserTV({...reglagesRef.current,...patch});
+   reglagesRef.current=suivant;setReglages(suivant);
+  }else modifier(patch);
+ },[cle,maintenant,tournoi,reglages,appel,ecran]);
  async function activerSon(){try{const contexte=audioRef.current??new AudioContext();audioRef.current=contexte;await contexte.resume();setAudioActif(contexte.state==='running');if(contexte.state==='running'){const osc=contexte.createOscillator();const gain=contexte.createGain();osc.frequency.value=660;gain.gain.value=.06;osc.connect(gain);gain.connect(contexte.destination);osc.start();osc.stop(contexte.currentTime+.15);setPleinEcranErreur('Son activé : une courte tonalité de test doit être audible.');}}catch{setAudioActif(false);setPleinEcranErreur('Le navigateur bloque le son. Vérifiez les autorisations audio.');}}
  async function pleinEcran(){try{await document.documentElement.requestFullscreen();setPleinEcranErreur('');}catch{setPleinEcranErreur('Utilisez F11 ou le mode plein écran de votre navigateur.');}}
  return <main className={ecran?'tourneo-tv':'v2-page'}>{!ecran&&<TourneoNav active="tournoi" backHref={`/tournoi/${id}`} backLabel="Retour au tournoi"/>}<div className={ecran?'tourneo-tv-shell':'v2-shell'}>
@@ -172,6 +214,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  <p>{etatTV==='connecte'?tr('La fenêtre de diffusion fonctionne dans ce navigateur. Le branchement physique HDMI n’est pas vérifié.'):etatTV==='actualisationEnRetard'?tr('La fenêtre est active, mais les données n’ont pas été actualisées récemment.'):tr('Aucune fenêtre TV détectée sur ce navigateur. Une TV ouverte sur un autre appareil ne peut pas être détectée ici.')}</p></div>
  </div>
  <p className="tourneo-tv-remote-status" role="status">{etatDistant==='actif'?tr('Pilotage à distance synchronisé avec votre compte organisateur.'):etatDistant==='connexion'?tr('Connexion au pilotage distant en cours…'):tr('Pilotage distant indisponible : la diffusion locale reste utilisable.')}</p>
+ {commandesNonEnvoyees&&<div className="tourneo-tv-unsynced" role="alert"><strong>{tr('Commande non transmise à la TV distante')}</strong><p>{tr('La modification reste disponible sur cet ordinateur mais n’a pas été confirmée sur les autres écrans. Ne fermez pas cette page avant d’avoir réessayé.')}</p><button type="button" onClick={relancerEnvoi}>{tr('Réessayer l’envoi des commandes')}</button></div>}
  <p className="tourneo-tv-remote-presence" data-presence={tvDistanteActive(maintenant,derniereTVDistante)?'active':'absente'} role="status"><span aria-hidden="true" className="tourneo-tv-presence-dot"/>{tvDistanteActive(maintenant,derniereTVDistante)?tr('Une TV connectée à votre compte transmet des signaux récents.'):tr('Aucun signal récent d’un écran TV connecté à votre compte.')} {tr('Cela ne confirme pas que l’écran physique affiche l’image.')}</p>
  <button className="tourneo-tv-refresh-button" type="button" disabled={!cle} onClick={rafraichirEcrans}>{tr('Actualiser les écrans maintenant')}</button>
  <details className="tourneo-tv-remote-help"><summary>{tr('Installer l’écran TV sur un autre appareil')}</summary>
