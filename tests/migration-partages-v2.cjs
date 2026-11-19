@@ -28,7 +28,7 @@ async function preparerPhase4(){
 assert.match(phase5,/tourneo\.v1_copy_verified/);
 assert.match(phase5,/t\.est_public is true/i);
 assert.doesNotMatch(phase5,/\bdrop\s+(?:table|column)\b/i);
-(async()=>{
+if (require.main===module) (async()=>{
  const db=await preparerPhase4();
  try{
   await db.exec("insert into public.tournois(id,user_id,nom,sport,donnees,partage_id,est_public) values("+
@@ -86,3 +86,4 @@ assert.doesNotMatch(phase5,/\bdrop\s+(?:table|column)\b/i);
   console.log('Phase 5 fictive : absence lien historique = arrêt transactionnel : OK');
  }finally{await broken.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={preparerPhase4,phase5,SHARE,PRIVATE,PRIVATE_SHARE};
