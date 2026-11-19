@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV}=m.exports;
+const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',brouillonAnnonce:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -43,6 +43,16 @@ assert.equal(actionTVExpiree(5000,5000),true,'action ends at deadline');
 assert.equal(actionTVExpiree(9999,5000),true,'action ends after suspended tab resumes');
 assert.equal(actionTVExpiree(9999,null),false,'persistent banner is not timed');
 assert.equal(actionTVExpiree(9999,-1),false,'invalid deadline ignored');
+const org=normaliserTV({brouillonAnnonce:'Brouillon personnel',message:'Message public',dureeAnnonce:60});
+const distant=reglagesPourPilotageDistant(org);
+assert.equal(distant.brouillonAnnonce,'','draft not included in remote payload');
+assert.equal(distant.message,'Message public','active message still synced');
+assert.equal(fusionnerPilotageDistant({message:'Nouvelle annonce',appel:12},org).brouillonAnnonce,'Brouillon personnel','remote settings preserve private local draft');
+assert.equal(fusionnerPilotageDistant({message:'Nouvelle annonce',appel:12},org).message,'Nouvelle annonce','remote public message applied');
+assert.equal(synchroniserModificationDistant({brouillonAnnonce:'Préparer un texte'}),false,'draft editing must not trigger network writes');
+assert.equal(synchroniserModificationDistant({message:'À diffuser'}),true,'live display action triggers remote save');
+assert.equal(synchroniserModificationDistant({}),false);
+
 const testEtat=normaliserTV({message:'Annonce en cours',brouillonAnnonce:'Brouillon privé',annonceExpireA:6000,dureeAppel:30});
 const appelEnCours=normaliserTV({...testEtat,...demarrerAppelTV(testEtat,42,1000)});
 assert.equal(appelEnCours.appel,42);

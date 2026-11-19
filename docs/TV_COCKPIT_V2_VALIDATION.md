@@ -106,3 +106,9 @@
 - Les appels effacent le message public précédent sans supprimer le brouillon de l'organisateur.
 - À l'expiration d'une action, les autres actions publiques encore actives ne sont pas coupées : pas de retour intempestif aux résultats.
 - Fin d'appel, appel de match terminé, expiration d'annonce et pause couverts par tests automatisés.
+
+## Expérience multi-appareils et correction de file d'écriture
+- Un encart repliable fournit le QR code et le lien direct vers l'écran TV, avec copie au presse-papiers.
+- Le deuxième appareil doit se connecter au **même compte organisateur** : l'accès public sans authentification n'est pas proposé.
+- La mise à jour distante utilise une **capture immuable des réglages et de l'identifiant du tournoi** au moment de l'action : évite d'écrire par erreur les réglages du tournoi suivant dans le tournoi précédent pendant une navigation rapide.
+- Extraction testée des données publiques envoyées au serveur ; le brouillon privé n'est jamais transmis à la table de pilotage distant.

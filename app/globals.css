@@ -660,3 +660,15 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .v2-page .tourneo-tv-fold-body>.tourneo-tv-dashboard{margin:0}
 .v2-page .tourneo-tv-fold-body>.tourneo-tv-pilot-status{margin:0}
 @media(max-width:600px){.v2-page .tourneo-tv-fold-body{padding:12px}.v2-page .tourneo-tv-fold>summary{padding:12px 14px}}
+
+/* Remote organizer screen sharing setup. */
+.tourneo-tv-remote-help{margin:14px 0;border:1px solid #53758b;border-radius:14px;padding:12px 16px;background:#102638}
+.tourneo-tv-remote-help>summary{cursor:pointer;font-weight:750;padding:8px 0}
+.tourneo-tv-remote-help>p{line-height:1.5}
+.tourneo-tv-remote-code{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin:16px 0;min-width:0}
+.tourneo-tv-remote-code>div{background:#fff;padding:12px;border-radius:12px}
+.tourneo-tv-remote-code>p{overflow-wrap:anywhere;flex:1;min-width:200px}
+.tourneo-tv-remote-code a{color:#84dbf8;text-decoration:underline}
+.tourneo-tv-remote-help>button{min-height:44px;padding:10px 14px;border:1px solid #6b849f;border-radius:10px;background:#1e4661;color:#fff;cursor:pointer}
+.tourneo-tv-remote-help>button:disabled{opacity:.6;cursor:not-allowed}
+.tourneo-tv-remote-status{font-size:.9rem;line-height:1.5;margin:8px 0 14px}
