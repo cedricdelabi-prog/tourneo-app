@@ -22,14 +22,14 @@ alter table public.tournois add column if not exists revision bigint not null de
 alter table public.profiles add column if not exists ville_publique boolean not null default false;
 -- Align the safe V2 constraints only after checking the existing V1 data.
 -- Constraints are named independently from V1 to avoid accidental replacement.
-do $
+do $$
 begin
  if exists(select 1 from public.tournois where char_length(trim(nom)) not between 1 and 150)
  or exists(select 1 from public.tournois where jsonb_typeof(donnees)<>'object')
  or exists(select 1 from public.profiles where char_length(trim(display_name)) not between 1 and 100) then
    raise exception 'Legacy data violates V2 constraints; migration aborted';
  end if;
-end $;
+end $$;
 alter table public.tournois add constraint tourneo_v2_compat_nom_check check (char_length(trim(nom)) between 1 and 150);
 alter table public.tournois add constraint tourneo_v2_compat_donnees_check check (jsonb_typeof(donnees)='object');
 alter table public.tournois add constraint tourneo_v2_compat_revision_check check (revision>=0);
