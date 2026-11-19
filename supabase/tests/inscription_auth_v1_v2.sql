@@ -44,6 +44,8 @@ begin
  then raise exception 'V2 display name length invalid'; end if;
  if (select player_code from public.profiles where id='82000000-0000-4000-8000-000000000001')<>'TRN-8200-0000'
  then raise exception 'Legacy player code changed'; end if;
+ if (select player_code from public.profiles where id='82000000-0000-4000-8000-000000000002')<>'TRN-82000000000040008000000000000002'
+ then raise exception 'Colliding legacy player code was not resolved'; end if;
  if (select display_name from public.profiles where id='82000000-0000-4000-8000-000000000002')<>'example2'
  then raise exception 'Email fallback missing'; end if;
 end $$;
