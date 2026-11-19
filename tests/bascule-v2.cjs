@@ -4,7 +4,9 @@ const {evaluerBascule,PREUVES,MANIFEST}=require('../scripts/controle-bascule-v2.
 const m=JSON.parse(fs.readFileSync(MANIFEST,'utf8'));
 const report=evaluerBascule(m);
 assert.equal(report.pret,false,'No production launch while backups and restore tests are missing');
-assert.equal(report.comptes,59);assert.equal(report.tournois,25);
+assert.equal(report.comptes,m.inventaireV1.comptes);assert.equal(report.tournois,m.inventaireV1.tournois);
+assert.equal(m.inventaireV1.tournois,24,'Most recent observed inventory');
+assert.ok(report.blocages.some(s=>s.includes('Inventaire de production V1 récent')));
 assert.ok(report.blocages.some(s=>s.includes('Sauvegarde complète')));
 assert.ok(report.blocages.some(s=>s.includes('Accord final explicite')));
 assert.equal(report.blocages.length,PREUVES.length,'Every mandatory gate must remain visible while pending');
@@ -20,6 +22,8 @@ assert.ok(evaluerBascule(shortcut).blocages.some(s=>s.includes('Sauvegarde compl
 const finished=clone(m);
 for(const [cle] of PREUVES)finished.preuves[cle]={statut:'valide',preuve:'Dossier de contrôle signé et archivé'};
 assert.equal(evaluerBascule(finished).pret,true,'A fully documented checklist can be reviewed manually');
+const stale=clone(finished);stale.preuves.inventaireProductionActualise={statut:'a_faire',preuve:''};
+assert.equal(evaluerBascule(stale).pret,false,'Outdated counts cannot authorize release');
 const src=fs.readFileSync(path.join(__dirname,'../lib/supabase.ts'),'utf8');
 assert.match(src,/NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED/);
 assert.match(src,/productionApproved/);

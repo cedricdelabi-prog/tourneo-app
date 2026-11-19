@@ -73,3 +73,9 @@ Il faut ensuite confirmer, sur une copie restaurée, que les podiums et classeme
 ## Préparation d'un export sécurisé sans frais supplémentaires
 
 Script Windows préparé : [scripts/sauvegarder-v1-prive.ps1](../scripts/sauvegarder-v1-prive.ps1). Procédure et limites : [SAUVEGARDE_V1_GRATUITE.md](SAUVEGARDE_V1_GRATUITE.md). Aucun export de données réelles n'est déclenché par la CI ou par ce dépôt ; la preuve `sauvegardeRestaurableComplete` du manifeste reste `a_faire` tant qu'un export réel et une restauration isolée ne sont pas vérifiés.
+
+## Dernier contrôle dynamique de V1 — 19 novembre 2026
+
+Nouveau relevé en lecture seule : **59 comptes, 59 profils, 60 identités Auth et 24 tournois**, contre 25 tournois recensés plus tôt. Aucun tournoi n'a été modifié par notre contrôle. Les 24 tournois actuels sont publics, ont un identifiant de partage distinct, et répondent au RPC V1 avec leur **ID canonique** ; ce RPC n'accepte pas les alias `partage_id`. Le RPC V2 de compatibilité vise précisément les deux formats de lien ; cela devra être confirmé sur copie isolée. La vérification des liens est décrite dans `docs/sql/preflight_partages_v1_v2.sql`.
+
+**Nouvelle obligation de bascule** : prouver que l'inventaire final de V1 a été refait et comparé à la sauvegarde restaurable juste avant l'opération. Le chiffre 24 n'est pas une valeur figée ni une preuve de restauration.

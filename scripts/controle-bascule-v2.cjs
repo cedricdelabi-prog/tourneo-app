@@ -7,6 +7,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const MANIFEST=path.join(__dirname,'..','docs','bascule-v2-preflight.json');
 const PREUVES=[
+ ['inventaireProductionActualise','Inventaire de production V1 récent et rapproché de la sauvegarde'],
  ['sauvegardeRestaurableComplete','Sauvegarde complète restaurable (Auth, base, Storage, rôles et fonctions)'],
  ['restaurationIsoléeVerifiee','Répétition réelle de restauration dans un environnement isolé'],
  ['schemaV2CompatibleSurCopie','Migrations additives V2 validées sur une copie de V1'],

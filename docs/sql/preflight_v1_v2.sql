@@ -1,7 +1,7 @@
 -- TOURNEO V1 → V2 : inventaire agrégé EN LECTURE SEULE.
 -- Exécuter uniquement sur la base V1 (gjtxlzhfqcecyfciyllc) avant la bascule.
 -- Aucune identité, email, mot de passe, donnée JSON ou URL personnelle n'est retournée.
--- Vérification initiale observée le 19/11/2026 : 59 comptes, 59 profils, 60 identités Auth, 25 tournois.
+-- Vérification initiale observée le 19/11/2026 : 59 comptes, 59 profils, 60 identités Auth, 25 tournois au premier passage, 24 au deuxième passage du même jour.
 -- Les compteurs sont des constats à actualiser, pas des seuils figés après de nouvelles inscriptions.
 select
  (select count(*) from auth.users) as comptes,

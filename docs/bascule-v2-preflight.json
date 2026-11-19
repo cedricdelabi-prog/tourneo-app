@@ -9,7 +9,7 @@
     "comptes": 59,
     "profils": 59,
     "identitesAuth": 60,
-    "tournois": 25,
+    "tournois": 24,
     "tournoisOrphelins": 0,
     "profilsOrphelins": 0,
     "partageManquants": 0,
@@ -23,6 +23,10 @@
     "tournois": 0
   },
   "preuves": {
+    "inventaireProductionActualise": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
     "sauvegardeRestaurableComplete": {
       "statut": "a_faire",
       "preuve": ""
@@ -64,5 +68,5 @@
       "preuve": ""
     }
   },
-  "notes": "Les 59 comptes et 25 tournois de production restent sur la base V1. Les tests V2 indépendants ne remplacent pas une restauration. Aucun déploiement de production autorisé par ce manifeste."
+  "notes": "Mesure V1 du 19/11/2026 : 59 comptes, 59 profils, 60 identités Auth et 24 tournois. Le premier inventaire comptait 25 tournois ; ne jamais supposer que ces chiffres resteront stables. Avant toute bascule, refaire l'inventaire et contrôler sa cohérence avec la sauvegarde."
 }
