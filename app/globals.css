@@ -646,3 +646,17 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 /* TV timed notifications remain visible to organizer, not over public scores. */
 .tourneo-tv-remaining{margin:4px 0 10px;font-size:14px;font-weight:650;color:#a5efdc;font-variant-numeric:tabular-nums}
 .tourneo-tv-active-call-timer{font-size:13px;color:#afd3d8;font-weight:500;white-space:normal}
+
+/* V2 cockpit: compact disclosure sections, accessible touch targets. */
+.v2-page .tourneo-tv-fold{min-width:0;border:1px solid #526780;border-radius:13px;background:#102137;overflow:hidden}
+.v2-page .tourneo-tv-fold>summary{cursor:pointer;min-height:50px;display:flex;align-items:center;justify-content:space-between;padding:13px 18px;font-size:clamp(17px,1.25rem,21px);font-weight:750;color:#f2f7ff;list-style:none}
+.v2-page .tourneo-tv-fold>summary::-webkit-details-marker{display:none}
+.v2-page .tourneo-tv-fold>summary:after{content:"+";font-size:26px;color:#83dddf;flex-shrink:0;line-height:1}
+.v2-page .tourneo-tv-fold[open]>summary:after{content:"−"}
+.v2-page .tourneo-tv-fold>summary:focus-visible{outline:3px solid #4cc9d9;outline-offset:-3px}
+.v2-page .tourneo-tv-fold[open]>summary{border-bottom:1px solid #526780}
+.v2-page .tourneo-tv-fold-body{display:grid;gap:14px;padding:16px 18px;min-width:0}
+.v2-page .tourneo-tv-fold-body>.tourneo-tv-page-controls{margin:0}
+.v2-page .tourneo-tv-fold-body>.tourneo-tv-dashboard{margin:0}
+.v2-page .tourneo-tv-fold-body>.tourneo-tv-pilot-status{margin:0}
+@media(max-width:600px){.v2-page .tourneo-tv-fold-body{padding:12px}.v2-page .tourneo-tv-fold>summary{padding:12px 14px}}

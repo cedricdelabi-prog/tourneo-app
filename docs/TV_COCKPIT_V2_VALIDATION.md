@@ -95,3 +95,8 @@
 - Le bouton « Diffuser l'annonce maintenant » copie explicitement le brouillon vers le message public, avec son délai de disparition.
 - Lancer un appel interrompt l'annonce précédente et donne la priorité aux joueurs; le brouillon est conservé.
 - Compatibilité avec les anciens paramètres locaux : un message public antérieur peut être repris comme brouillon sans perdre sa saisie.
+
+## Lisibilité du cockpit
+- Réglages regroupés dans quatre sections repliables : diffusion, messages et pauses, partenaires, appels.
+- Diffusion et pauses ouvertes par défaut, partenaires et appels repliés pour réduire la surcharge visuelle sur mobile.
+- Contrôles d'accès clavier et zones de toucher adaptées.
