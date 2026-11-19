@@ -121,3 +121,11 @@ L'installation est **interdite sur la production V1** : le script exige une copi
 `docs/sql/compatibilite_v1_v2_staging_PHASE7_PROFILS.sql` fournit le RPC `tourneo_profils_publics` nécessaire aux écrans Joueur et Groupes. Il est réservé aux utilisateurs connectés, et limite les informations au pseudonyme, au code joueur et à la couleur. L'avatar est systématiquement masqué (`null`) : ni ville, ni nom civil, ni email, ni photo privée ne sont retournés. La recherche par lot est bornée à 256 identifiants.
 
 Le script refuse toute exécution sans validation explicite de la copie V1 restaurée et les phases 1 à 6. Le test `tests/migration-profils-v2.cjs` utilise des profils fictifs pour vérifier les droits anonymes, les champs cachés et les limites. Aucun changement de profil en production n'est autorisé par cette préparation.
+
+## Phases 8 et 9 sur staging isolé : tennis et olympiades
+
+**Phase 8** : `docs/sql/compatibilite_v1_v2_staging_PHASE8_TENNIS.sql` reprend les propositions de résultats en manches de tennis et sécurise les accès arbitres. Les règles de scores sont contrôlées côté SQL ; les visiteurs anonymes et les personnes non arbitres ne peuvent pas proposer un résultat. Test : `tests/migration-tennis-v2.cjs` avec comptes fictifs.
+
+**Phase 9** : `docs/sql/compatibilite_v1_v2_staging_PHASE9_OLYMPIADES.sql` prépare les olympiades et le suivi de révision des tournois. Le partage public des olympiades est limité aux noms d'équipes, épreuves validées et mesures, avec pseudonymisation des identifiants internes. Le wrapper public filtré garde l'accès au schéma privé fermé pour `anon` : l'ancienne migration V2 accordait cet accès, ce que le script de compatibilité évite. Test : `tests/migration-olympiades-v2.cjs`.
+
+Ces scripts exigent toujours une **copie V1 restaurée et confirmée sur un staging indépendant**, conservent les lignes historiques, refusent les migrations partielles et sont éprouvés sur une base locale fictive PGlite. Ils ne constituent pas une restauration des comptes réels, une validation mobile sur appareils réels ou une autorisation de déploiement. Les migrations additionnelles (photos, compte/admin, albums, notification externe, TV, pronostics et discussions) restent à ordonner et adapter.
