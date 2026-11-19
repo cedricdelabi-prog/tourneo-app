@@ -29,7 +29,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  void charger();const timer=setInterval(()=>void charger(),15000);return()=>{actif=false;clearInterval(timer);};},[id]);
  useEffect(()=>{if(!cle)return;function lire(){try{const v=normaliserTV(JSON.parse(localStorage.getItem(cle)||'null'));reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}lire();function changement(e:StorageEvent){if(e.key===cle)lire();}window.addEventListener('storage',changement);return()=>window.removeEventListener('storage',changement);},[cle]);
  function modifier(p:Partial<ReglagesTV>){if(!cle)return;const v=normaliserTV({...reglagesRef.current,...p});try{localStorage.setItem(cle,JSON.stringify(v));reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}
- useEffect(()=>{if(reglages.pause)return;const timer=setInterval(()=>setPage(p=>p+1),reglages.secondes*1000);return()=>clearInterval(timer);},[reglages.defilement,reglages.pause,reglages.secondes]);
+ useEffect(()=>{if(reglages.pause||!reglages.defilement)return;const timer=setInterval(()=>setPage(p=>p+1),reglages.secondes*1000);return()=>clearInterval(timer);},[reglages.defilement,reglages.pause,reglages.secondes]);
  const matchs=tournoi?.matchs||[],valides=tournoi?.valides||[],equipes=tournoi?.equipes||[];
  let planning:ReturnType<typeof planifierMatchs>=[];try{if(tournoi)planning=planifierMatchs(matchs,tournoi.options);}catch{/* Scores remain visible when the planning needs adjustment. */}
  const ordre=[...matchs].sort((a,b)=>(planning.find(p=>p.matchId===a.id)?.debut??a.ordre??a.id)-(planning.find(p=>p.matchId===b.id)?.debut??b.ordre??b.id));
