@@ -115,3 +115,9 @@ Le vrai SQL est éprouvé par `tests/migration-partages-v2.cjs` sur PGlite avec 
 L'installation est **interdite sur la production V1** : le script exige une copie restaurée, les phases précédentes et un drapeau explicite défini manuellement sur la connexion de staging. Aucune ligne des tables historiques n'est mise à jour. Les tests exécutent le vrai SQL sur une base fictive PGlite, avec vérification des refus d'accès, des langues et du maintien des anciens partages. `docs/sql/verification_phase6_staging.sql` rassemble les contrôles SQL en lecture seule.
 
 **Toujours à faire avant publication** : sauvegarde V1 réelle et restaurée dans un environnement indépendant, adaptation des migrations applicatives restantes, essais des parcours réels (dont la caméra et Android), sécurité du retrait de l'ancienne API, autorisation finale explicite. La CI verte ne prouve pas à elle seule que la bascule est prête.
+
+## Phase 7 — recherche de joueurs protégée
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE7_PROFILS.sql` fournit le RPC `tourneo_profils_publics` nécessaire aux écrans Joueur et Groupes. Il est réservé aux utilisateurs connectés, et limite les informations au pseudonyme, au code joueur et à la couleur. L'avatar est systématiquement masqué (`null`) : ni ville, ni nom civil, ni email, ni photo privée ne sont retournés. La recherche par lot est bornée à 256 identifiants.
+
+Le script refuse toute exécution sans validation explicite de la copie V1 restaurée et les phases 1 à 6. Le test `tests/migration-profils-v2.cjs` utilise des profils fictifs pour vérifier les droits anonymes, les champs cachés et les limites. Aucun changement de profil en production n'est autorisé par cette préparation.
