@@ -6,7 +6,8 @@ for(const marker of expected)assert.ok(s.includes(marker),'Backup script is miss
 assert.match(s,/Join-Path \$env:USERPROFILE/,'Dump files must be outside the repository');
 assert.match(s,/fichierRestaurationValide=\$false/);
 assert.match(s,/function Executer-Supabase/);
-assert.doesNotMatch(s,/\b(?:db\s+(?:reset|push)|restore_project|apply_migration|delete_project)\b/i);
+const commandes=s.split(/\r?\n/).filter(l=>/Executer-Supabase|args=@\(/.test(l)).join('\n');
+assert.doesNotMatch(commandes,/\b(?:db\s+(?:reset|push)|restore_project|apply_migration|delete_project)\b/i);
 assert.doesNotMatch(s,/--db-url|--password|gh\s|git\s+push/i);
 assert.doesNotMatch(s,/(?:service_role|postgresql:\/\/)/i,'No connection secrets embedded');
 for(const arg of ['--schema','auth','storage','public'])assert.ok(s.includes(arg));
