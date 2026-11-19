@@ -558,3 +558,10 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 @media(max-width:600px){.tourneo-tv-page-controls button{flex:1 1 135px}}
 
 .tourneo-tv-pilot-status{padding:12px 14px;border:1px solid #b9d4de;border-radius:10px;background:#f3f9fc;color:#12304b;font-size:clamp(14px,1rem,17px);font-weight:650;line-height:1.5}
+
+/* Dedicated sponsor showcase slide: responsive grid, no crop on partner logos. */
+.tourneo-tv-sponsor-slide{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:clamp(16px,3vh,40px);width:100%}
+.tourneo-tv-sponsor-slide h2{font-size:clamp(26px,4.5vw,64px);margin:0;text-align:center}
+.tourneo-tv-sponsor-slide>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;justify-items:center;gap:clamp(14px,3vw,40px);width:100%;max-width:1100px;min-height:0}
+.tourneo-tv-sponsor-slide img{display:block;max-width:100%;width:100%;height:clamp(70px,17vh,180px);object-fit:contain;padding:clamp(8px,1.4vw,20px);background:#fff;border-radius:16px;box-sizing:border-box}
+@media(max-width:650px){.tourneo-tv-sponsor-slide>div{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tourneo-tv-sponsor-slide img{height:clamp(60px,14vh,110px)}}
