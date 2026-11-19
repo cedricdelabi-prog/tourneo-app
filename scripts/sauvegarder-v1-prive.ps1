@@ -26,7 +26,7 @@ if ($accord -cne 'SAUVEGARDER') { Write-Host 'Operation annulee.'; exit 0 }
 New-Item -ItemType Directory -Path $dossier -Force | Out-Null
 # La liaison ne modifie pas les tables de production. Supabase peut demander
 # une authentification locale, sans copier le mot de passe dans les scripts.
-Executer-Supabase @('link','--project-ref',$projet)
+Executer-Supabase ([string[]]@('link','--project-ref',$projet))
 
 $operations=@(
     @{ nom='01-roles.sql'; args=@('db','dump','--linked','--role-only') },
