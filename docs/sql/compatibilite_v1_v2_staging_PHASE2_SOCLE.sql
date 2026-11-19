@@ -8,7 +8,7 @@
 -- select set_config('tourneo.v1_copy_verified','true',false);
 -- Seul l'opérateur responsable de la copie restaurée doit activer ce drapeau.
 begin;
-do $
+do $$
 begin
  if current_setting('tourneo.v1_copy_verified',true) is distinct from 'true' then
   raise exception 'STAGING STOP: copie restaurée non explicitement confirmée';
