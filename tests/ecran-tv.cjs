@@ -1,11 +1,13 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
 const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai}=m.exports;
-assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageManuelle:0});
+assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,pageManuelle:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
 assert.equal(normaliserTV({defilement:false}).defilement,false,'organizer may disable auto-scroll');
 assert.equal(normaliserTV({afficherSponsors:false}).afficherSponsors,false,'organizer may hide sponsors');
+assert.equal(normaliserTV({pageSponsors:true}).pageSponsors,true,'organizer may show a dedicated sponsor slide');
+assert.equal(normaliserTV({pageSponsors:'yes'}).pageSponsors,false,'invalid sponsor setting is rejected');
 assert.equal(normaliserTV({pageManuelle:4}).pageManuelle,4,'manual TV page is synchronized');
 assert.equal(normaliserTV({pageManuelle:-1}).pageManuelle,0,'manual page cannot be negative');
 assert.equal(normaliserTV({pause:true,repriseA:1730000000000}).pause,true);
