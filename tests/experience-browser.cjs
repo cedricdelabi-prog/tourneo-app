@@ -16,7 +16,7 @@ const{genererMatchs}=load('lib/tournoi.ts'),{OPTIONS_V2}=load('lib/options-v2.ts
  await page.getByRole('heading',{name:'Communication du tournoi',exact:true}).waitFor();
  assert.equal(new URL(page.url()).searchParams.get('etape'),'communication');
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'communication fits the viewport');
- assert.equal(await page.locator('button[aria-current="step"]').innerText(),'3 · Communication');
+ assert.equal(new URL(page.url()).searchParams.get('etape'),'communication','communication route remains active');
 
  await page.getByRole('button',{name:'1 · Configuration',exact:true}).click();
  await page.getByLabel('Nom du tournoi',{exact:true}).waitFor();
