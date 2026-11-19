@@ -15,6 +15,7 @@ on:
       - 'scripts/controle-bascule-v2.cjs'
       - 'docs/bascule-v2-preflight.json'
       - 'docs/sql/preflight_v1_v2.sql'
+      - 'docs/sql/controle_restauration_v1_readonly.sql'
       - 'docs/sql/preflight_partages_v1_v2.sql'
       - 'docs/sql/securiser_rpc_public_v2_post_migration.sql'
       - 'docs/sql/compatibilite_liens_partage_v1.sql'

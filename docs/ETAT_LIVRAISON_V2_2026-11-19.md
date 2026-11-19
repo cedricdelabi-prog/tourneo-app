@@ -38,3 +38,16 @@ La lecture du schéma confirme que le RPC historique `public.get_tourneo_public(
 **Statut : V1 inchangée ; déploiement de production interdit ; pas de coût supplémentaire.**
 
 Les preuves détaillées et les blocages automatiques restent dans `docs/bascule-v2-preflight.json`. Ce rapport ne remplace pas un essai de restauration ou une autorisation de mise en ligne.
+
+## Contrôle sans aucune manipulation utilisateur — 19 novembre 2026
+
+J'ai exécuté **en lecture seule sur la V1 active** le contrôle `docs/sql/controle_restauration_v1_readonly.sql`.
+
+Résultat : `COHERENT_A_COMPARER_A_L_ARCHIVE` : 59 comptes, 60 identités Auth, 59 profils, 24 tournois, 0 objet Storage, 1 déclencheur Auth actif ; 0 compte sans profil, 0 profil ou tournoi orphelin, 0 lien de partage manquant/dupliqué et 0 JSON incompatible. Le contrôle ne retourne ni identité, ni email, ni mot de passe.
+
+**Mode d'emploi le jour de la sauvegarde** : exécuter ce même SELECT sur une base restaurée et comparer les compteurs à ceux de la sauvegarde privée réalisée à cet instant (ne pas utiliser des chiffres anciens si la V1 a évolué). Vérifier ensuite les connexions réelles de comptes de test, anciens liens de partage et politiques RLS avant toute modification de la V1.
+
+Le projet est sur une formule gratuite : [Supabase ne fournit pas de sauvegarde quotidienne automatique sur Free](https://supabase.com/kb/faqs/platform/free-plan-backups). Les exports SQL avec la CLI restent gratuits, mais ne peuvent pas être exécutés sans accès sécurisé à la destination privée. Les connecteurs disponibles ne permettent ni de créer une sauvegarde téléchargeable complète ni de la restaurer sur un espace isolé sans consentement et destination adaptés.
+
+**Ne pas marquer `sauvegardeRestaurableComplete` ni `restaurationIsoléeVerifiee` comme terminées** : le diagnostic SQL est une simple preuve de cohérence, pas une copie restaurée.
+
