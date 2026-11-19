@@ -76,3 +76,8 @@
 - Page de progression facultative (pourcentage de matchs validés), avec barre de progression et nombres restants.
 - Bouton organisateur pour afficher la progression immédiatement.
 - Tests ajoutés pour l'emplacement de la page d'appel et le calcul fiable de la progression.
+
+## Mode accueil
+- Quand il n'y a aucune page de scores, classement, sponsors ou annonce, la TV affiche une page d'accueil plutôt qu'un écran noir.
+- Cette page conserve le nom et le logo du tournoi, rassure le public et indique que le planning est en préparation.
+- Aucun chiffre n'est inventé ; les rencontres apparaissent dès qu'elles sont enregistrées et diffusables.

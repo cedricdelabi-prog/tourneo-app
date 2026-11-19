@@ -636,3 +636,9 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-active-call button:disabled,.tourneo-tv-next button:disabled{opacity:.5;cursor:not-allowed}
 .tourneo-tv-next li button{margin:8px 0 0}
 @media(prefers-reduced-motion:reduce){.tourneo-tv-progress-track>span{transition:none}}
+
+/* V2 TV placeholder: no blank black screen before creating the first fixtures. */
+.tourneo-tv-welcome-slide{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,3vh,30px);text-align:center;padding:clamp(12px,3vw,42px)}
+.tourneo-tv-welcome-slide h2{font-size:clamp(28px,5vw,64px);margin:0}
+.tourneo-tv-welcome-slide>strong{font-size:clamp(24px,4vw,56px);line-height:1.2;max-width:100%;overflow-wrap:anywhere}
+.tourneo-tv-welcome-slide>p{font-size:clamp(16px,2vw,28px);max-width:800px;line-height:1.45;opacity:.85}
