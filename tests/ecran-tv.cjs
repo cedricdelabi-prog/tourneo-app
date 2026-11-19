@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {normaliserTV,pagesTV,appelTV,statutMatchTV}=m.exports;
+const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageManuelle:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -18,4 +18,9 @@ assert.equal(appelTV(liste,[],3).id,3);
 assert.equal(appelTV(liste,[],900),undefined,'cancelled match cannot remain called');
 assert.equal(statutMatchTV({...liste[0],score1:'0',score2:'13'},[]),'À valider');
 assert.equal(appelTV([{...liste[0],score1:'0',score2:'13'}],[],0),undefined);
+assert.equal(repriseSonoreDansDelai(10000,10000),true,'beep at scheduled return');
+assert.equal(repriseSonoreDansDelai(20000,10000),true,'beep within ten seconds');
+assert.equal(repriseSonoreDansDelai(20001,10000),false,'no stale beep');
+assert.equal(repriseSonoreDansDelai(9999,10000),false,'no early beep');
+assert.equal(repriseSonoreDansDelai(20000,null),false,'no alert without return time');
 console.log('TV : pagination complète, réglages bornés, appels explicites et retrait des matchs terminés : OK');
