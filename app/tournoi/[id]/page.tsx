@@ -2330,7 +2330,12 @@ ${lienPartage}`,
 
         {onglet === "discussions" && cree && tournoiId && <DiscussionsTournoi tournoiId={tournoiId}/>}
         {onglet === "affiches" && cree && tournoiId && <><IdentiteVisuelleTournoi valeur={optionsV2.identiteAffiche} onChanger={identite=>setOptionsV2(o=>({...o,identiteAffiche:copierIdentiteAffiche(identite)}))}/><details className="tourneo-optional-panel"><summary>{tr('Réutiliser un modèle de logos et sponsors')}</summary><ModelesAffiche onChoisir={modele=>setOptionsV2(o=>({...o,identiteAffiche:copierIdentiteAffiche(modele.identite)}))}/></details><AffichesTournoi id={tournoiId}/></>}
-        {onglet === "matchs" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')}/>}
+        {onglet === "matchs" && cree && tournoiId && <ProchaineActionTournoi id={tournoiId} matchs={matchs} equipes={equipes} options={optionsV2} valides={matchsValides} termine={tournoiEstTermine(formatTournoi,equipes,matchs,optionsV2,matchsValides)} surOnglet={setOnglet} surPartage={() => void preparerSupport('affiche')} surImprevu={()=>{
+          const aides=document.querySelector('.tourneo-organisation-aides') as HTMLDetailsElement|null;
+          if(aides)aides.open=true;
+          const assistant=aides?.querySelector('.tourneo-imprevus') as HTMLDetailsElement|null;
+          if(assistant){assistant.open=true;window.setTimeout(()=>assistant.scrollIntoView({behavior:'smooth',block:'center'}),80);}
+        }}/>}
         {onglet === "affiches" && cree && tournoiId && userId && <PublicationPronostics id={tournoiId} revision={revisionCloud.current} format={formatTournoi} equipes={equipes} matchs={matchs} valides={matchsValides} options={optionsV2}/>}
         {(onglet === "classement" || onglet === "affiches") && cree && tournoiId && userId && <BilanFinTournoi id={tournoiId} userId={userId} nom={nomTournoi} sport={sport} equipes={equipes} matchs={matchs} valides={matchsValides} format={formatTournoi} options={optionsV2} revision={revisionCloud.current}/>}
         {onglet === "participants" && (<section style={styles.card}>
