@@ -21,7 +21,7 @@ async function operationRefusee(db,sql){
  finally{await db.exec('rollback').catch(()=>{});}
  assert.equal(refused,true,'an unauthorized insert was accepted');
 }
-(async()=>{
+if (require.main===module) (async()=>{
  const db=await preparer();
  try{
   const before=await query(db,'select id,user_id,nom,sport,donnees,partage_id,est_public from public.tournois');
@@ -72,3 +72,4 @@ async function operationRefusee(db,sql){
   console.log('Phase 2 V1 -> V2 fictive: liens de partage manquants arrêtent la migration sans demi-écriture: OK');
  }finally{await broken.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={preparer,phase2,OWNER,OTHER,TOURNOI};
