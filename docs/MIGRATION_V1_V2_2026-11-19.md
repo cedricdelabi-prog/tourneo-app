@@ -35,3 +35,29 @@
 - Tarif communiqué par Supabase: 0,01344 USD/heure pour une branche additionnelle, non accepté.
 - Utiliser les deux projets existants et la préparation GitHub. Le projet V2 test n'est pas un clone des données V1; ne jamais le présenter comme une restauration de production.
 - Toute simulation réaliste nécessitant les 59 comptes exige une sauvegarde/restauration complète sécurisée ou une méthode alternative validée, sans facturation supplémentaire.
+
+## Contrôle complémentaire du 19/11/2026 — lecture seule, aucune bascule
+
+Nouvelle interrogation **en lecture seule** des deux projets Supabase :
+- Production V1 : **59 comptes**, **59 profils**, **60 identités Auth** (une personne peut avoir plusieurs fournisseurs), **25 tournois**, **0 objet Storage**. Les 25 tournois possèdent des identifiants de partage non nuls, sans doublon, et sont actuellement publics.
+- Test V2 indépendant : **2 comptes**, **1 profil**, **0 tournoi** et **1 objet Storage**. Il s'agit d'un environnement de développement, **pas** d'une copie restaurée de V1.
+- Compteurs V1 : **0** tournoi orphelin, profil orphelin, nom incompatible, structure JSON de matchs/équipes invalide, partage manquant ou dupliqué. Ces résultats ne prouvent pas à eux seuls la compatibilité de toutes les fonctionnalités V2.
+- En V1, `public.profiles` dispose de ses colonnes historiques et `public.tournois` conserve `partage_id` / `est_public`. Le schéma V2 de test ajoute notamment `ville_publique`, `revision`, `updated_at`, `termine_at`, `photos_expirent_at`; il comporte plusieurs dizaines de tables, politiques et fonctions supplémentaires.
+
+### Commandes préparatoires sans production
+
+- `docs/sql/preflight_v1_v2.sql` : requête **SELECT uniquement**, destinée à la base V1. Aucun nom, e-mail, mot de passe, token, lien individuel ou contenu de tournoi n'est extrait.
+- `npm run test:bascule` : vérifie le **blocage volontaire** du lancement sans preuves, puis exécute le **vrai SQL additif de compatibilité**, uniquement dans une base locale synthétique PGlite. Les UUID, données de score et partages fictifs doivent rester intacts ; une donnée invalide doit arrêter le script.
+- `npm run preflight:v2` : lit `docs/bascule-v2-preflight.json`, énumère les **prérequis encore non validés** et retourne un code d'erreur lorsque la bascule reste bloquée. **Cette commande ne déploie rien.**
+- La CI GitHub V2 exécute les tests de préparation ; elle ne déclenche pas de migration et **une CI verte ne signifie pas autorisation de production**.
+
+### Ordre impératif de la future publication
+
+1. Obtenir une **sauvegarde V1 restaurable et testée** couvrant Auth (identités, fournisseurs et mécanismes de récupération), données, Storage, schémas, RLS, fonctions et triggers. Ne jamais stocker de secrets ni de hashes de mots de passe dans Git.
+2. Tester la restauration dans un environnement existant isolé, sans créer d'infrastructure facturée ni écraser les 2 comptes et objets V2 de test. À défaut, ne **pas** lancer la bascule.
+3. Sur cette copie, convertir la suite de migrations V2 en **migrations additives compatibles V1**, en préservant les UUID, les colonnes et les URLs historiques. Le script `compatibilite_v1_v2_staging_DRAFT.sql` n'est que la **première phase** : il ne constitue pas la migration V2 complète.
+4. Vérifier Auth (email, Google, profils), RLS, partage anonyme filtré, création/modification de tournoi et reprise des 25 tournois existants. Inclure les quatre migrations SQL TV de la base test dans la procédure finale validée.
+5. Préparer un retour arrière compatible : revenir au site V1 ne suffit pas si la nouvelle version a écrit des données incompatibles. Prévoir un gel court des écritures ou leur réconciliation.
+6. Obtenir un accord explicite pour la fenêtre de publication ; seule alors une configuration de production protégée peut être autorisée. Déployer la V2 sur le domaine officiel, surveiller les erreurs et préparer séparément l'actualisation Android.
+
+**État : BASCULE BLOQUÉE tant que ces preuves ne sont pas réunies.** Aucun champ, table, compte ni privilège de la production V1 n'a été modifié lors de ce contrôle.

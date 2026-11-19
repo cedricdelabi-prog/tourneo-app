@@ -9,6 +9,12 @@ on:
       - 'components/ProchaineActionTournoi.tsx'
       - 'lib/cockpit-tournoi.ts'
       - 'tests/cockpit-tournoi.cjs'
+      - 'tests/bascule-v2.cjs'
+      - 'tests/migration-compatibilite.cjs'
+      - 'scripts/controle-bascule-v2.cjs'
+      - 'docs/bascule-v2-preflight.json'
+      - 'docs/sql/preflight_v1_v2.sql'
+      - 'docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'
       - 'lib/imprevus-tournoi.ts'
       - 'lib/planning.ts'
       - 'tests/imprevus-tournoi.cjs'
@@ -47,6 +53,8 @@ jobs:
         run: npm run test:imprevus
       - name: Vérifier le cockpit organisateur
         run: npm run test:cockpit
+      - name: Tester le prévol de migration V1 → V2 sans données réelles
+        run: npm run test:bascule
       - name: Vérifier les retours de connexion sécurisés
         run: node tests/pronostics.cjs
       - name: Compiler la V2 hors publication

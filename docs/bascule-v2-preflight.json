@@ -1,0 +1,68 @@
+{
+  "objet": "Préparation de la bascule de Tourneo V1 vers V2 ; inventaire agrégé, aucune donnée personnelle ni secret",
+  "dateControle": "2026-11-19",
+  "sourceProduction": "gjtxlzhfqcecyfciyllc",
+  "cibleDeMigration": "gjtxlzhfqcecyfciyllc",
+  "baseEssaisIndependante": "kmjfmjhdnokkaiolxiin",
+  "branchePreparation": "release-v2-preparation-2026-11-19",
+  "inventaireV1": {
+    "comptes": 59,
+    "profils": 59,
+    "identitesAuth": 60,
+    "tournois": 25,
+    "tournoisOrphelins": 0,
+    "profilsOrphelins": 0,
+    "partageManquants": 0,
+    "partageDupliques": 0,
+    "resultatsJsonMalformes": 0,
+    "objetsStorage": 0
+  },
+  "inventaireEssais": {
+    "comptes": 2,
+    "profils": 1,
+    "tournois": 0
+  },
+  "preuves": {
+    "sauvegardeRestaurableComplete": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "restaurationIsoléeVerifiee": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "schemaV2CompatibleSurCopie": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "comptesEtConnexionsConserves": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "urlsPartageHistoriquesVerifiees": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "droitsRlsEtFonctionsVerifies": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "parcoursTournoiEtTvReelsVerifies": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "strategieAndroidValidee": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "retourArriereRepete": {
+      "statut": "a_faire",
+      "preuve": ""
+    },
+    "accordExpliciteMiseEnProduction": {
+      "statut": "a_faire",
+      "preuve": ""
+    }
+  },
+  "notes": "Les 59 comptes et 25 tournois de production restent sur la base V1. Les tests V2 indépendants ne remplacent pas une restauration. Aucun déploiement de production autorisé par ce manifeste."
+}
