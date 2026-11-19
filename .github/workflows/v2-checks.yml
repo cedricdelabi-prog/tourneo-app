@@ -9,6 +9,7 @@ on:
       - 'lib/imprevus-tournoi.ts'
       - 'lib/planning.ts'
       - 'tests/imprevus-tournoi.cjs'
+      - 'tests/experience-browser.cjs'
       - 'lib/ecran-tv.ts'
       - 'lib/modeles-affiche.ts'
       - 'components/IdentiteVisuelleTournoi.tsx'
@@ -54,3 +55,7 @@ jobs:
         run: npx playwright install chromium
       - name: Tester la télécommande et la TV dans deux navigateurs isolés
         run: node tests/tv-multi-appareils-browser.cjs
+      - name: Tester les scénarios d'imprévus en navigateur mobile
+        env:
+          TEST_WIDTHS: '390'
+        run: node tests/experience-browser.cjs

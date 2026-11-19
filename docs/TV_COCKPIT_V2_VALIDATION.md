@@ -178,3 +178,8 @@
 - Affichage détaillé de toutes les rencontres déplacées sur demande, confirmation avant application et annulation de la dernière adaptation tant que les résultats n'ont pas changé.
 - Export CSV du comparatif avant/après, prêt pour Excel et protégé contre les formules injectées par les noms d'équipe.
 - Aucune migration SQL, aucun résultat modifié par la simulation. Tests spécifiques automatisés via `npm run test:imprevus`.
+
+## Validation navigateur des imprévus
+- Parcours Chromium en largeur mobile (390 px) : simulation d'un retard, fermeture d'un terrain, aperçu des impacts, téléchargement CSV, confirmation, annulation puis nouvelle application.
+- Vérifie qu'aucune modification du tournoi n'est enregistrée avant confirmation et que les scores déjà saisis sont conservés.
+- Étape intégrée au workflow GitHub Actions V2, sans utilisation de la V1 ni de comptes réels.
