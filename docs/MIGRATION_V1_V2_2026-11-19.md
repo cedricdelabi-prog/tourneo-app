@@ -187,3 +187,11 @@ Comme les phases précédentes, l'installation ne peut être envisagée qu'aprè
 Le test `tests/migration-discussions-v2.cjs` rejoue les phases 1 à 16 sur PGlite avec quatre utilisateurs fictifs, teste les messages visibles selon chaque rôle, le refus anonyme, les destinataires non autorisés, la suppression par l'auteur ou l'organisateur, le bannissement Auth et la préservation des profils/tournois historiques. `docs/sql/verification_phase16_staging.sql` vérifie les permissions et politiques de lecture en mode agrégé.
 
 **La modération administrative complète** (signalements, sanctions, retrait global) n'est pas encore installée sur ce staging : elle dépend du module d'administration et reste à valider avant la bascule. Aucun message réel n'a été envoyé ; la phase 16 reste interdite sur V1 production et sur la base V2 de test déjà configurée.
+
+## Phase 17 — modération des discussions et signalements
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE17_MODERATION.sql` ajoute une file de signalements strictement privée, les sanctions de messagerie, le masquage de messages signalés et un journal d'actions. Un membre connecté peut signaler uniquement un message qu'il a le droit de lire ; les autres signalements et leur contexte ne sont accessibles qu'à un **superadministrateur explicitement désigné**. Le nombre de signalements est borné et une sanction rejouée après une réponse perdue n'étend pas la suspension.
+
+Le script crée le socle minimal privé des administrateurs et du journal (compatible avec la structure V2) **sans attribuer de rôle à quiconque**. Il ne doit donc PAS être activé en production sans un choix humain explicite du superadministrateur et un essai d'accès en conditions réelles. Aucun compte réel n'est élevé en privilèges, aucun contenu privé ou signalement n'est copié dans un rapport public.
+
+`tests/migration-moderation-v2.cjs` simule les rôles joueur, arbitre et superadministrateur sur PGlite, vérifie le refus des inconnus, la lecture de la file privée, les décisions auditées, le masquage, la suspension et sa levée. Les migrations V1 → V2 restent soumises à la sauvegarde/restauration réelle sur un staging indépendant. La compatibilité du module administrateur complet devra être contrôlée séparément avant le lancement officiel.
