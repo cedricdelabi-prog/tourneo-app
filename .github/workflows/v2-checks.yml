@@ -19,7 +19,7 @@ permissions:
 jobs:
   verifier:
     name: Types et tests TV
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - name: Checkout branche V2
