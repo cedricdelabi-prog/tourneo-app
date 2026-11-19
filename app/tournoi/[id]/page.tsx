@@ -55,6 +55,7 @@ import { supabase } from "@/lib/supabase";
 import { modifierEquipeEnCours } from "@/lib/modification-equipe";
 import { nomsPourTirage, type EquipeTiree } from "@/lib/outils-arbitre";
 import { synchroniserTournoi, lireRevision, type VersionTournoi } from "@/lib/synchronisation";
+import { lireValidationsHistoriques } from "@/lib/compatibilite-v1";
 import { comparerVersionsTournoi } from "@/lib/versions-conflit";
 import TourneoBrand from "@/components/TourneoBrand";
 import TourneoNav from "@/components/TourneoNav";
@@ -301,7 +302,7 @@ export default function TournoiPage() {
                     setQualifiesParPoule(data.qualifiesParPoule ?? 2);
                     setPoules(data.poules ?? []);
                     setMatchsPhaseFinale(data.matchsPhaseFinale ?? []);
-                    setMatchsValides(data.matchsValides ?? []);
+                    setMatchsValides(lireValidationsHistoriques(data));
                     setPhotosExpirentAt(data.photosExpirentAt || "");
                     setPodiumPhotoUrl(data.photosExpirentAt && Date.parse(data.photosExpirentAt) <= Date.now() ? "" : data.podiumPhotoUrl ?? "");
                     return true;
@@ -417,7 +418,7 @@ export default function TournoiPage() {
                     setQualifiesParPoule(donnees.qualifiesParPoule ?? 2);
                     setPoules(donnees.poules ?? []);
                     setMatchsPhaseFinale(donnees.matchsPhaseFinale ?? []);
-                    setMatchsValides(donnees.matchsValides ?? []);
+                    setMatchsValides(lireValidationsHistoriques(donnees));
                     setPodiumPhotoUrl(tournoiCloud.photos_expirent_at && Date.parse(tournoiCloud.photos_expirent_at) <= Date.now() ? "" : donnees.podiumPhotoUrl ?? "");
                     setLienPartage(urlPubliqueTournoi(tournoiCloud.id,'t'));
                     setMessageCloud("Synchronisé");

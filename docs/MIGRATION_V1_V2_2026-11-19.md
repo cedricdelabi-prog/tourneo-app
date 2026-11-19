@@ -61,3 +61,11 @@ Nouvelle interrogation **en lecture seule** des deux projets Supabase :
 6. Obtenir un accord explicite pour la fenêtre de publication ; seule alors une configuration de production protégée peut être autorisée. Déployer la V2 sur le domaine officiel, surveiller les erreurs et préparer séparément l'actualisation Android.
 
 **État : BASCULE BLOQUÉE tant que ces preuves ne sont pas réunies.** Aucun champ, table, compte ni privilège de la production V1 n'a été modifié lors de ce contrôle.
+
+## Compatibilité des résultats anciens — audit du 19 novembre 2026
+
+Contrôle SQL de production **en lecture seule** (sans extraire de noms, identifiants ou résultats individuels) : **25 tournois, 613 matchs**, dont **70 matchs avec scores saisis**. Sur les **2 tournois V1** sans `formatTournoi` ni `matchsValides`, **51 matchs** sont présents dont **4 scores saisis**. Les **23 autres** possèdent les champs de format et validation et aucune des 25 lignes de données ne contient `optionsV2`.
+
+Le code V2 utilise désormais `lireValidationsHistoriques` pour les chargements locaux et cloud, ainsi que le partage public. Quand la propriété `matchsValides` est totalement absente, seuls les matchs dont les deux scores entiers sont saisis sont considérés validés à l'affichage. En revanche, une liste `matchsValides` explicite, y compris `[]`, **n'est jamais remplacée ni complétée automatiquement**. Les changements sont en lecture seule : la base V1 n'a pas été mise à jour. Les formats inconnus continuent d'utiliser le repli historique `complet` dans l'interface. Les options V2 sont normalisées par l'application.
+
+Il faut ensuite confirmer, sur une copie restaurée, que les podiums et classements historiques restent exacts ; ces vérifications fonctionnelles sur données réelles ne sont pas encore faites.

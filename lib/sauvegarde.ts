@@ -1,4 +1,5 @@
 import {capitaineEquipe} from '@/lib/equipe-capitaine';
+import { lireValidationsHistoriques } from '@/lib/compatibilite-v1';
 import type { Equipe,Match } from '@/types';
 import { normaliserOptionsV2,type OptionsV2 } from '@/lib/options-v2';
 export type PouleSauvegarde={id:string;nom:string;terrain:string;equipes:Equipe[]};
@@ -66,7 +67,7 @@ export function lireSauvegarde(texte:string):SauvegardeTournoi{
  }
  const entier=(v:unknown,min:number,max:number,defaut:number)=>Number.isSafeInteger(v)&&typeof v==='number'&&v>=min&&v<=max?v:defaut;
  return{poules,version:2,nomTournoi:d.nomTournoi,sport:d.sport,formatTournoi:d.formatTournoi,equipes,matchs,
-  matchsValides:Array.isArray(d.matchsValides)?[...new Set<number>(d.matchsValides.filter((id:unknown):id is number=>typeof id==='number'&&matchs.some(m=>m.id===id&&m.score1!==''&&m.score2!=='')))]:[],
+  matchsValides:lireValidationsHistoriques(d.matchsValides===undefined?{matchs}:{matchs,matchsValides:d.matchsValides}).filter(id=>matchs.some(m=>m.id===id&&m.score1!==''&&m.score2!=='')),
   optionsV2:normaliserOptionsV2(d.optionsV2),
   cree:typeof d.cree==='boolean'?d.cree:matchs.length>0,
   modePoules:d.modePoules==='taillePoules'?'taillePoules':'nombrePoules',

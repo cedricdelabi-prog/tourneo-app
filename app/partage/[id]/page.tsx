@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { nomParticipant } from "@/lib/rotation";
 import { classementTournoi, tournoiEstTermine } from "@/lib/resultats";
 import { normaliserOptionsV2, type OptionsV2 } from "@/lib/options-v2";
+import { lireValidationsHistoriques } from "@/lib/compatibilite-v1";
 import { scoreValide } from "@/lib/formats-avances";
 import SuiviFamille from '@/components/SuiviFamille';
 import { passagesJoueur, notifierPassage } from "@/lib/suivi-matchs";
@@ -165,6 +166,7 @@ export default function PartagePage() {
         return () => { actif = false; clearTimeout(minuterie); window.removeEventListener("online", reconnecter); };
     }, [tournoiId]);
     const donnees = normaliserDonnees(tournoi?.donnees);
+    const validationsHistoriques = lireValidationsHistoriques(donnees);
     const equipes = donnees.equipes ?? [];
     const matchs = donnees.matchs ?? [];
     function enregistrerSuivi(participant: string, actif: boolean) {
@@ -209,8 +211,8 @@ export default function PartagePage() {
     const planningPublic = new Map(planifierMatchs(matchsMoteur, options).map(c => [c.matchId, c]));
     const formatParcours = donnees.formatTournoi === "doubleElimination" || donnees.formatTournoi === "consolante" ? donnees.formatTournoi : null;
     const classement = classementTournoi(donnees.formatTournoi || "complet", equipesMoteur, matchsMoteur, options).map(l => ({ ...l, id: l.equipe.id, nom: l.equipe.nom }));
-    const tournoiTermine = tournoiEstTermine(donnees.formatTournoi || "complet", equipesMoteur, matchsMoteur, options, donnees.matchsValides);
-    const passages = passagesJoueur(monEquipeId, matchsMoteur, options, donnees.matchsValides);
+    const tournoiTermine = tournoiEstTermine(donnees.formatTournoi || "complet", equipesMoteur, matchsMoteur, options, validationsHistoriques);
+    const passages = passagesJoueur(monEquipeId, matchsMoteur, options, validationsHistoriques);
     const prochain = passages.find(p => p.statut !== "validation");
     const clePassage = prochain?.statut === "prochain" ? `${tournoiId}:${monEquipeId}:${prochain.match.id}` : "";
     const prochainId = prochain?.match.id;
@@ -320,7 +322,7 @@ export default function PartagePage() {
 
 
 
-        {!ecranGeant&&<SuiviFamille id={tournoiId!} equipes={equipesMoteur} matchs={matchsMoteur} options={options} valides={donnees.matchsValides||[]} surMatch={()=>setOnglet('matchs')}/>}
+        {!ecranGeant&&<SuiviFamille id={tournoiId!} equipes={equipesMoteur} matchs={matchsMoteur} options={options} valides={validationsHistoriques||[]} surMatch={()=>setOnglet('matchs')}/>}
         {tournoiTermine && podiumFinal.length > 0 && (<section style={s.finalPoster}>
             <div style={s.finalPosterTop}>
               <div>
