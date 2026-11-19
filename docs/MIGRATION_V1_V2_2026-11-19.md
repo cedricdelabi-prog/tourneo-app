@@ -61,3 +61,29 @@ Nouvelle interrogation **en lecture seule** des deux projets Supabase :
 6. Obtenir un accord explicite pour la fenêtre de publication ; seule alors une configuration de production protégée peut être autorisée. Déployer la V2 sur le domaine officiel, surveiller les erreurs et préparer séparément l'actualisation Android.
 
 **État : BASCULE BLOQUÉE tant que ces preuves ne sont pas réunies.** Aucun champ, table, compte ni privilège de la production V1 n'a été modifié lors de ce contrôle.
+
+
+## Phase 2 préparée — socle compatible V1 en préproduction (19 novembre 2026)
+
+L'audit **en lecture seule** confirme qu'aucun bucket ni aucune politique Storage personnalisée ne sont actuellement présents dans la V1. La V2 de test utilise un bucket privé `tourneo-media` pour les images, ainsi qu'une table `public.player_results` pour les palmarès. Cette phase ajoute les éléments manquants **uniquement lors d'une future répétition sur une copie restaurée**.
+
+**Fichiers préparés :**
+- `docs/sql/compatibilite_v1_v2_staging_DRAFT.sql` : phase 1 déjà rédigée, ajout de colonnes V2 à `profiles` et `tournois` sans supprimer les colonnes ni les valeurs V1.
+- `docs/sql/compatibilite_v1_v2_staging_PHASE2_SOCLE.sql` : phase 2 **non exécutée sur Supabase** ; création additive de `player_results` avec politiques RLS, du bucket privé `tourneo-media` et de ses politiques propriétaire, préparation du schéma `tourneo_private`.
+- `docs/sql/verification_socle_phase2_staging.sql` : rapport SELECT en lecture seule, contrôlant colonnes historiques, protection Storage, palmarès, RLS et conservation du trigger d'inscription V1.
+- `tests/migration-socle-v2.cjs` : répétition automatique **PGlite locale avec comptes fictifs**, anciennes URL et JSON de scores. Vérifie notamment le maintien d'un trigger fictif de création de profil, les droits propriétaire, le refus de doublon de migration et le rollback en cas d'absence d'un ancien lien de partage.
+
+**Sécurité d'exécution :** La phase 2 refuse de s'exécuter tant que la session PostgreSQL de la **copie de staging restaurée** n'a pas été armée manuellement par l'opérateur responsable :
+
+```sql
+-- À utiliser sur une connexion à la COPIE RESTAURÉE uniquement,
+-- après preuve de sauvegarde/restauration et contrôle de l'identité du projet.
+select set_config('tourneo.v1_copy_verified','true',false);
+-- Puis seulement, dans cette même session, lancer le SQL PHASE2_SOCLE.
+```
+
+Cette marque est une **confirmation procédurale**, pas une preuve technique que la copie est effectivement isolée. Le SQL n'active jamais ce paramètre lui-même. Les comptes, données historiques, liens, résultats et fonctions V1 ne sont jamais réécrits par la phase 2. Les politiques V1 de lecture publique restent inchangées à cette étape : **la bascule ne doit donc surtout pas être effectuée après cette seule phase**.
+
+`npm run test:bascule` intègre maintenant cette répétition après les contrôles de phase 1. L'installation de la V2 complète nécessite encore l'adaptation et l'ordre d'installation des autres tables, RPC et triggers, le durcissement des accès, la validation des vieux liens, la mise à jour Android et une sauvegarde/restauration réellement prouvées.
+
+**État de publication : toujours BLOQUÉ.** La validation de cette phase sur des données fictives n'autorise aucun changement sur la V1 réelle.
