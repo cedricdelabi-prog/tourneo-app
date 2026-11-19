@@ -35,7 +35,7 @@ assert.match(phase16,/create table public\.tourneo_discussions/);
 assert.match(phase16,/create policy discussions_lecture/);
 assert.match(phase16,/grant execute on function tourneo_private\.discussion_role/);
 assert.doesNotMatch(phase16,/\bdrop\s+(?:table|column)\b/i);
-(async()=>{
+if (require.main===module) (async()=>{
  const db=await setup();
  try{
   const before=await rows(db,"select id,user_id,nom,donnees,revision,partage_id,est_public from public.tournois");
@@ -121,3 +121,4 @@ assert.doesNotMatch(phase16,/\bdrop\s+(?:table|column)\b/i);
   console.log('Phase 16 fictive : anciens liens manquants bloquent installation : OK');
  } finally {await broken.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={setup,phase16,PLAYER,OUTSIDE};
