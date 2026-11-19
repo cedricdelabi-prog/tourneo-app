@@ -8,12 +8,15 @@ begin
  if to_regclass('public.tournois') is null or to_regclass('public.profiles') is null then
    raise exception 'V1 tables missing';
  end if;
- if (select count(*) from auth.users) <> 59 or (select count(*) from public.tournois) <> 25 then
-   raise exception 'Expected restored staging snapshot not found; stop before changing schema';
+ if (select count(*) from auth.users)=0 or (select count(*) from public.tournois)=0 then
+   raise exception 'Expected populated V1 staging snapshot not found';
  end if;
- if (select count(*) from public.tournois where partage_id is not null) <> 25 then
+ if exists(select 1 from public.tournois where partage_id is null) then
    raise exception 'Legacy sharing IDs not restored';
  end if;
+ if exists(select 1 from public.tournois t where not exists(select 1 from auth.users u where u.id=t.user_id))
+ or exists(select 1 from public.profiles p where not exists(select 1 from auth.users u where u.id=p.id))
+ then raise exception 'Orphaned V1 data: abort'; end if;
 end $$;
 alter table public.tournois add column if not exists updated_at timestamptz not null default now();
 alter table public.tournois add column if not exists termine_at timestamptz;
