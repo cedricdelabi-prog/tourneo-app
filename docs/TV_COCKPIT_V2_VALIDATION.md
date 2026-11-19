@@ -125,3 +125,12 @@
 - Chaque action cohérente (appel + heure d'expiration + priorité, ou message + durée) est appliquée dans une seule transaction.
 - La file locale conserve l'ordre des commandes émises par le même poste. Deux postes peuvent encore modifier le **même champ** simultanément : la dernière commande validée est conservée (pas de verrou de prise de contrôle).
 - Contrôles automatisés sur l'extraction de patch et la confidentialité du brouillon, plus test SQL RLS transactionnel sur la base V2.
+
+## Signal réel d'écran TV (plusieurs appareils)
+- Migration de test `docs/sql/tv_presence_heartbeat_v2_TEST_ONLY.sql` appliquée seulement dans Supabase V2.
+- La TV authentifiée envoie une pulsation toutes les 15 secondes, horodatée par la base : aucune donnée de tournoi n'est incluse.
+- L'organisateur voit si **une TV connectée à son compte** a signalé sa présence dans les 45 dernières secondes, même si elle est ouverte sur un autre navigateur ou appareil.
+- Le signal distant est distinct du signal de fenêtre locale et **ne garantit pas l'image sur le téléviseur physique**.
+- La fonction SQL de présence n'écrit pas les réglages. Le trigger ne fait plus évoluer la révision TV lorsque seule la présence est mise à jour.
+- RLS propriétaire et exécution `SECURITY INVOKER`, accès RPC authentifié uniquement.
+- En cas d'absence de réseau, l'état devient absent après 45 secondes, sans écraser les derniers réglages TV.

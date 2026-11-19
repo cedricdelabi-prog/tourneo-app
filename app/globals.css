@@ -672,3 +672,8 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-remote-help>button{min-height:44px;padding:10px 14px;border:1px solid #6b849f;border-radius:10px;background:#1e4661;color:#fff;cursor:pointer}
 .tourneo-tv-remote-help>button:disabled{opacity:.6;cursor:not-allowed}
 .tourneo-tv-remote-status{font-size:.9rem;line-height:1.5;margin:8px 0 14px}
+
+/* V2 remote display presence: independent from the local-window signal. */
+.tourneo-tv-remote-presence{display:flex;align-items:flex-start;gap:10px;margin:10px 0 14px;padding:12px 14px;border:1px solid #5c7187;border-radius:12px;background:#11263a;font-size:.9rem;line-height:1.5}
+.tourneo-tv-presence-dot{display:inline-block;flex:0 0 12px;width:12px;height:12px;margin-top:5px;border-radius:50%;background:#8f9ba8}
+.tourneo-tv-remote-presence[data-presence=active] .tourneo-tv-presence-dot{background:#34d399}

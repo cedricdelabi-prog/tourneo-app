@@ -121,3 +121,9 @@ export function patchPourPilotageDistant(patch:Partial<ReglagesTV>,complet:Regla
  }
  return changements;
 }
+
+/** Authenticated remote TV heartbeat remains valid for 45 seconds. */
+export function tvDistanteActive(maintenant:number,dernierSignal:number):boolean{
+ return Number.isFinite(maintenant)&&Number.isFinite(dernierSignal)&&dernierSignal>0
+  &&dernierSignal<=maintenant+5000&&maintenant-dernierSignal<=45000;
+}

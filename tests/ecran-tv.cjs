@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant,patchPourPilotageDistant}=m.exports;
+const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant,patchPourPilotageDistant,tvDistanteActive}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',brouillonAnnonce:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -57,6 +57,13 @@ assert.deepEqual(patchUnChamp,{pageManuelle:4},'atomic patch cannot overwrite un
 const patchDeuxChamps=patchPourPilotageDistant({message:'Annonce',brouillonAnnonce:'secret',annonceExpireA:1000},normaliserTV({message:'Annonce',brouillonAnnonce:'secret',annonceExpireA:1000}));
 assert.deepEqual(patchDeuxChamps,{message:'Annonce',annonceExpireA:1000},'broadcast patch omits drafts and preserves linked timing');
 assert.deepEqual(patchPourPilotageDistant({brouillonAnnonce:'privé'},org),{},'draft changes never travel to another device');
+assert.equal(tvDistanteActive(100000,100000),true,'live remote display heartbeat');
+assert.equal(tvDistanteActive(145000,100000),true,'45 second heartbeat tolerance');
+assert.equal(tvDistanteActive(145001,100000),false,'remote display disconnected after timeout');
+assert.equal(tvDistanteActive(100000,0),false,'never connected is absent');
+assert.equal(tvDistanteActive(100000,105001),false,'future heartbeat more than five seconds is rejected');
+assert.equal(tvDistanteActive(100000,NaN),false,'invalid timestamps rejected');
+
 
 const testEtat=normaliserTV({message:'Annonce en cours',brouillonAnnonce:'Brouillon privé',annonceExpireA:6000,dureeAppel:30});
 const appelEnCours=normaliserTV({...testEtat,...demarrerAppelTV(testEtat,42,1000)});

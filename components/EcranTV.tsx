@@ -10,7 +10,7 @@ import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import {nomParticipant} from '@/lib/rotation';
 import {classementTournoi} from '@/lib/resultats';
 import {heureCreneau,planifierMatchs} from '@/lib/planning';
-import {appelTV,compteAReboursTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,fusionnerPilotageDistant,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,patchPourPilotageDistant,repriseSonoreDansDelai,statistiquesTV,synchroniserModificationDistant,terminerActionsTV,statutMatchTV,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
+import {appelTV,compteAReboursTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,fusionnerPilotageDistant,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,patchPourPilotageDistant,repriseSonoreDansDelai,statistiquesTV,synchroniserModificationDistant,terminerActionsTV,statutMatchTV,tvDistanteActive,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
 import {tr,trModele,useLangue,localeFormat} from '@/lib/langue';
 import type {Equipe,Match} from '@/types';
 type TournoiTV={nom:string;equipes:Equipe[];matchs:Match[];valides:number[];format:string;options:ReturnType<typeof normaliserOptionsV2>;sponsors:string[];logo:string};
@@ -18,7 +18,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  useLangue();const {id}=useParams<{id:string}>();
  const [tournoi,setTournoi]=useState<TournoiTV|null>(null),[erreur,setErreur]=useState(''),[maj,setMaj]=useState('');
  const [cle,setCle]=useState(''),[reglages,setReglages]=useState<ReglagesTV>(TV_DEFAUT),[pleinEcranErreur,setPleinEcranErreur]=useState(''),[etatTV,setEtatTV]=useState<EtatConnexionTV>('deconnecte');
- const [urlEcran,setUrlEcran]=useState(''),[messageLien,setMessageLien]=useState('');
+ const [urlEcran,setUrlEcran]=useState(''),[messageLien,setMessageLien]=useState(''),[derniereTVDistante,setDerniereTVDistante]=useState(0);
  const reglagesRef=useRef(reglages);const cleRef=useRef('');const derniereReceptionRef=useRef(0);
  const revisionDistantRef=useRef(0),ecrituresDistantesRef=useRef(0),initialisationDistantRef=useRef(false);
  const fileDistantRef=useRef<Promise<void>>(Promise.resolve());
@@ -97,17 +97,20 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
   async function lirePilotage(){
    if(enCours||ecrituresDistantesRef.current>0)return;enCours=true;
    try{
-    const r=await supabase.from('tourneo_tv_pilotage').select('reglages,revision').eq('tournoi_id',id).maybeSingle();
+    const r=await supabase.from('tourneo_tv_pilotage').select('reglages,revision,derniere_tv_at').eq('tournoi_id',id).maybeSingle();
     if(!actif)return;
     if(r.error)throw Error(r.error.message);
     setEtatDistant('actif');
     if(!r.data){
+     setDerniereTVDistante(0);
      if(!ecran&&!initialisationDistantRef.current){
       initialisationDistantRef.current=true;
       modifier({debutDefilement:reglagesRef.current.debutDefilement||Date.now()});
      }
      return;
     }
+    const dateSignal=r.data.derniere_tv_at?Date.parse(String(r.data.derniere_tv_at)):0;
+    setDerniereTVDistante(Number.isFinite(dateSignal)?dateSignal:0);
     const revision=Number(r.data.revision)||0;
     if(revision>revisionDistantRef.current&&ecrituresDistantesRef.current===0){
      revisionDistantRef.current=revision;
@@ -120,6 +123,19 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
   }
   void lirePilotage();
   const timer=setInterval(()=>void lirePilotage(),4000);
+  return()=>{actif=false;clearInterval(timer);};
+ },[cle,id,ecran]);
+
+ useEffect(()=>{if(!cle||!ecran)return;
+  let actif=true;
+  async function signalerPresense(){
+   try{
+    const r=await supabase.rpc('tv_pilotage_ping',{p_tournoi_id:id});
+    if(r.error)throw Error(r.error.message);
+   }catch{if(actif)setEtatDistant('indisponible');}
+  }
+  void signalerPresense();
+  const timer=setInterval(()=>void signalerPresense(),15000);
   return()=>{actif=false;clearInterval(timer);};
  },[cle,id,ecran]);
 
@@ -156,6 +172,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  <p>{etatTV==='connecte'?tr('La fenêtre de diffusion fonctionne dans ce navigateur. Le branchement physique HDMI n’est pas vérifié.'):etatTV==='actualisationEnRetard'?tr('La fenêtre est active, mais les données n’ont pas été actualisées récemment.'):tr('Aucune fenêtre TV détectée sur ce navigateur. Une TV ouverte sur un autre appareil ne peut pas être détectée ici.')}</p></div>
  </div>
  <p className="tourneo-tv-remote-status" role="status">{etatDistant==='actif'?tr('Pilotage à distance synchronisé avec votre compte organisateur.'):etatDistant==='connexion'?tr('Connexion au pilotage distant en cours…'):tr('Pilotage distant indisponible : la diffusion locale reste utilisable.')}</p>
+ <p className="tourneo-tv-remote-presence" data-presence={tvDistanteActive(maintenant,derniereTVDistante)?'active':'absente'} role="status"><span aria-hidden="true" className="tourneo-tv-presence-dot"/>{tvDistanteActive(maintenant,derniereTVDistante)?tr('Une TV connectée à votre compte transmet des signaux récents.'):tr('Aucun signal récent d’un écran TV connecté à votre compte.')} {tr('Cela ne confirme pas que l’écran physique affiche l’image.')}</p>
  <button className="tourneo-tv-refresh-button" type="button" disabled={!cle} onClick={rafraichirEcrans}>{tr('Actualiser les écrans maintenant')}</button>
  <details className="tourneo-tv-remote-help"><summary>{tr('Installer l’écran TV sur un autre appareil')}</summary>
  <p>{tr('Sur l’autre ordinateur, tablette ou téléphone, connectez-vous d’abord à votre compte organisateur, puis ouvrez le lien suivant. Les commandes se synchronisent via Supabase lorsque le pilotage distant est disponible.')}</p>
