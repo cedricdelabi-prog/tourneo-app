@@ -8,7 +8,7 @@ const adresse='https://kmjfmjhdnokkaiolxiin.supabase.co';
 const equipes=[{id:'a',nom:'Les Bleus'},{id:'b',nom:'Les Rouges'}];
 const matchs=[{id:1,equipe1Id:'a',equipe2Id:'b',journee:1,ordre:1,terrain:1,score1:'',score2:''}];
 const tournoi={nom:'Coupe Tourneo V2',donnees:{equipes,matchs,matchsValides:[],formatTournoi:'complet',optionsV2:{terrains:1,duree:10,repos:0,depart:'2026-12-01T14:00'}}};
-const etat={reglages:null,revision:0,presence:null,patchs:[]};
+const etat={reglages:null,revision:0,presence:null,patchs:[],echecProchainEnvoi:false};
 function jeton(){return Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:uid,exp:Math.floor(Date.now()/1000)+3600,role:'authenticated'})).toString('base64url')+'.fixture';}
 async function contexte(browser,viewport){
  const ctx=await browser.newContext({viewport,locale:'fr-FR'});
@@ -29,6 +29,10 @@ async function contexte(browser,viewport){
    if(etat.reglages===null){etat.reglages={};etat.revision=1;}
    data=etat.presence;
   }else if(path.endsWith('/rpc/tv_pilotage_appliquer')){
+   if(etat.echecProchainEnvoi){
+    etat.echecProchainEnvoi=false;
+    return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'Réseau de test temporairement indisponible'})});
+   }
    const patch=req.postDataJSON().p_patch;
    assert.equal(Object.prototype.hasOwnProperty.call(patch,'brouillonAnnonce'),false,'private draft must never be sent');
    etat.patchs.push(patch);
@@ -76,12 +80,22 @@ async function contexte(browser,viewport){
   await tv.locator('.tourneo-tv-call-full').waitFor({state:'hidden',timeout:18000});
   await pc.getByLabel('Préparer une annonce au public').fill('Brouillon confidentiel');
   assert.equal(etat.patchs.some(p=>JSON.stringify(p).includes('Brouillon confidentiel')),false);
+  etat.echecProchainEnvoi=true;
   await pc.getByRole('button',{name:'Diffuser l’annonce maintenant'}).click();
+  await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({timeout:18000});
+  assert.equal(etat.patchs.some(p=>p.message==='Brouillon confidentiel'),false,'failed command must not appear as delivered');
+  assert.equal(await pc.evaluate(()=>Object.keys(localStorage).some(k=>k.endsWith(':commandes-en-attente'))),true,'unsent command is retained across reload');
+  await pc.reload({waitUntil:'domcontentloaded'});
+  await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({timeout:20000});
+  await pc.getByRole('button',{name:'Réessayer l’envoi des commandes'}).click();
+  await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({state:'hidden',timeout:18000});
   await tv.getByText('Brouillon confidentiel',{exact:true}).waitFor({timeout:18000});
+  assert.equal(etat.patchs.some(p=>p.message==='Brouillon confidentiel'),true,'retry delivers the pending published message');
+  assert.equal(await pc.evaluate(()=>Object.keys(localStorage).some(k=>k.endsWith(':commandes-en-attente'))),false,'successful retry clears pending storage');
   assert.ok(!erreurs.length,'No React browser exceptions: '+erreurs.join('; '));
   assert.ok(await pc.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'organizer cockpit fits 420px');
   assert.ok(await tv.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'public TV fits desktop width');
-  console.log('V2 TV multi-context: remote heartbeat, announcement, pause/resume, player call, draft privacy, responsive layout: OK');
+  console.log('V2 TV multi-context: remote heartbeat, announcement, pause/resume, player call, offline retry after reload, draft privacy, responsive layout: OK');
  }finally{
   if(organisateur)await organisateur.close();
   if(publicTV)await publicTV.close();
