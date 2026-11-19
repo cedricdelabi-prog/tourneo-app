@@ -2,7 +2,7 @@ import {capitaineEquipe} from '@/lib/equipe-capitaine';
 import type { Equipe,Match } from '@/types';
 import { normaliserOptionsV2,type OptionsV2 } from '@/lib/options-v2';
 export type PouleSauvegarde={id:string;nom:string;terrain:string;equipes:Equipe[]};
-export type SauvegardeTournoi={version:2;nomTournoi:string;sport:string;formatTournoi:string;equipes:Equipe[];matchs:Match[];matchsValides:number[];optionsV2:OptionsV2;poules?:PouleSauvegarde[]};
+export type SauvegardeTournoi={version:2;nomTournoi:string;sport:string;formatTournoi:string;equipes:Equipe[];matchs:Match[];matchsValides:number[];optionsV2:OptionsV2;poules?:PouleSauvegarde[];cree?:boolean;modePoules?:'nombrePoules'|'taillePoules';nombrePoules?:number;taillePoules?:number;qualifiesParPoule?:number;matchsPhaseFinale?:Match[];podiumPhotoUrl?:string};
 const FORMATS=['complet','allerRetour','poules','poulesFinale','elimination','doubleElimination','consolante','suisse','rotation'];
 
 /** Conserve les références de médias privés sans accepter de lien externe de suivi. */
@@ -55,11 +55,26 @@ export function lireSauvegarde(texte:string):SauvegardeTournoi{
  if(new Set(matchs.map(m=>m.id)).size!==matchs.length)throw new Error('Identifiants de matchs dupliqués.');
  let poules:PouleSauvegarde[]=[];
  if(d.formatTournoi==='poules'||d.formatTournoi==='poulesFinale'){
+   if((d.poules===undefined||Array.isArray(d.poules)&&d.poules.length===0)&&matchs.length===0&&d.cree!==true)return{
+     version:2,nomTournoi:d.nomTournoi,sport:d.sport,formatTournoi:d.formatTournoi,equipes,matchs,
+     matchsValides:[],optionsV2:normaliserOptionsV2(d.optionsV2),poules:[],
+     cree:false,modePoules:d.modePoules==='taillePoules'?'taillePoules':'nombrePoules',
+     nombrePoules:2,taillePoules:4,qualifiesParPoule:2,matchsPhaseFinale:[],podiumPhotoUrl:nettoyerPhoto(d.podiumPhotoUrl)
+   };
    if(!Array.isArray(d.poules)||d.poules.length<2||d.poules.length>128)throw new Error('Répartition des poules absente ou invalide.');
    poules=d.poules.map((p:PouleSauvegarde)=>{if(!p||typeof p.id!=='string'||typeof p.nom!=='string'||!Array.isArray(p.equipes)||p.equipes.some(e=>!ids.has(e.id)))throw new Error('Poule invalide.');return{id:p.id.slice(0,100),nom:p.nom.slice(0,100),terrain:typeof p.terrain==='string'?p.terrain.slice(0,100):'',equipes:p.equipes.map(e=>equipes.find(a=>a.id===e.id)!)};});
    const repartis=poules.flatMap(p=>p.equipes.map(e=>e.id));if(repartis.length!==equipes.length||new Set(repartis).size!==equipes.length)throw new Error('Chaque participant doit appartenir à une seule poule.');
  }
- return{poules,version:2,nomTournoi:d.nomTournoi,sport:d.sport,formatTournoi:d.formatTournoi,equipes,matchs,matchsValides:Array.isArray(d.matchsValides)?[...new Set<number>(d.matchsValides.filter((id:unknown):id is number=>typeof id==='number'&&matchs.some(m=>m.id===id&&m.score1!==''&&m.score2!=='')))]:[],optionsV2:normaliserOptionsV2(d.optionsV2)};
+ const entier=(v:unknown,min:number,max:number,defaut:number)=>Number.isSafeInteger(v)&&typeof v==='number'&&v>=min&&v<=max?v:defaut;
+ return{poules,version:2,nomTournoi:d.nomTournoi,sport:d.sport,formatTournoi:d.formatTournoi,equipes,matchs,
+  matchsValides:Array.isArray(d.matchsValides)?[...new Set<number>(d.matchsValides.filter((id:unknown):id is number=>typeof id==='number'&&matchs.some(m=>m.id===id&&m.score1!==''&&m.score2!=='')))]:[],
+  optionsV2:normaliserOptionsV2(d.optionsV2),
+  cree:typeof d.cree==='boolean'?d.cree:matchs.length>0,
+  modePoules:d.modePoules==='taillePoules'?'taillePoules':'nombrePoules',
+  nombrePoules:entier(d.nombrePoules,2,128,2),taillePoules:entier(d.taillePoules,2,256,4),
+  qualifiesParPoule:entier(d.qualifiesParPoule,1,256,2),
+  matchsPhaseFinale:matchs.filter(m=>m.id>=100000),podiumPhotoUrl:nettoyerPhoto(d.podiumPhotoUrl)
+ };
 }
 export function telechargerSauvegarde(donnees:SauvegardeTournoi){
  const url=URL.createObjectURL(new Blob([JSON.stringify(donnees,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`tourneo-sauvegarde-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);

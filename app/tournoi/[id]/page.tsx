@@ -1447,7 +1447,7 @@ ${lienPartage}`,
         await copierLien();
     }
     function sauvegarderFichier() {
-        telechargerSauvegarde({ version: 2, nomTournoi, sport, formatTournoi, equipes, matchs, matchsValides, optionsV2, poules });
+        telechargerSauvegarde({ version: 2, nomTournoi, sport, formatTournoi, equipes, matchs, matchsValides, optionsV2, poules, cree, modePoules, nombrePoules, taillePoules, qualifiesParPoule, matchsPhaseFinale, podiumPhotoUrl });
     }
     async function restaurerFichier(event: ChangeEvent<HTMLInputElement>) {
         const fichier = event.target.files?.[0];
@@ -1467,7 +1467,14 @@ ${lienPartage}`,
             setMatchsValides(d.matchsValides);
             setOptionsV2(d.optionsV2);
             setFormatTournoi(d.formatTournoi as FormatTournoi);
+            setModePoules(d.modePoules ?? "nombrePoules");
+            setNombrePoules(d.nombrePoules ?? 2);
+            setTaillePoules(d.taillePoules ?? 4);
+            setQualifiesParPoule(d.qualifiesParPoule ?? 2);
             setPoules(d.poules ?? []);
+            setMatchsPhaseFinale(d.matchsPhaseFinale ?? []);
+            setCree(d.cree ?? d.matchs.length>0);
+            setPodiumPhotoUrl(photosExpirentAt&&Date.parse(photosExpirentAt)<=Date.now()?"":d.podiumPhotoUrl??"");
             setOnglet("matchs");
             setMessageCloud("Sauvegarde restaurée · synchronisation en attente");
         }

@@ -119,6 +119,31 @@ const rotationValide={...exempleSauvegarde,formatTournoi:'rotation',
  matchsValides:[]};
 assert.equal(lireSauvegarde(JSON.stringify(rotationValide)).matchs.length,1,
  'Ne pas casser les sauvegardes en doubles à partenaires tournants');
+const sauvegardeAvancee={...exempleSauvegarde,cree:true,modePoules:'taillePoules',
+ nombrePoules:3,taillePoules:6,qualifiesParPoule:1,
+ podiumPhotoUrl:'media-prive:u/tournois/test/photos/podium.webp'};
+const vAvancee=lireSauvegarde(JSON.stringify(sauvegardeAvancee));
+assert.equal(vAvancee.cree,true);
+assert.equal(vAvancee.modePoules,'taillePoules');
+assert.equal(vAvancee.nombrePoules,3);
+assert.equal(vAvancee.taillePoules,6);
+assert.equal(vAvancee.qualifiesParPoule,1);
+assert.equal(vAvancee.podiumPhotoUrl,sauvegardeAvancee.podiumPhotoUrl);
+const finale={...exempleSauvegarde,matchs:[...exempleSauvegarde.matchs,
+ {...exempleSauvegarde.matchs[0],id:100001,journee:2,score1:'',score2:''}]};
+assert.deepEqual(lireSauvegarde(JSON.stringify(finale)).matchsPhaseFinale.map(m=>m.id),[100001]);
+const legacySansOptions=lireSauvegarde(JSON.stringify(exempleSauvegarde));
+assert.equal(legacySansOptions.cree,true,'Legacy backups preserve an existing competition by default');
+const brouillonPoules={...exempleSauvegarde,formatTournoi:'poules',cree:false,matchs:[],matchsValides:[],poules:[]};
+const lectureBrouillon=lireSauvegarde(JSON.stringify(brouillonPoules));
+assert.equal(lectureBrouillon.cree,false);
+assert.deepEqual(lectureBrouillon.poules,[],'Drafts without generated groups can be restored');
+assert.throws(()=>lireSauvegarde(JSON.stringify({...brouillonPoules,cree:true})),/Répartition des poules/);
+const fauxPodium={...sauvegardeAvancee,podiumPhotoUrl:'https://tracking.invalid/podium.png'};
+assert.equal(lireSauvegarde(JSON.stringify(fauxPodium)).podiumPhotoUrl,undefined);
+const optionsInvalides={...sauvegardeAvancee,nombrePoules:-4,taillePoules:9000,qualifiesParPoule:Infinity};
+const champsBornes=lireSauvegarde(JSON.stringify(optionsInvalides));
+assert.equal(champsBornes.nombrePoules,2);assert.equal(champsBornes.taillePoules,4);assert.equal(champsBornes.qualifiesParPoule,2);
 console.log('Tests rotation, tirages équilibrés et sauvegardes : OK');
 for(const n of [4,5,8]){
  const es=Array.from({length:n},(_,i)=>({id:String(i),nom:`J${i}`,emoji:'',couleur:''}));let ms=[],exemptions=[];
