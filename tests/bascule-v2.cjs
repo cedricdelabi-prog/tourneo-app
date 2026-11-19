@@ -35,4 +35,11 @@ const draft=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2
 assert.match(draft,/STAGING COPY/);
 assert.ok(!/drop\s+(?:table|column)/i.test(draft),'Staging compatibility cannot remove legacy columns');
 assert.match(draft,/partage_id/);
+const phase2=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2_staging_PHASE2_SOCLE.sql'),'utf8');
+assert.match(phase2,/tourneo\.v1_copy_verified/,'phase 2 needs staging opt-in');
+assert.match(phase2,/on_auth_user_created_tourneo/,'V1 signup trigger must stay intact');
+assert.match(phase2,/create table public\.player_results/i);
+assert.match(phase2,/create policy results_owner_insert/i);
+assert.match(phase2,/create policy media_owner_insert/i);
+assert.ok(!/drop\s+(?:table|column)/i.test(phase2),'phase 2 must not drop V1 data');
 console.log('Tourneo V2 : lancement bloqué sans sauvegarde/restauration/accord, inventaire agrégé et protection production : OK');
