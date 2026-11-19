@@ -8,7 +8,7 @@ const adresse='https://kmjfmjhdnokkaiolxiin.supabase.co';
 const equipes=[{id:'a',nom:'Les Bleus'},{id:'b',nom:'Les Rouges'}];
 const matchs=[{id:1,equipe1Id:'a',equipe2Id:'b',journee:1,ordre:1,terrain:1,score1:'',score2:''}];
 const tournoi={nom:'Coupe Tourneo V2',donnees:{equipes,matchs,matchsValides:[],formatTournoi:'complet',optionsV2:{terrains:1,duree:10,repos:0,depart:'2026-12-01T14:00'}}};
-const etat={reglages:null,revision:0,presence:null,patchs:[],echecProchainEnvoi:false};
+const etat={reglages:null,revision:0,presence:null,patchs:[],panneRPC:false,echecs:0};
 function jeton(){return Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:uid,exp:Math.floor(Date.now()/1000)+3600,role:'authenticated'})).toString('base64url')+'.fixture';}
 async function contexte(browser,viewport){
  const ctx=await browser.newContext({viewport,locale:'fr-FR'});
@@ -29,8 +29,8 @@ async function contexte(browser,viewport){
    if(etat.reglages===null){etat.reglages={};etat.revision=1;}
    data=etat.presence;
   }else if(path.endsWith('/rpc/tv_pilotage_appliquer')){
-   if(etat.echecProchainEnvoi){
-    etat.echecProchainEnvoi=false;
+   if(etat.panneRPC){
+    etat.echecs++;
     return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'Réseau de test temporairement indisponible'})});
    }
    const patch=req.postDataJSON().p_patch;
@@ -80,22 +80,43 @@ async function contexte(browser,viewport){
   await tv.locator('.tourneo-tv-call-full').waitFor({state:'hidden',timeout:18000});
   await pc.getByLabel('Préparer une annonce au public').fill('Brouillon confidentiel');
   assert.equal(etat.patchs.some(p=>JSON.stringify(p).includes('Brouillon confidentiel')),false);
-  etat.echecProchainEnvoi=true;
+  etat.panneRPC=true;
   await pc.getByRole('button',{name:'Diffuser l’annonce maintenant'}).click();
   await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({timeout:18000});
   assert.equal(etat.patchs.some(p=>p.message==='Brouillon confidentiel'),false,'failed command must not appear as delivered');
   assert.equal(await pc.evaluate(()=>Object.keys(localStorage).some(k=>k.endsWith(':commandes-en-attente'))),true,'unsent command is retained across reload');
   await pc.reload({waitUntil:'domcontentloaded'});
   await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({timeout:20000});
-  await pc.getByRole('button',{name:'Réessayer l’envoi des commandes'}).click();
+  etat.panneRPC=false;
+  await pc.evaluate(()=>window.dispatchEvent(new Event('online')));
   await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({state:'hidden',timeout:18000});
   await tv.getByText('Brouillon confidentiel',{exact:true}).waitFor({timeout:18000});
-  assert.equal(etat.patchs.some(p=>p.message==='Brouillon confidentiel'),true,'retry delivers the pending published message');
-  assert.equal(await pc.evaluate(()=>Object.keys(localStorage).some(k=>k.endsWith(':commandes-en-attente'))),false,'successful retry clears pending storage');
+  assert.equal(etat.patchs.some(p=>p.message==='Brouillon confidentiel'),true,'automatic retry delivers the pending published message after reconnect');
+  assert.equal(await pc.evaluate(()=>Object.keys(localStorage).some(k=>k.endsWith(':commandes-en-attente'))),false,'successful automatic retry clears pending storage');
+
+  await pc.getByLabel('Préparer une annonce au public').fill('Annonce ancienne à confirmer');
+  etat.panneRPC=true;
+  await pc.getByRole('button',{name:'Diffuser l’annonce maintenant'}).click();
+  await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({timeout:18000});
+  await pc.evaluate(()=>{
+   const key=Object.keys(localStorage).find(k=>k.endsWith(':commandes-en-attente-depuis'));
+   if(!key)throw Error('Missing retry timestamp');
+   localStorage.setItem(key,String(Date.now()-180000));
+  });
+  await pc.reload({waitUntil:'domcontentloaded'});
+  await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({timeout:18000});
+  etat.panneRPC=false;
+  await pc.evaluate(()=>window.dispatchEvent(new Event('online')));
+  await pc.waitForTimeout(6500);
+  assert.equal(etat.patchs.some(p=>p.message==='Annonce ancienne à confirmer'),false,'stale unsent message must not replay automatically');
+  await pc.getByRole('button',{name:'Réessayer l’envoi des commandes'}).click();
+  await pc.getByRole('alert').filter({hasText:'Commande non transmise à la TV distante'}).waitFor({state:'hidden',timeout:18000});
+  await tv.getByText('Annonce ancienne à confirmer',{exact:true}).waitFor({timeout:18000});
+  assert.equal(etat.patchs.some(p=>p.message==='Annonce ancienne à confirmer'),true,'manual retry remains available for old pending actions');
   assert.ok(!erreurs.length,'No React browser exceptions: '+erreurs.join('; '));
   assert.ok(await pc.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'organizer cockpit fits 420px');
   assert.ok(await tv.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+3),'public TV fits desktop width');
-  console.log('V2 TV multi-context: remote heartbeat, announcement, pause/resume, player call, offline retry after reload, draft privacy, responsive layout: OK');
+  console.log('V2 TV multi-context: remote heartbeat, announcement, pause/resume, player call, automatic recovery after reload, stale-command protection, manual fallback, draft privacy, responsive layout: OK');
  }finally{
   if(organisateur)await organisateur.close();
   if(publicTV)await publicTV.close();
