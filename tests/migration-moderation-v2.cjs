@@ -77,7 +77,7 @@ assert.doesNotMatch(phase17,/\bdrop\s+(?:table|column)\b/i);
   assert.equal(liste[0].signale_par,PLAYER);
   assert.ok(JSON.stringify(liste[0].contexte).includes('Un message à signaler'));
   await q(db,decide('masquer','Masquer les propos signalés'));
-  assert.equal((await q(db,"select masque from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].masque,true);
+  assert.equal((await q(db,"select count(*)::int as n from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].n,0,'masked message is hidden by RLS even from organizer');
   await q(db,decide('suspendre_24h','Suspendre temporairement le compte'));
   const first=(await q(db,"select actif,jusquau from tourneo_private.sanctions_discussions where user_id='"+OTHER+"'"))[0];
   assert.equal(first.actif,true);assert.ok(first.jusquau);
@@ -86,6 +86,7 @@ assert.doesNotMatch(phase17,/\bdrop\s+(?:table|column)\b/i);
   const journal=(await q(db,"select count(*)::int as n from tourneo_private.journal_admin"))[0].n;
   assert.equal(journal,2,'only original decisions should be audited');
   await db.exec('commit');
+  assert.equal((await q(db,"select masque from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].masque,true,'message remains flagged for audit');
 
   await role(db,PLAYER);
   assert.equal((await q(db,"select count(*)::int as n from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].n,0,'masked content invisible');
