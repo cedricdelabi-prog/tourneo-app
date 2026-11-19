@@ -127,17 +127,17 @@ export default function PartagePage() {
                 return;
             enCours = true;
             try {
-                let resultat = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
-                // Never fall back to V1 get_tourneo_public: it exposes unsanitized JSON.
+                // Compatibility RPC enforces est_public for BOTH V1 tournament IDs and share IDs.
+                // The direct V2 RPC is permitted only in the isolated V2 test environment,
+                // where the legacy compatibility function is not installed.
+                let resultat = await supabase.rpc("tourneo_public_compat_v2", { p_id: tournoiId });
+                const compatAbsente = !!resultat.error && /PGRST202|schema cache|could not find/i.test(
+                    resultat.error.code + " " + resultat.error.message
+                );
+                if (compatAbsente && process.env.NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED !== "true")
+                    resultat = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
                 if (!actif)
                     return;
-                // An existing V1 share link can contain partage_id rather than tournois.id.
-                // Only try the sanitized compatibility RPC when the standard lookup finds nothing.
-                if (!resultat.error && !resultat.data) {
-                    const ancienLien = await supabase.rpc("tourneo_public_compat_v2", { p_id: tournoiId });
-                    if (!ancienLien.error && ancienLien.data)
-                        resultat = ancienLien;
-                }
                 const ligne = Array.isArray(resultat.data) ? resultat.data[0] : resultat.data;
                 if (resultat.error || !ligne)
                     throw new Error("Tournoi introuvable ou partage public indisponible.");
