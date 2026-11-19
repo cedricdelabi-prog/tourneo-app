@@ -121,9 +121,12 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
      ...(precedentes?.tournoiId===tournoiCible?precedentes.patch:{}),
      ...valeurs
     };
-    commandesManquantesRef.current={tournoiId:tournoiCible,patch:enAttente};
+    // An old in-flight request must not replace the retry queue of another tournament.
     try{localStorage.setItem(`${cleEcriture}:commandes-en-attente`,JSON.stringify(enAttente));}catch{/* This session can still retry manually. */}
-    if(cleRef.current===cleEcriture){setCommandesNonEnvoyees(true);setEtatDistant('indisponible');}
+    if(cleRef.current===cleEcriture){
+     commandesManquantesRef.current={tournoiId:tournoiCible,patch:enAttente};
+     setCommandesNonEnvoyees(true);setEtatDistant('indisponible');
+    }
    }finally{ecrituresDistantesRef.current--;}
   });
  }
