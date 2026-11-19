@@ -17,8 +17,9 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  useLangue();const {id}=useParams<{id:string}>();
  const [tournoi,setTournoi]=useState<TournoiTV|null>(null),[erreur,setErreur]=useState(''),[maj,setMaj]=useState('');
  const [cle,setCle]=useState(''),[reglages,setReglages]=useState<ReglagesTV>(TV_DEFAUT),[page,setPage]=useState(0),[pleinEcranErreur,setPleinEcranErreur]=useState('');
- const reglagesRef=useRef(reglages);const [maintenant,setMaintenant]=useState(0);const sonReprise=useRef(false);
+ const reglagesRef=useRef(reglages);const [maintenant,setMaintenant]=useState(0);const [sponsorIndex,setSponsorIndex]=useState(0);const sonReprise=useRef(false);
  useEffect(()=>{const actualiser=()=>setMaintenant(Date.now());actualiser();const timer=setInterval(actualiser,1000);return()=>clearInterval(timer);},[]);
+ useEffect(()=>{if(!ecran||!reglages.afficherSponsors)return;const timer=setInterval(()=>setSponsorIndex(i=>i+1),8000);return()=>clearInterval(timer);},[ecran,reglages.afficherSponsors]);
  useEffect(()=>{if(!reglages.pause||!reglages.repriseA){sonReprise.current=false;return;}if(maintenant<reglages.repriseA||sonReprise.current)return;sonReprise.current=true;if(!ecran)return;try{const contexte=new AudioContext();const osc=contexte.createOscillator();const gain=contexte.createGain();osc.frequency.value=880;gain.gain.value=.08;osc.connect(gain);gain.connect(contexte.destination);osc.start();osc.stop(contexte.currentTime+.4);osc.onended=()=>void contexte.close();}catch{/* Audio may be blocked until the TV is interacted with. */}},[maintenant,reglages.pause,reglages.repriseA,ecran]);
  useEffect(()=>{let actif=true,enCours=false;async function charger(){if(enCours)return;enCours=true;try{
   const a=await supabase.auth.getUser();if(a.error||!a.data.user)throw Error('Connectez-vous avec le compte organisateur pour ouvrir cet écran.');
@@ -59,6 +60,6 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  </>}
  <footer><span>{trModele('Page {0} / {1}',index+1,Math.max(1,slides.length))}</span><span>{tr('Dernière actualisation')} : {maj}</span>{!ecran&&!reglages.pause&&<div><button onClick={()=>setPage(p=>(p+Math.max(1,slides.length)-1)%Math.max(1,slides.length))}>{tr('Précédent')}</button><button onClick={()=>setPage(p=>p+1)}>{tr('Suivant')}</button></div>}</footer></section>}
  {!ecran&&<p><Link href={`/tournoi/${id}`}>{tr('Retour au tournoi')}</Link></p>}
- {ecran&&reglages.afficherSponsors&&Boolean(tournoi?.sponsors.length)&&<aside className="tourneo-tv-sponsors-bottom" aria-label="Sponsors du tournoi"><strong>{tr('Nos partenaires')}</strong><div>{tournoi?.sponsors.map((src,i)=><img key={i} src={src} alt={`${tr('Sponsor')} ${i+1}`}/>)}</div></aside>}
+ {ecran&&reglages.afficherSponsors&&Boolean(tournoi?.sponsors.length)&&<aside className="tourneo-tv-sponsors-bottom" aria-label="Sponsors du tournoi"><strong>{tr('Nos partenaires')}</strong><div>{tournoi?.sponsors.length?Array.from({length:Math.min(2,tournoi.sponsors.length)},(_,i)=>{const index=(sponsorIndex*2+i)%tournoi.sponsors.length;return <img key={index} src={tournoi.sponsors[index]} alt={`${tr('Sponsor')} ${index+1}`}/>;}):null}</div></aside>}
  </div></main>;
 }
