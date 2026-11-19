@@ -40,5 +40,7 @@
 - Liste des quatre prochains matchs (terrain et créneau si planifiés).
 - Sélection des pages de matchs et de classement; filtre de matchs `tous / à jouer / à valider / validés`.
 - Les filtres TV n'altèrent ni les scores ni les données métier du tournoi.
+- Les calculs de planning/classement et les listes de pages sont mémorisés ; le compteur peut avancer sans recalculer la compétition chaque seconde.
+- Trois annonces rapides (buvette, remise des prix, reprise des matchs) et retour en un clic au défilement, avec texte personnalisable ensuite.
 - Tests unitaires ajoutés pour les comptes, les filtres et la compatibilité des anciens réglages.
 - **À vérifier au prochain déploiement** : pages vides, filtres, défilement, affichage mobile et pertinence des créneaux selon le format sportif.

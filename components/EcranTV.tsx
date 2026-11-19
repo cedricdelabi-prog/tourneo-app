@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {useParams} from 'next/navigation';
 import Link from 'next/link';
 import TourneoNav from '@/components/TourneoNav';
@@ -32,13 +32,21 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  void charger();const timer=setInterval(()=>void charger(),15000);return()=>{actif=false;clearInterval(timer);};},[id]);
  useEffect(()=>{if(!cle)return;function lire(){try{const v=normaliserTV(JSON.parse(localStorage.getItem(cle)||'null'));if(!v.debutDefilement){v.debutDefilement=Date.now();localStorage.setItem(cle,JSON.stringify(v));}reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}lire();function changement(e:StorageEvent){if(e.key===cle)lire();}window.addEventListener('storage',changement);return()=>window.removeEventListener('storage',changement);},[cle]);
  function modifier(p:Partial<ReglagesTV>){if(!cle)return;const v=normaliserTV({...reglagesRef.current,...p});try{localStorage.setItem(cle,JSON.stringify(v));reglagesRef.current=v;setReglages(v);}catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}}
- const matchs=tournoi?.matchs||[],valides=tournoi?.valides||[],equipes=tournoi?.equipes||[];
- let planning:ReturnType<typeof planifierMatchs>=[];try{if(tournoi)planning=planifierMatchs(matchs,tournoi.options);}catch{/* Scores remain visible when the planning needs adjustment. */}
- const ordre=[...matchs].sort((a,b)=>(planning.find(p=>p.matchId===a.id)?.debut??a.ordre??a.id)-(planning.find(p=>p.matchId===b.id)?.debut??b.ordre??b.id));
- const statistiques=statistiquesTV(matchs,valides),matchsDiffuses=filtrerMatchsTV(ordre,valides,reglages.filtreMatchs);
- const attendus=ordre.filter(m=>statutMatchTV(m,valides)==='À jouer'),appel=appelTV(matchs,valides,reglages.appel);
- const classement=tournoi?classementTournoi(tournoi.format,equipes,matchs.filter(m=>valides.includes(m.id)),tournoi.options):[];
- const slides=[...(reglages.message?[{type:'annonce' as const}]:[]),...(appel?[{type:'appel' as const}]:[]),...(reglages.afficherSponsors&&reglages.pageSponsors&&tournoi?.sponsors.length?[{type:'sponsors' as const}]:[]),...(reglages.afficherMatchs?pagesTV(matchsDiffuses,3).map(lignes=>({type:'matchs' as const,lignes})):[]),...(reglages.afficherClassement?pagesTV(classement).map(lignes=>({type:'classement' as const,lignes})):[])];
+ // The 1-second countdown must not regenerate tournament planning and ranking.
+ const donnees=useMemo(()=>{
+  const matchs=tournoi?.matchs||[],valides=tournoi?.valides||[],equipes=tournoi?.equipes||[];
+  let planning:ReturnType<typeof planifierMatchs>=[];
+  try{if(tournoi)planning=planifierMatchs(matchs,tournoi.options);}catch{/* Existing scores remain available if planning cannot be calculated. */}
+  const debuts=new Map(planning.map(p=>[p.matchId,p.debut]));
+  const ordre=[...matchs].sort((a,b)=>(debuts.get(a.id)??a.ordre??a.id)-(debuts.get(b.id)??b.ordre??b.id));
+  const classement=tournoi?classementTournoi(tournoi.format,equipes,matchs.filter(m=>valides.includes(m.id)),tournoi.options):[];
+  return {matchs,valides,equipes,planning,ordre,classement,statistiques:statistiquesTV(matchs,valides)};
+ },[tournoi]);
+ const {matchs,valides,equipes,planning,ordre,classement,statistiques}=donnees;
+ const matchsDiffuses=useMemo(()=>filtrerMatchsTV(ordre,valides,reglages.filtreMatchs),[ordre,valides,reglages.filtreMatchs]);
+ const attendus=useMemo(()=>ordre.filter(m=>statutMatchTV(m,valides)==='À jouer'),[ordre,valides]);
+ const appel=appelTV(matchs,valides,reglages.appel);
+ const slides=useMemo(()=>[...(reglages.message?[{type:'annonce' as const}]:[]),...(appel?[{type:'appel' as const}]:[]),...(reglages.afficherSponsors&&reglages.pageSponsors&&tournoi?.sponsors.length?[{type:'sponsors' as const}]:[]),...(reglages.afficherMatchs?pagesTV(matchsDiffuses,3).map(lignes=>({type:'matchs' as const,lignes})):[]),...(reglages.afficherClassement?pagesTV(classement).map(lignes=>({type:'classement' as const,lignes})):[])],[reglages.message,reglages.afficherSponsors,reglages.pageSponsors,reglages.afficherMatchs,reglages.afficherClassement,tournoi?.sponsors.length,appel,matchsDiffuses,classement]);
  const position=pageCouranteTV(reglages,maintenant);const index=slides.length?((position%slides.length)+slides.length)%slides.length:0,slide=slides[index];
  const nom=(m:Match,cote:1|2)=>nomParticipant(cote===1?m.equipe1Id:m.equipe2Id,equipes);
  async function activerSon(){try{const contexte=audioRef.current??new AudioContext();audioRef.current=contexte;await contexte.resume();setAudioActif(contexte.state==='running');if(contexte.state==='running'){const osc=contexte.createOscillator();const gain=contexte.createGain();osc.frequency.value=660;gain.gain.value=.06;osc.connect(gain);gain.connect(contexte.destination);osc.start();osc.stop(contexte.currentTime+.15);setPleinEcranErreur('Son activé : une courte tonalité de test doit être audible.');}}catch{setAudioActif(false);setPleinEcranErreur('Le navigateur bloque le son. Vérifiez les autorisations audio.');}}
@@ -62,7 +70,15 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  <div className="tourneo-tv-page-controls" aria-label="Navigation des pages TV"><button type="button" disabled={!cle||slides.length<2} onClick={()=>modifier({pageManuelle:(index+Math.max(1,slides.length)-1)%Math.max(1,slides.length),defilement:false})}>{tr('Page précédente')}</button><button type="button" disabled={!cle||slides.length<2} onClick={()=>modifier({pageManuelle:(index+1)%Math.max(1,slides.length),defilement:false})}>{tr('Page suivante')}</button><button type="button" disabled={!cle||reglages.pause||!slides.some(p=>p.type==='matchs')} onClick={()=>modifier({defilement:false,pageManuelle:slides.findIndex(p=>p.type==='matchs')})}>{tr('Voir les matchs')}</button><button type="button" disabled={!cle||reglages.pause||!slides.some(p=>p.type==='classement')} onClick={()=>modifier({defilement:false,pageManuelle:slides.findIndex(p=>p.type==='classement')})}>{tr('Voir le classement')}</button></div>
  <h2 className="tourneo-tv-settings-heading">{tr('Messages et pauses')}</h2>
  <label>{tr('Annonce au public')}<input maxLength={180} value={reglages.message} disabled={!cle} placeholder={tr('Ex. Reprise à 15 h 30')} onChange={e=>modifier({message:e.target.value})}/></label>
- <div className="tourneo-tv-page-controls" aria-label="Annonces publiques"><button type="button" disabled={!cle||reglages.pause||!reglages.message.trim()} onClick={()=>modifier({defilement:false,pageManuelle:0})}>{tr('Diffuser l’annonce maintenant')}</button></div>
+ <div className="tourneo-tv-page-controls" aria-label="Annonces publiques">
+ <button type="button" disabled={!cle||reglages.pause||!reglages.message.trim()} onClick={()=>modifier({defilement:false,pageManuelle:0})}>{tr('Diffuser l’annonce maintenant')}</button>
+ <button type="button" disabled={!cle||reglages.pause||!reglages.message} onClick={()=>modifier({message:'',defilement:true,pageManuelle:0,debutDefilement:Date.now()})}>{tr("Retirer l’annonce et reprendre le défilement")}</button>
+ </div>
+ <div className="tourneo-tv-page-controls" aria-label="Messages rapides">
+ <button type="button" disabled={!cle||reglages.pause} onClick={()=>modifier({message:'La buvette est ouverte. Retrouvez-nous à l’espace buvette.',defilement:false,pageManuelle:0})}>{tr('Annonce buvette')}</button>
+ <button type="button" disabled={!cle||reglages.pause} onClick={()=>modifier({message:'La remise des prix approche. Merci de rejoindre la zone podium.',defilement:false,pageManuelle:0})}>{tr('Annonce remise des prix')}</button>
+ <button type="button" disabled={!cle||reglages.pause} onClick={()=>modifier({message:'Les rencontres reprennent. Merci de rejoindre votre terrain.',defilement:false,pageManuelle:0})}>{tr('Annonce reprise des matchs')}</button>
+ </div>
  <label className="v2-check"><input type="checkbox" checked={reglages.pause} disabled={!cle} onChange={e=>modifier({pause:e.target.checked,pageManuelle:index,debutDefilement:Date.now()})}/>{tr('Annoncer une pause du tournoi')}</label><p>{tr('La pause affiche une annonce sur la TV. Elle ne décale pas le planning ; ajustez-le séparément si nécessaire.')}</p>
  <div className="tourneo-tv-page-controls" aria-label="Commandes de pause"><button type="button" disabled={!cle} onClick={()=>modifier({pause:true,repriseA:Date.now()+10*60000,pageManuelle:index})}>{tr('Pause 10 min')}</button><button type="button" disabled={!cle} onClick={()=>modifier({pause:true,repriseA:Date.now()+15*60000,pageManuelle:index})}>{tr('Pause 15 min')}</button><button type="button" disabled={!cle} onClick={()=>modifier({pause:true,repriseA:Date.now()+30*60000,pageManuelle:index})}>{tr('Pause 30 min')}</button><button type="button" disabled={!cle||!reglages.pause} onClick={()=>modifier({pause:false,repriseA:null,message:'',pageManuelle:index,debutDefilement:Date.now()})}>{tr('Reprendre le tournoi')}</button></div>
  <label>{tr('Reprise prévue (heure locale)')}<input type="datetime-local" value={reglages.repriseA?new Date(reglages.repriseA-new Date(reglages.repriseA).getTimezoneOffset()*60000).toISOString().slice(0,16):''} disabled={!cle} onChange={e=>modifier({repriseA:e.target.value?new Date(e.target.value).getTime():null})}/></label>
