@@ -161,3 +161,13 @@ Le test `tests/migration-album-prive-v2.cjs` applique le vrai SQL sur PGlite ave
 L'installation est transactionnelle. Les protections définitives de l'aperçu remplacent les helpers transitoires **avant le COMMIT**. Le RPC de consultation publique fonctionne sans attribuer au rôle `anon` l'accès au schéma privé. Une désactivation du partage ou la fin de la conservation ferme la lecture Storage. Aucune ligne V1 existante n'est modifiée.
 
 Le test `tests/migration-album-partage-v2.cjs` exécute le vrai SQL et simule les opérations Storage sur PGlite avec des utilisateurs, photos et tournois fictifs ; `docs/sql/verification_phase13_staging.sql` fournit l'audit SQL en lecture seule. Ces tests **ne valident pas encore** le comportement du service Storage réel ni la répétition sur une sauvegarde réelle de V1, nécessaires avant publication.
+
+## Phase 14 — planning public / TV et compatibilité des anciens liens
+
+Le script `docs/sql/compatibilite_v1_v2_staging_PHASE14_PLANNING_PUBLIC.sql` adapte la projection V2 des tournois pour rendre visibles les horaires aménagés, terrains fermés, affectations des matchs et manches, tout en limitant strictement les champs exposés. Il refuse un tournoi avec `est_public=false` **même quand l'identifiant direct ou son ancien `partage_id` est connu**. Les contacts, métadonnées privées et identifiants internes des participants ne font pas partie du résultat.
+
+La fonction de partage historique V1 `get_tourneo_public` est **conservée temporairement** pendant cette préparation et devra être désactivée au bon moment. Ce point de transition reste un bloqueur pour la mise en production ; le script ne modifie ni ne désactive cette API encore utilisée par la V1.
+
+`tests/migration-planning-public-v2.cjs` rejoue les phases 1 à 14 sur un PGlite fictif et compare les anciens liens avec les projections V2. Il vérifie les horaires autorisés, le filtrage des données privées, le refus des tournois cachés, le maintien des UUID et scores V1, et l'arrêt transactionnel en cas de liens manquants. `docs/sql/verification_phase14_staging.sql` est un contrôle de staging en lecture seule.
+
+La migration reste **interdite** sur la production V1 et sur la base V2 de test existante. Une sauvegarde réelle, sa restauration puis des tests sur un environnement indépendant sont indispensables avant toute bascule.
