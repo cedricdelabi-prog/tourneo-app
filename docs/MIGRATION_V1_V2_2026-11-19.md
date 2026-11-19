@@ -153,3 +153,11 @@ Un script distinct recense les objets à supprimer ; **la suppression physique d
 Le test `tests/migration-album-prive-v2.cjs` applique le vrai SQL sur PGlite avec des utilisateurs fictifs : droits du propriétaire, refus d'un autre utilisateur, expiration des fichiers, préparation de la purge, conservation des données V1 et refus d'exécution sur une mauvaise copie. `docs/sql/verification_phase12_staging.sql` produit les contrôles agrégés.
 
 **Aucun partage public d'album n'est activé à cette étape.** La publication volontaire de photos dérivées nécessite une phase de migration séparée, notamment pour éviter la consultation ou le référencement d'originaux privés.
+
+## Phase 13 — album public uniquement avec partage volontaire
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE13_ALBUM_PARTAGE.sql` ajoute l'option de publication d'un album de tournoi **sur une copie V1 restaurée**, après les 12 premières phases. La configuration est privée et `partage=false` par défaut. Les photographies originales demeurent dans des chemins privés ; l'API publique renvoie uniquement le chemin de l'aperçu décoré et, si l'organisateur active le téléchargement, le chemin de sa copie dérivée habillée. La politique Supabase Storage permet uniquement le GET explicite des fichiers partagés : elle refuse la liste, la signature et les photos d'origine.
+
+L'installation est transactionnelle. Les protections définitives de l'aperçu remplacent les helpers transitoires **avant le COMMIT**. Le RPC de consultation publique fonctionne sans attribuer au rôle `anon` l'accès au schéma privé. Une désactivation du partage ou la fin de la conservation ferme la lecture Storage. Aucune ligne V1 existante n'est modifiée.
+
+Le test `tests/migration-album-partage-v2.cjs` exécute le vrai SQL et simule les opérations Storage sur PGlite avec des utilisateurs, photos et tournois fictifs ; `docs/sql/verification_phase13_staging.sql` fournit l'audit SQL en lecture seule. Ces tests **ne valident pas encore** le comportement du service Storage réel ni la répétition sur une sauvegarde réelle de V1, nécessaires avant publication.
