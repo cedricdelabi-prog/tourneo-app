@@ -548,3 +548,11 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 
 /* Fenêtre d'avis Tourneo : identité de marque et étoiles lisibles sur mobile. */
 .tourneo-avis-entete{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 20px 12px}.tourneo-avis-entete img{width:48px;height:48px;object-fit:contain;flex-shrink:0}.tourneo-avis-entete strong{font-size:1.15rem;line-height:1.25}.tourneo-avis-invite [role=group] button{font-size:clamp(28px,5vw,38px);min-width:40px;min-height:44px;cursor:pointer}.tourneo-avis-invite{max-width:min(380px,calc(100vw - 24px));box-sizing:border-box}
+
+/* Tourneo V2: organizer controls for manual TV slides and quick pauses. */
+.tourneo-tv-page-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px}
+.tourneo-tv-page-controls button{min-height:42px;padding:10px 14px;border:1px solid #b9d4de;border-radius:10px;background:#edf8fb;color:#12304b;font:inherit;font-weight:650;cursor:pointer}
+.tourneo-tv-page-controls button:hover:not(:disabled){background:#d7f1f5}
+.tourneo-tv-page-controls button:focus-visible{outline:3px solid #0c8ca0;outline-offset:2px}
+.tourneo-tv-page-controls button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:600px){.tourneo-tv-page-controls button{flex:1 1 135px}}
