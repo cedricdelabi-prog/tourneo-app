@@ -617,3 +617,22 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-pause-timer{display:block;font-variant-numeric:tabular-nums;font-size:clamp(25px,4vw,40px);font-weight:800;letter-spacing:.04em}
 .tourneo-tv-pause-status p{font-size:.9rem;line-height:1.5;margin:10px 0 12px}
 .tourneo-tv-pause-explainer{display:block;text-align:center;opacity:.84;margin:14px 0;font-size:clamp(13px,1.6vw,21px)}
+
+/* V2 organizer and public tournament progress screens. */
+.tourneo-tv-progress-summary{display:grid;gap:10px;padding:14px 16px;border:1px solid #566d86;border-radius:13px;background:#12253a}
+.tourneo-tv-progress-summary>div:first-child{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tourneo-tv-progress-summary strong{font-size:clamp(15px,1.15rem,19px)}
+.tourneo-tv-progress-summary small{font-size:.9rem;opacity:.8}
+.tourneo-tv-progress-track{height:16px;width:100%;overflow:hidden;border-radius:999px;background:#35475e}
+.tourneo-tv-progress-track>span{display:block;height:100%;background:#52d7c9;border-radius:999px;transition:width .5s ease}
+.tourneo-tv-progress-slide{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:clamp(12px,2.5vh,30px);text-align:center}
+.tourneo-tv-progress-slide h2{font-size:clamp(24px,4vw,54px);margin:0}
+.tourneo-tv-progress-slide .tourneo-tv-progress-value{font-size:clamp(60px,12vw,150px);line-height:1;font-variant-numeric:tabular-nums}
+.tourneo-tv-progress-slide .tourneo-tv-progress-track{height:clamp(20px,3vh,38px);max-width:980px}
+.tourneo-tv-progress-slide>p{font-size:clamp(18px,2vw,30px);margin:0}
+.tourneo-tv-progress-details{display:flex;justify-content:center;gap:clamp(16px,5vw,80px);flex-wrap:wrap;font-size:clamp(16px,1.8vw,28px)}
+.tourneo-tv-active-call{border:1px solid #52d7c9;border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#163141}
+.tourneo-tv-active-call button,.tourneo-tv-next button{padding:9px 12px;border:1px solid #699bad;border-radius:9px;background:#20455d;color:#fff;font:inherit;cursor:pointer;min-height:40px}
+.tourneo-tv-active-call button:disabled,.tourneo-tv-next button:disabled{opacity:.5;cursor:not-allowed}
+.tourneo-tv-next li button{margin:8px 0 0}
+@media(prefers-reduced-motion:reduce){.tourneo-tv-progress-track>span{transition:none}}

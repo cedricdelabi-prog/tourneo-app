@@ -68,3 +68,11 @@
 - L'heure de reprise atteinte **n'annule pas la pause** : l'organisateur confirme explicitement le retour des matchs.
 - Le signal sonore est joué à l'heure prévue si le navigateur a été activé pour l'audio et si l'écran est connecté.
 - Indicateur de présence : une fenêtre active n'est pas une preuve de connexion HDMI physique.
+
+## Lot : appels immédiats et progression du tournoi
+- Sélection d'un match à appeler : affiche immédiatement les joueurs, sans attendre la rotation TV; la diffusion automatique est suspendue.
+- Boutons « Appeler sur la TV » pour les quatre prochaines rencontres et « Terminer l'appel et reprendre la diffusion ».
+- Reprise du défilement automatique après la fin de l'appel, sans modifier les matchs ni leurs résultats.
+- Page de progression facultative (pourcentage de matchs validés), avec barre de progression et nombres restants.
+- Bouton organisateur pour afficher la progression immédiatement.
+- Tests ajoutés pour l'emplacement de la page d'appel et le calcul fiable de la progression.
