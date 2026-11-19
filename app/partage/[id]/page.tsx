@@ -132,6 +132,13 @@ export default function PartagePage() {
                     resultat = await supabase.rpc("get_tourneo_public", { p_id: tournoiId });
                 if (!actif)
                     return;
+                // An existing V1 share link can contain partage_id rather than tournois.id.
+                // Only try the sanitized compatibility RPC when the standard lookup finds nothing.
+                if (!resultat.error && !resultat.data) {
+                    const ancienLien = await supabase.rpc("tourneo_public_compat_v2", { p_id: tournoiId });
+                    if (!ancienLien.error && ancienLien.data)
+                        resultat = ancienLien;
+                }
                 const ligne = Array.isArray(resultat.data) ? resultat.data[0] : resultat.data;
                 if (resultat.error || !ligne)
                     throw new Error("Tournoi introuvable ou partage public indisponible.");
