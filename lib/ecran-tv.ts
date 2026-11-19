@@ -8,3 +8,6 @@ export function normaliserTV(v:unknown):ReglagesTV{
 export function pagesTV<T>(lignes:readonly T[],taille=6):T[][]{const n=Math.max(1,Math.floor(taille)||6);return Array.from({length:Math.ceil(lignes.length/n)},(_,i)=>lignes.slice(i*n,(i+1)*n));}
 export function statutMatchTV(m:Match,valides:readonly number[]){return valides.includes(m.id)?'Validé':m.score1!==''&&m.score2!==''?'À valider':'À jouer';}
 export function appelTV(matchs:Match[],valides:readonly number[],id:number|null){return matchs.find(m=>m.id===id&&statutMatchTV(m,valides)==='À jouer');}
+
+/** A delayed/reopened TV must not sound a stale pause alert. */
+export function repriseSonoreDansDelai(maintenant:number,repriseA:number|null):boolean{return repriseA!==null&&Number.isFinite(maintenant)&&Number.isFinite(repriseA)&&maintenant>=repriseA&&maintenant-repriseA<=10000;}
