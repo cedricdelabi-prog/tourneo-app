@@ -109,3 +109,15 @@ export function fusionnerPilotageDistant(distant:unknown,local:ReglagesTV):Regla
 export function synchroniserModificationDistant(patch:Partial<ReglagesTV>):boolean{
  return Object.keys(patch).some(cle=>cle!=='brouillonAnnonce');
 }
+
+/** Send only changed published keys. Atomic database merge protects other settings
+ * when two connected organizers operate the same tournament. */
+export function patchPourPilotageDistant(patch:Partial<ReglagesTV>,complet:ReglagesTV):Partial<ReglagesTV>{
+ const propre=reglagesPourPilotageDistant(complet);
+ const changements:Partial<ReglagesTV>={};
+ for(const cle of Object.keys(patch) as (keyof ReglagesTV)[]){
+  if(cle==='brouillonAnnonce')continue;
+  (changements as Record<string,unknown>)[cle]=propre[cle];
+ }
+ return changements;
+}

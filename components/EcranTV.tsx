@@ -10,7 +10,7 @@ import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import {nomParticipant} from '@/lib/rotation';
 import {classementTournoi} from '@/lib/resultats';
 import {heureCreneau,planifierMatchs} from '@/lib/planning';
-import {appelTV,compteAReboursTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,fusionnerPilotageDistant,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,reglagesPourPilotageDistant,repriseSonoreDansDelai,statistiquesTV,synchroniserModificationDistant,terminerActionsTV,statutMatchTV,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
+import {appelTV,compteAReboursTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,fusionnerPilotageDistant,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,patchPourPilotageDistant,repriseSonoreDansDelai,statistiquesTV,synchroniserModificationDistant,terminerActionsTV,statutMatchTV,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
 import {tr,trModele,useLangue,localeFormat} from '@/lib/langue';
 import type {Equipe,Match} from '@/types';
 type TournoiTV={nom:string;equipes:Equipe[];matchs:Match[];valides:number[];format:string;options:ReturnType<typeof normaliserOptionsV2>;sponsors:string[];logo:string};
@@ -78,13 +78,14 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
   catch{setErreur('Réglages locaux indisponibles. Gardez les fenêtres dans le même navigateur.');}
   // Drafts stay on the organizer's device. Viewers never write remote commands.
   if(ecran||!synchroniserModificationDistant(p))return;
-  const valeurAEnvoyer=reglagesPourPilotageDistant(v);const tournoiCible=id;
+  const valeurAEnvoyer=patchPourPilotageDistant(p,v);const tournoiCible=id;
   ecrituresDistantesRef.current++;
   fileDistantRef.current=fileDistantRef.current.catch(()=>{}).then(async()=>{
    try{
-    const r=await supabase.from('tourneo_tv_pilotage').upsert({tournoi_id:tournoiCible,reglages:valeurAEnvoyer},{onConflict:'tournoi_id'}).select('revision').single();
-    if(r.error||!r.data)throw Error(r.error?.message||'Sauvegarde distante indisponible');
-    revisionDistantRef.current=Math.max(revisionDistantRef.current,Number(r.data.revision)||0);
+    const r=await supabase.rpc('tv_pilotage_appliquer',{p_tournoi_id:tournoiCible,p_patch:valeurAEnvoyer});
+    const resultat=Array.isArray(r.data)?r.data[0]:null;
+    if(r.error||!resultat)throw Error(r.error?.message||'Sauvegarde distante indisponible');
+    revisionDistantRef.current=Math.max(revisionDistantRef.current,Number(resultat.nouvelle_revision)||0);
     setEtatDistant('actif');
    }catch{setEtatDistant('indisponible');}
    finally{ecrituresDistantesRef.current--;}

@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant}=m.exports;
+const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant,patchPourPilotageDistant}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',brouillonAnnonce:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -52,6 +52,11 @@ assert.equal(fusionnerPilotageDistant({message:'Nouvelle annonce',appel:12},org)
 assert.equal(synchroniserModificationDistant({brouillonAnnonce:'Préparer un texte'}),false,'draft editing must not trigger network writes');
 assert.equal(synchroniserModificationDistant({message:'À diffuser'}),true,'live display action triggers remote save');
 assert.equal(synchroniserModificationDistant({}),false);
+const patchUnChamp=patchPourPilotageDistant({pageManuelle:4},normaliserTV({pageManuelle:4,pause:true,message:'Déjà en cours',brouillonAnnonce:'secret'}));
+assert.deepEqual(patchUnChamp,{pageManuelle:4},'atomic patch cannot overwrite unrelated fields with a stale snapshot');
+const patchDeuxChamps=patchPourPilotageDistant({message:'Annonce',brouillonAnnonce:'secret',annonceExpireA:1000},normaliserTV({message:'Annonce',brouillonAnnonce:'secret',annonceExpireA:1000}));
+assert.deepEqual(patchDeuxChamps,{message:'Annonce',annonceExpireA:1000},'broadcast patch omits drafts and preserves linked timing');
+assert.deepEqual(patchPourPilotageDistant({brouillonAnnonce:'privé'},org),{},'draft changes never travel to another device');
 
 const testEtat=normaliserTV({message:'Annonce en cours',brouillonAnnonce:'Brouillon privé',annonceExpireA:6000,dureeAppel:30});
 const appelEnCours=normaliserTV({...testEtat,...demarrerAppelTV(testEtat,42,1000)});

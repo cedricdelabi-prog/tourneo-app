@@ -117,3 +117,11 @@
 - Un spectateur/organisateur non connecté qui ouvre le QR code du second écran reçoit un lien explicite pour se connecter.
 - Le retour après connexion accepte strictement `/tournoi/<uuid>/tv?ecran=1` ; les URLs externes, paramètres non autorisés et identifiants invalides restent rejetés.
 - Les tests de retour de connexion sont désormais lancés avec les tests TV dans le workflow GitHub V2.
+
+## Correctif de concurrence des télécommandes
+- Un second appareil ne doit pas écraser les réglages non modifiés par son organisateur (ex. modifier les sponsors en même temps qu'un appel de joueurs).
+- Écriture via fonction SQL `tv_pilotage_appliquer` (**Supabase V2 test uniquement**) : fusion atomique des **seuls champs modifiés**, sans écriture de l'intégralité du dernier état local.
+- Droits SQL `SECURITY INVOKER` et RLS propriétaire conservés, exécution RPC réservée au rôle authentifié, liste blanche des clés autorisées et taille limitée à 12 Ko.
+- Chaque action cohérente (appel + heure d'expiration + priorité, ou message + durée) est appliquée dans une seule transaction.
+- La file locale conserve l'ordre des commandes émises par le même poste. Deux postes peuvent encore modifier le **même champ** simultanément : la dernière commande validée est conservée (pas de verrou de prise de contrôle).
+- Contrôles automatisés sur l'extraction de patch et la confidentialité du brouillon, plus test SQL RLS transactionnel sur la base V2.
