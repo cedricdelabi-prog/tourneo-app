@@ -138,6 +138,12 @@ const brouillonPoules={...exempleSauvegarde,formatTournoi:'poules',cree:false,ma
 const lectureBrouillon=lireSauvegarde(JSON.stringify(brouillonPoules));
 assert.equal(lectureBrouillon.cree,false);
 assert.deepEqual(lectureBrouillon.poules,[],'Drafts without generated groups can be restored');
+const brouillonRegle={...brouillonPoules,nombrePoules:5,taillePoules:3,qualifiesParPoule:1};
+const brouillonRelu=lireSauvegarde(JSON.stringify(brouillonRegle));
+assert.equal(brouillonRelu.nombrePoules,5);
+assert.equal(brouillonRelu.taillePoules,3);
+assert.equal(brouillonRelu.qualifiesParPoule,1);
+
 assert.throws(()=>lireSauvegarde(JSON.stringify({...brouillonPoules,cree:true})),/Répartition des poules/);
 const fauxPodium={...sauvegardeAvancee,podiumPhotoUrl:'https://tracking.invalid/podium.png'};
 assert.equal(lireSauvegarde(JSON.stringify(fauxPodium)).podiumPhotoUrl,undefined);
