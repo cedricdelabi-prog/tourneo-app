@@ -10,7 +10,7 @@ import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import {nomParticipant} from '@/lib/rotation';
 import {classementTournoi} from '@/lib/resultats';
 import {heureCreneau,planifierMatchs} from '@/lib/planning';
-import {appelTV,compteAReboursTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,fusionnerPilotageDistant,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,patchPourPilotageDistant,repriseSonoreDansDelai,statistiquesTV,synchroniserModificationDistant,terminerActionsTV,statutMatchTV,tvDistanteActive,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
+import {appelTV,compteAReboursTV,delaiReprisePilotageTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,fusionnerPilotageDistant,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,patchPourPilotageDistant,reprisePilotageTVAutorisee,repriseSonoreDansDelai,statistiquesTV,synchroniserModificationDistant,terminerActionsTV,statutMatchTV,tvDistanteActive,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
 import {tr,trModele,useLangue,localeFormat} from '@/lib/langue';
 import type {Equipe,Match} from '@/types';
 type TournoiTV={nom:string;equipes:Equipe[];matchs:Match[];valides:number[];format:string;options:ReturnType<typeof normaliserOptionsV2>;sponsors:string[];logo:string};
@@ -23,6 +23,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  const revisionDistantRef=useRef(0),ecrituresDistantesRef=useRef(0),initialisationDistantRef=useRef(false);
  const fileDistantRef=useRef<Promise<void>>(Promise.resolve());
  const commandesManquantesRef=useRef<{tournoiId:string;patch:Partial<ReglagesTV>}|null>(null);
+ const echecsEnvoiRef=useRef(0),prochainEnvoiRef=useRef(0),echecDepuisRef=useRef(0);
  const [commandesNonEnvoyees,setCommandesNonEnvoyees]=useState(false);
  const [etatDistant,setEtatDistant]=useState<'connexion'|'actif'|'indisponible'>('connexion');const [maintenant,setMaintenant]=useState(0);const [sponsorIndex,setSponsorIndex]=useState(0);const sonReprise=useRef(false);const audioRef=useRef<AudioContext|null>(null);const [audioActif,setAudioActif]=useState(false);
  useEffect(()=>{const actualiser=()=>setMaintenant(Date.now());actualiser();const timer=setInterval(actualiser,1000);return()=>clearInterval(timer);},[]);
@@ -47,6 +48,7 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  useEffect(()=>{if(!cle||ecran)return;
   // A failed remote command survives a page reload but never includes drafts.
   commandesManquantesRef.current=null;setCommandesNonEnvoyees(false);
+  echecsEnvoiRef.current=0;prochainEnvoiRef.current=0;echecDepuisRef.current=0;
   try{
    const brut=JSON.parse(localStorage.getItem(`${cle}:commandes-en-attente`)||'null');
    if(!brut||typeof brut!=='object'||Array.isArray(brut))return;
@@ -55,13 +57,36 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
    const normalises=normaliserTV({...reglagesRef.current,...brut}) as unknown as Record<string,unknown>;
    const patch=Object.fromEntries(cles.map(k=>[k,normalises[k]])) as Partial<ReglagesTV>;
    commandesManquantesRef.current={tournoiId:id,patch};setCommandesNonEnvoyees(true);
+   const depuis=Number(localStorage.getItem(`${cle}:commandes-en-attente-depuis`));
+   echecDepuisRef.current=Number.isSafeInteger(depuis)?depuis:0;
+   if(reprisePilotageTVAutorisee(Date.now(),echecDepuisRef.current)){
+    echecsEnvoiRef.current=1;
+    prochainEnvoiRef.current=Date.now()+(delaiReprisePilotageTV(1)||0);
+   }
   }catch{/* An invalid saved retry cannot affect the tournament. */}
  },[cle,ecran,id]);
- function relancerEnvoi(){
+ function relancerEnvoi(manuel=false){
   const commande=commandesManquantesRef.current;
-  if(!commande||commande.tournoiId!==id)return;
+  if(!commande||commande.tournoiId!==id||ecrituresDistantesRef.current>0)return;
+  if(manuel){
+   echecsEnvoiRef.current=0;echecDepuisRef.current=Date.now();
+   try{localStorage.setItem(`${cle}:commandes-en-attente-depuis`,String(echecDepuisRef.current));}catch{/* In-memory retry still works. */}
+  }
+  prochainEnvoiRef.current=0;
   modifier(commande.patch);
  }
+ useEffect(()=>{if(ecran||!cle||!commandesNonEnvoyees)return;
+  if(!navigator.onLine||!reprisePilotageTVAutorisee(Date.now(),echecDepuisRef.current))return;
+  if(prochainEnvoiRef.current>0&&maintenant>=prochainEnvoiRef.current)relancerEnvoi();
+ },[maintenant,commandesNonEnvoyees,cle,id,ecran]);
+ useEffect(()=>{if(ecran||!cle)return;
+  const reconnecte=()=>{
+   if(commandesManquantesRef.current?.tournoiId===id&&reprisePilotageTVAutorisee(Date.now(),echecDepuisRef.current)
+      &&delaiReprisePilotageTV(echecsEnvoiRef.current)!==null)prochainEnvoiRef.current=Date.now();
+  };
+  window.addEventListener('online',reconnecte);
+  return()=>window.removeEventListener('online',reconnecte);
+ },[cle,id,ecran]);
  useEffect(()=>{if(!cle||!ecran)return;
   const instance=`${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const signalCle=`${cle}:signal:${instance}`;
@@ -113,8 +138,14 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
     if(r.error||!resultat)throw Error(r.error?.message||'Sauvegarde distante indisponible');
     revisionDistantRef.current=Math.max(revisionDistantRef.current,Number(resultat.nouvelle_revision)||0);
     if(commandesManquantesRef.current?.tournoiId===tournoiCible)commandesManquantesRef.current=null;
-    try{localStorage.removeItem(`${cleEcriture}:commandes-en-attente`);}catch{/* Local storage may be unavailable. */}
-    if(cleRef.current===cleEcriture){setCommandesNonEnvoyees(false);setEtatDistant('actif');}
+    try{
+     localStorage.removeItem(`${cleEcriture}:commandes-en-attente`);
+     localStorage.removeItem(`${cleEcriture}:commandes-en-attente-depuis`);
+    }catch{/* Local storage may be unavailable. */}
+    if(cleRef.current===cleEcriture){
+     echecsEnvoiRef.current=0;prochainEnvoiRef.current=0;echecDepuisRef.current=0;
+     setCommandesNonEnvoyees(false);setEtatDistant('actif');
+    }
    }catch{
     const precedentes=commandesManquantesRef.current;
     const enAttente={
@@ -125,6 +156,11 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
     try{localStorage.setItem(`${cleEcriture}:commandes-en-attente`,JSON.stringify(enAttente));}catch{/* This session can still retry manually. */}
     if(cleRef.current===cleEcriture){
      commandesManquantesRef.current={tournoiId:tournoiCible,patch:enAttente};
+     if(!echecDepuisRef.current)echecDepuisRef.current=Date.now();
+     try{localStorage.setItem(`${cleEcriture}:commandes-en-attente-depuis`,String(echecDepuisRef.current));}catch{/* Manual retry remains possible. */}
+     echecsEnvoiRef.current++;
+     const attente=delaiReprisePilotageTV(echecsEnvoiRef.current);
+     prochainEnvoiRef.current=attente!==null&&reprisePilotageTVAutorisee(Date.now(),echecDepuisRef.current)?Date.now()+attente:0;
      setCommandesNonEnvoyees(true);setEtatDistant('indisponible');
     }
    }finally{ecrituresDistantesRef.current--;}
@@ -217,7 +253,8 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  <p>{etatTV==='connecte'?tr('La fenêtre de diffusion fonctionne dans ce navigateur. Le branchement physique HDMI n’est pas vérifié.'):etatTV==='actualisationEnRetard'?tr('La fenêtre est active, mais les données n’ont pas été actualisées récemment.'):tr('Aucune fenêtre TV détectée sur ce navigateur. Une TV ouverte sur un autre appareil ne peut pas être détectée ici.')}</p></div>
  </div>
  <p className="tourneo-tv-remote-status" role="status">{etatDistant==='actif'?tr('Pilotage à distance synchronisé avec votre compte organisateur.'):etatDistant==='connexion'?tr('Connexion au pilotage distant en cours…'):tr('Pilotage distant indisponible : la diffusion locale reste utilisable.')}</p>
- {commandesNonEnvoyees&&<div className="tourneo-tv-unsynced" role="alert"><strong>{tr('Commande non transmise à la TV distante')}</strong><p>{tr('La modification reste disponible sur cet ordinateur mais n’a pas été confirmée sur les autres écrans. Ne fermez pas cette page avant d’avoir réessayé.')}</p><button type="button" onClick={relancerEnvoi}>{tr('Réessayer l’envoi des commandes')}</button></div>}
+ {commandesNonEnvoyees&&<div className="tourneo-tv-unsynced" role="alert"><strong>{tr('Commande non transmise à la TV distante')}</strong><p>{tr('La modification reste disponible sur cet ordinateur mais n’a pas été confirmée sur les autres écrans. Une nouvelle tentative automatique est prévue pendant deux minutes ; vous pouvez également réessayer manuellement.')}</p>{prochainEnvoiRef.current>maintenant&&reprisePilotageTVAutorisee(maintenant,echecDepuisRef.current)&&<p className="tourneo-tv-retry-info">{tr('Nouvel essai automatique dans')} {Math.ceil((prochainEnvoiRef.current-maintenant)/1000)} {tr('secondes')}.</p>}
+ <button type="button" onClick={()=>relancerEnvoi(true)}>{tr('Réessayer l’envoi des commandes')}</button></div>}
  <p className="tourneo-tv-remote-presence" data-presence={tvDistanteActive(maintenant,derniereTVDistante)?'active':'absente'} role="status"><span aria-hidden="true" className="tourneo-tv-presence-dot"/>{tvDistanteActive(maintenant,derniereTVDistante)?tr('Une TV connectée à votre compte transmet des signaux récents.'):tr('Aucun signal récent d’un écran TV connecté à votre compte.')} {tr('Cela ne confirme pas que l’écran physique affiche l’image.')}</p>
  <button className="tourneo-tv-refresh-button" type="button" disabled={!cle} onClick={rafraichirEcrans}>{tr('Actualiser les écrans maintenant')}</button>
  <details className="tourneo-tv-remote-help"><summary>{tr('Installer l’écran TV sur un autre appareil')}</summary>

@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant,patchPourPilotageDistant,tvDistanteActive}=m.exports;
+const {demarrerAppelTV,terminerActionsTV,actionTVExpiree,normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV,pourcentageProgressionTV,indexAppelTV,reglagesPourPilotageDistant,fusionnerPilotageDistant,synchroniserModificationDistant,patchPourPilotageDistant,tvDistanteActive,delaiReprisePilotageTV,reprisePilotageTVAutorisee}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',brouillonAnnonce:'',dureeAnnonce:30,annonceExpireA:null,appel:null,dureeAppel:90,appelExpireA:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,afficherProgression:false,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -63,6 +63,17 @@ assert.equal(tvDistanteActive(145001,100000),false,'remote display disconnected 
 assert.equal(tvDistanteActive(100000,0),false,'never connected is absent');
 assert.equal(tvDistanteActive(100000,105001),false,'future heartbeat more than five seconds is rejected');
 assert.equal(tvDistanteActive(100000,NaN),false,'invalid timestamps rejected');
+assert.equal(delaiReprisePilotageTV(1),5000,'initial network retry is prompt');
+assert.equal(delaiReprisePilotageTV(2),10000);
+assert.equal(delaiReprisePilotageTV(3),20000);
+assert.equal(delaiReprisePilotageTV(4),40000);
+assert.equal(delaiReprisePilotageTV(5),null,'avoid perpetual retries');
+assert.equal(delaiReprisePilotageTV(0),null,'only failed writes retry');
+assert.equal(reprisePilotageTVAutorisee(200000,80000),true,'recent pending action may retry');
+assert.equal(reprisePilotageTVAutorisee(200001,80000),false,'old instructions never automatically replay');
+assert.equal(reprisePilotageTVAutorisee(200000,0),false,'legacy pending write requires manual confirmation');
+assert.equal(reprisePilotageTVAutorisee(190000,200000),false,'future timestamps cannot authorize retry');
+
 
 
 const testEtat=normaliserTV({message:'Annonce en cours',brouillonAnnonce:'Brouillon privé',annonceExpireA:6000,dureeAppel:30});

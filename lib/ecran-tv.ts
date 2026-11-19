@@ -127,3 +127,12 @@ export function tvDistanteActive(maintenant:number,dernierSignal:number):boolean
  return Number.isFinite(maintenant)&&Number.isFinite(dernierSignal)&&dernierSignal>0
   &&dernierSignal<=maintenant+5000&&maintenant-dernierSignal<=45000;
 }
+
+/** Retry quickly after a temporary outage but never in an unbounded loop. */
+export function delaiReprisePilotageTV(echecs:number):number|null{
+ return Number.isSafeInteger(echecs)&&echecs>=1&&echecs<=4?[5000,10000,20000,40000][echecs-1]:null;
+}
+/** Stale TV commands must not restart a pause or a player call hours later. */
+export function reprisePilotageTVAutorisee(maintenant:number,depuis:number):boolean{
+ return Number.isFinite(maintenant)&&Number.isSafeInteger(depuis)&&depuis>0&&maintenant>=depuis&&maintenant-depuis<=120000;
+}

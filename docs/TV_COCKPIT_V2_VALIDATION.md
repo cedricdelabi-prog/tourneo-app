@@ -149,3 +149,11 @@
 - En cas d'échec, la lecture distante ne remplace pas les commandes locales en attente. Un simple rafraîchissement des données ne suffit pas à masquer l'erreur d'envoi.
 - Les données du tournoi restent intactes ; seuls les réglages de diffusion sont concernés.
 - À confirmer en test navigateur : panne RPC, alerte, récupération, réessai manuel et réception sur second écran.
+
+## Reprise automatique en cas de coupure réseau
+- Les modifications en échec sont conservées et automatiquement réessayées après 5, 10, 20 puis 40 secondes si la connexion réseau est disponible.
+- Un événement `online` du navigateur peut relancer immédiatement un nouvel essai.
+- Les réessais cessent après quatre échecs supplémentaires ou après 120 secondes depuis la première erreur : une **ancienne pause** ou un ancien appel ne doit jamais se rejouer automatiquement beaucoup plus tard.
+- Un bouton de réessai manuel reste utilisable, y compris après une expiration ou un rechargement de page.
+- L'horodatage de la panne est sauvegardé séparément dans le navigateur ; les anciennes files dépourvues d'horodatage ne sont jamais réémises automatiquement.
+- Réussite RPC confirmée avant de supprimer le message d'alerte et les commandes conservées.
