@@ -134,3 +134,10 @@
 - La fonction SQL de présence n'écrit pas les réglages. Le trigger ne fait plus évoluer la révision TV lorsque seule la présence est mise à jour.
 - RLS propriétaire et exécution `SECURITY INVOKER`, accès RPC authentifié uniquement.
 - En cas d'absence de réseau, l'état devient absent après 45 secondes, sans écraser les derniers réglages TV.
+
+## Test navigateur du pilotage distant (API simulée)
+- `tests/tv-multi-appareils-browser.cjs` simule deux contextes Chromium distincts (organisateur en 420px, écran public 1280px) et une API Supabase locale simulée.
+- Contrôle du signal de présence distant, annonce de buvette, pause/reprise, appel prioritaire des joueurs et confidentialité des brouillons.
+- Vérifie absence d'exception JS et absence de débordement horizontal.
+- Le navigateur ne se connecte **jamais** à un compte réel ni aux données V1; les appels vers la base V2 sont interceptés dans la session de test.
+- Le parcours fonctionne sans déploiement Vercel, mais reste un **test simulé**; l'essai avec deux appareils réels demeure nécessaire.

@@ -10,6 +10,7 @@ on:
       - 'components/IdentiteVisuelleTournoi.tsx'
       - 'app/tournoi/[id]/page.tsx'
       - 'tests/ecran-tv.cjs'
+      - 'tests/tv-multi-appareils-browser.cjs'
       - 'package*.json'
       - '.github/workflows/v2-checks.yml'
   workflow_dispatch:
@@ -43,3 +44,7 @@ jobs:
           NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED: 'false'
           NEXT_TELEMETRY_DISABLED: '1'
         run: npm run build
+      - name: Installer Chromium pour le parcours TV simulé
+        run: npx playwright install --with-deps chromium
+      - name: Tester la télécommande et la TV dans deux navigateurs isolés
+        run: node tests/tv-multi-appareils-browser.cjs
