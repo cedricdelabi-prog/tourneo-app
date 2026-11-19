@@ -26,6 +26,9 @@ on:
       - 'tests/versions-conflit.cjs'
       - 'lib/compatibilite-v1.ts'
       - 'tests/compatibilite-v1.cjs'
+      - 'scripts/sauvegarder-v1-prive.ps1'
+      - 'tests/sauvegarde-cli-v1.cjs'
+      - 'docs/SAUVEGARDE_V1_GRATUITE.md'
       - 'app/partage/[id]/page.tsx'
       - 'tests/imprevus-tournoi.cjs'
       - 'tests/experience-browser.cjs'
@@ -59,6 +62,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Tester le moteur et la restauration des sauvegardes
         run: npm test
+      - name: Vérifier la procédure de sauvegarde gratuite V1
+        run: node tests/sauvegarde-cli-v1.cjs
       - name: Vérifier les scores hérités de la V1
         run: node tests/compatibilite-v1.cjs
       - name: Contrôler les conflits entre appareils

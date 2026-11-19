@@ -69,3 +69,7 @@ Contrôle SQL de production **en lecture seule** (sans extraire de noms, identif
 Le code V2 utilise désormais `lireValidationsHistoriques` pour les chargements locaux et cloud, ainsi que le partage public. Quand la propriété `matchsValides` est totalement absente, seuls les matchs dont les deux scores entiers sont saisis sont considérés validés à l'affichage. En revanche, une liste `matchsValides` explicite, y compris `[]`, **n'est jamais remplacée ni complétée automatiquement**. Les changements sont en lecture seule : la base V1 n'a pas été mise à jour. Les formats inconnus continuent d'utiliser le repli historique `complet` dans l'interface. Les options V2 sont normalisées par l'application.
 
 Il faut ensuite confirmer, sur une copie restaurée, que les podiums et classements historiques restent exacts ; ces vérifications fonctionnelles sur données réelles ne sont pas encore faites.
+
+## Préparation d'un export sécurisé sans frais supplémentaires
+
+Script Windows préparé : [scripts/sauvegarder-v1-prive.ps1](../scripts/sauvegarder-v1-prive.ps1). Procédure et limites : [SAUVEGARDE_V1_GRATUITE.md](SAUVEGARDE_V1_GRATUITE.md). Aucun export de données réelles n'est déclenché par la CI ou par ce dépôt ; la preuve `sauvegardeRestaurableComplete` du manifeste reste `a_faire` tant qu'un export réel et une restauration isolée ne sont pas vérifiés.

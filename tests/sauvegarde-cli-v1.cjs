@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const s=fs.readFileSync('scripts/sauvegarder-v1-prive.ps1','utf8');
+const expected=['gjtxlzhfqcecyfciyllc','--role-only','--data-only','--schema','auth,storage','--use-copy','Get-FileHash','sha256','SAUVEGARDER'];
+for(const marker of expected)assert.ok(s.includes(marker),'Backup script is missing '+marker);
+assert.match(s,/Join-Path \$env:USERPROFILE/,'Dump files must be outside the repository');
+assert.match(s,/fichierRestaurationValide=\$false/);
+assert.match(s,/function Executer-Supabase/);
+assert.doesNotMatch(s,/\b(?:db\s+(?:reset|push)|restore_project|apply_migration|delete_project)\b/i);
+assert.doesNotMatch(s,/--db-url|--password|gh\s|git\s+push/i);
+assert.doesNotMatch(s,/(?:service_role|postgresql:\/\/)/i,'No connection secrets embedded');
+for(const arg of ['--schema','auth','storage','public'])assert.ok(s.includes(arg));
+const doc=fs.readFileSync('docs/SAUVEGARDE_V1_GRATUITE.md','utf8');
+assert.match(doc,/restauration isolée/i);
+assert.match(doc,/ne remplace pas/i);
+assert.match(doc,/Windows/);
+console.log('Archive V1 : opération lecture seule, fichiers locaux hors dépôt, Auth inclus, empreintes, aucune preuve inventée : OK');
