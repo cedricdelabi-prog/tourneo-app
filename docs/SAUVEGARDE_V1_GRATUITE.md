@@ -18,7 +18,7 @@ Exécuter PowerShell depuis le dossier Tourneo, sur un PC et un disque **chiffr�
 .\scripts\sauvegarder-v1-prive.ps1
 ```
 
-Après vérification explicite de l'opérateur, le script lie uniquement le projet Tourneo V1, télécharge des exports séparés de rôles, schémas et données `public`, `auth` et `storage`, puis calcule une empreinte SHA-256 pour chaque fichier. Les exports sont enregistrés dans `%USERPROFILE%\Tourneo-sauvegardes-PRIVEES\V1-<date>`, **en dehors de GitHub**.
+Après confirmation explicite, le script crée un dossier CLI **isolé du dépôt**, contrôle que la liaison pointe bien vers la V1 autorisée puis télécharge des exports séparés de rôles, schémas et données `public`, `auth` et `storage`, puis vérifie que les instructions d'export des quatre tables essentielles (`profiles`, `tournois`, `auth.users`, `auth.identities`) sont présentes et calcule une empreinte SHA-256 pour chaque fichier. Les exports sont enregistrés dans `%USERPROFILE%\Tourneo-sauvegardes-PRIVEES\V1-<date>`, **en dehors de GitHub**.
 
 **Confidentialité :** un export de `auth` peut comprendre des données personnelles, sessions, jetons et empreintes de mot de passe. Ne jamais publier les fichiers, les joindre à une conversation ou les copier vers un stockage non chiffré. Si votre disque n'est pas chiffré, ne pas lancer l'export avant d'avoir un support adéquat. Les exports SQL ne sont pas chiffrés par le script.
 
@@ -27,3 +27,9 @@ Après vérification explicite de l'opérateur, le script lie uniquement le proj
 La V2 de test compte déjà deux utilisateurs de test et un objet Storage ; **ne pas y restaurer la V1 par-dessus**. Aucun projet ou branche payante n'est nécessaire pour préparer les scripts, mais il faut disposer d'un environnement isolé et autorisé pour les essais de restauration.
 
 Ne jamais lancer `supabase db reset --linked`, `supabase db push` ou les migrations V2 directement sur le projet de production à ce stade.
+
+## Contrôle automatique sans accès à la V1
+
+La CI GitHub exécute le **vrai script PowerShell** en remplaçant uniquement la commande Supabase par une simulation. Elle vérifie : six fichiers SQL générés, manifest d'empreintes, refus d'un mauvais projet lié, refus d'un export Auth incomplet, maintien du dossier de travail et de la liaison V2. Aucune vraie donnée n'est utilisée.
+
+Cette simulation ne prouve pas que le logiciel Supabase CLI sera correctement configuré sur le PC, ni que l'export sera restaurable. L'étape de restauration isolée reste obligatoire avant la bascule.

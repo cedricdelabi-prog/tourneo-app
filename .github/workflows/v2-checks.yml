@@ -28,6 +28,7 @@ on:
       - 'tests/compatibilite-v1.cjs'
       - 'scripts/sauvegarder-v1-prive.ps1'
       - 'tests/sauvegarde-cli-v1.cjs'
+      - 'tests/sauvegarde-cli-v1.ps1'
       - 'docs/SAUVEGARDE_V1_GRATUITE.md'
       - 'app/partage/[id]/page.tsx'
       - 'tests/imprevus-tournoi.cjs'
@@ -64,6 +65,9 @@ jobs:
         run: npm test
       - name: Vérifier la procédure de sauvegarde gratuite V1
         run: node tests/sauvegarde-cli-v1.cjs
+      - name: Tester le vrai script de sauvegarde avec une fausse CLI PowerShell
+        shell: pwsh
+        run: ./tests/sauvegarde-cli-v1.ps1
       - name: Vérifier les scores hérités de la V1
         run: node tests/compatibilite-v1.cjs
       - name: Contrôler les conflits entre appareils
