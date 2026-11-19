@@ -683,3 +683,34 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-unsynced strong{font-size:1rem}
 .tourneo-tv-unsynced p{margin:9px 0 12px;line-height:1.5}
 .tourneo-tv-unsynced button{min-height:44px;padding:10px 14px;border:1px solid #d9b776;border-radius:9px;background:#543b1b;color:#fff;font-weight:700;cursor:pointer}
+
+/* V2 day-of-tournament incident planning: compact, clearly staged before applying. */
+.tourneo-imprevus{min-width:0}
+.tourneo-imprevus-presets,.tourneo-imprevus-courts{padding:14px;margin:15px 0;border:1px solid #4a6478;border-radius:12px;min-width:0}
+.tourneo-imprevus-presets legend,.tourneo-imprevus-courts legend{font-weight:750;padding:0 8px}
+.tourneo-imprevus-quick{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tourneo-imprevus .tourneo-imprevus-quick button{min-height:42px;margin:0;padding:9px 12px;border-color:#5f8e9e}
+.tourneo-imprevus .tourneo-imprevus-quick button.actif{background:#167a8a;border-color:#98f5f4;color:white;box-shadow:0 0 0 1px #98f5f4 inset}
+.tourneo-imprevus-presets>label{max-width:300px}
+.tourneo-imprevus .tourneo-imprevus-courts>p{margin:6px 0 14px}
+.tourneo-imprevus .tourneo-court-checks label{display:flex;align-items:center;gap:9px;min-height:40px}
+.tourneo-imprevus .tourneo-court-checks input[type=checkbox]{min-width:20px;min-height:20px}
+.tourneo-imprevus-help{font-size:.9rem;color:#bad5e2;line-height:1.5}
+.tourneo-imprevus-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0}
+.tourneo-imprevus .tourneo-imprevus-actions>button{margin:0;min-height:44px}
+.tourneo-imprevus .tourneo-imprevus-actions>button:disabled{cursor:not-allowed;opacity:.48}
+.tourneo-imprevus-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}
+.tourneo-imprevus-metrics>div{display:grid;gap:6px;min-width:0;background:#123b4c;border:1px solid #4c8490;border-radius:10px;padding:14px 10px;text-align:center}
+.tourneo-imprevus-metrics strong{font-size:clamp(22px,2.8vw,30px);line-height:1.1;color:#fff;font-variant-numeric:tabular-nums}
+.tourneo-imprevus-metrics span{font-size:13px;line-height:1.4;color:#cbe6ed}
+.tourneo-imprevus-fin{font-size:clamp(15px,1.6vw,19px);line-height:1.45}
+.tourneo-imprevus-fin>span{font-weight:700}
+.tourneo-imprevus-liste{margin:14px 0;padding-left:24px}
+.tourneo-imprevus-liste li{padding:10px 0;border-bottom:1px solid #365d6b}
+.tourneo-imprevus-liste li strong,.tourneo-imprevus-liste li span{display:block;overflow-wrap:anywhere}
+.tourneo-imprevus-liste li span{margin-top:5px;font-size:.9rem;color:#bcd6e3;line-height:1.45}
+.tourneo-imprevus-undo{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:14px;margin:14px 0;background:#244036;border:1px solid #71c1aa;border-radius:12px}
+.tourneo-imprevus-undo button{margin:0}
+.tourneo-imprevus-feedback{font-size:15px;line-height:1.5}
+@media(max-width:700px){.tourneo-imprevus-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:370px){.tourneo-imprevus-metrics{grid-template-columns:1fr}}

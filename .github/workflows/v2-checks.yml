@@ -5,6 +5,10 @@ on:
       - release-v2-preparation-2026-11-19
     paths:
       - 'components/EcranTV.tsx'
+      - 'components/ImprevusTournoi.tsx'
+      - 'lib/imprevus-tournoi.ts'
+      - 'lib/planning.ts'
+      - 'tests/imprevus-tournoi.cjs'
       - 'lib/ecran-tv.ts'
       - 'lib/modeles-affiche.ts'
       - 'components/IdentiteVisuelleTournoi.tsx'
@@ -35,6 +39,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Vérifier l'écran TV
         run: npm run test:tv
+      - name: Vérifier les scénarios d'imprévus
+        run: npm run test:imprevus
       - name: Vérifier les retours de connexion sécurisés
         run: node tests/pronostics.cjs
       - name: Compiler la V2 hors publication

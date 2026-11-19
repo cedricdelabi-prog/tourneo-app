@@ -168,3 +168,13 @@
 ## Fiabilité du pipeline de validation
 - La compilation Next.js et TypeScript est obligatoire avant les tests navigateur.
 - Le Chromium Playwright est installé sur un runner Ubuntu 24.04 sans dépendre d'une installation APT supplémentaire : le miroir Ubuntu a retourné des erreurs HTTP 503 lors d'une vérification antérieure.
+
+## Nouveaux outils « Gérer un imprévu » (jour J)
+- Réglage rapide d'un retard de 0, 5, 10, 15, 30 ou 60 minutes, avec saisie personnalisée jusqu'à 240 minutes.
+- Possibilité de fermer temporairement plusieurs terrains tout en en conservant au moins un disponible ; bouton « Rouvrir tous les terrains ».
+- Simulation **sans écriture** des changements, en préservant les horaires et terrains des rencontres dont le score est déjà saisi ou validé.
+- Compteurs pour les rencontres déplacées, terrains modifiés, horaires modifiés, matchs protégés et matchs inchangés.
+- Avant/après de l'heure de fin et retard maximal estimé.
+- Affichage détaillé de toutes les rencontres déplacées sur demande, confirmation avant application et annulation de la dernière adaptation tant que les résultats n'ont pas changé.
+- Export CSV du comparatif avant/après, prêt pour Excel et protégé contre les formules injectées par les noms d'équipe.
+- Aucune migration SQL, aucun résultat modifié par la simulation. Tests spécifiques automatisés via `npm run test:imprevus`.
