@@ -56,7 +56,7 @@ assert.match(sql,/t\.id=p_id and t\.est_public is true/i);
 assert.match(sql,/security definer set search_path=''/i,'public RPC must use empty search_path');
 assert.match(sql,/'adaptationPlanning'/);
 assert.doesNotMatch(sql,/\bdrop\s+(?:table|column)\b/i);
-(async()=>{
+if (require.main===module) (async()=>{
  const db=await fixture();
  try{
   await db.exec("update public.tournois set donnees='"+JSON.stringify(data)+"'::jsonb where id='"+TOURNOI+"'");
@@ -118,3 +118,4 @@ assert.doesNotMatch(sql,/\bdrop\s+(?:table|column)\b/i);
   console.log('Phase 14 fictive : lien V1 manquant bloque la migration sans installation partielle : OK');
  }finally{await missing.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={fixture,phase14:sql};
