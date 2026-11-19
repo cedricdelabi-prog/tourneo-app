@@ -100,3 +100,9 @@
 - Réglages regroupés dans quatre sections repliables : diffusion, messages et pauses, partenaires, appels.
 - Diffusion et pauses ouvertes par défaut, partenaires et appels repliés pour réduire la surcharge visuelle sur mobile.
 - Contrôles d'accès clavier et zones de toucher adaptées.
+
+## Correctif des transitions TV après annonces et appels
+- La sélection d'un match donne toujours la priorité à sa page d'appel (page 1) même lorsqu'une ancienne annonce est stockée dans le navigateur.
+- Les appels effacent le message public précédent sans supprimer le brouillon de l'organisateur.
+- À l'expiration d'une action, les autres actions publiques encore actives ne sont pas coupées : pas de retour intempestif aux résultats.
+- Fin d'appel, appel de match terminé, expiration d'annonce et pause couverts par tests automatisés.

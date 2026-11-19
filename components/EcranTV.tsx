@@ -9,7 +9,7 @@ import {normaliserIdentiteAffiche} from '@/lib/modeles-affiche';
 import {nomParticipant} from '@/lib/rotation';
 import {classementTournoi} from '@/lib/resultats';
 import {heureCreneau,planifierMatchs} from '@/lib/planning';
-import {actionTVExpiree,appelTV,compteAReboursTV,etatConnexionTV,filtrerMatchsTV,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,repriseSonoreDansDelai,statistiquesTV,statutMatchTV,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
+import {appelTV,compteAReboursTV,demarrerAppelTV,etatConnexionTV,filtrerMatchsTV,indexAppelTV,normaliserTV,pageCouranteTV,pagesTV,pourcentageProgressionTV,repriseSonoreDansDelai,statistiquesTV,terminerActionsTV,statutMatchTV,TV_DEFAUT,type EtatConnexionTV,type ReglagesTV} from '@/lib/ecran-tv';
 import {tr,trModele,useLangue,localeFormat} from '@/lib/langue';
 import type {Equipe,Match} from '@/types';
 type TournoiTV={nom:string;equipes:Equipe[];matchs:Match[];valides:number[];format:string;options:ReturnType<typeof normaliserOptionsV2>;sponsors:string[];logo:string};
@@ -80,16 +80,10 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
  const position=pageCouranteTV(reglages,maintenant);const index=slides.length?((position%slides.length)+slides.length)%slides.length:0,slide=slides[index];
  const nom=(m:Match,cote:1|2)=>nomParticipant(cote===1?m.equipe1Id:m.equipe2Id,equipes);
  useEffect(()=>{
-  if(!cle||!tournoi||reglages.pause)return;
-  const finAnnonce=actionTVExpiree(maintenant,reglages.annonceExpireA);
-  const finAppel=actionTVExpiree(maintenant,reglages.appelExpireA)||(reglages.appel!==null&&!appel);
-  if(!finAnnonce&&!finAppel)return;
-  const patch:Partial<ReglagesTV>={};
-  if(finAnnonce){patch.message='';patch.annonceExpireA=null;}
-  if(finAppel){patch.appel=null;patch.appelExpireA=null;}
-  if(!reglages.defilement){patch.defilement=true;patch.pageManuelle=0;patch.debutDefilement=Date.now();}
-  modifier(patch);
- },[cle,maintenant,tournoi,reglages.pause,reglages.annonceExpireA,reglages.appelExpireA,reglages.appel,reglages.defilement,appel]);
+  if(!cle||!tournoi)return;
+  const patch=terminerActionsTV(reglages,maintenant,!!appel);
+  if(patch)modifier(patch);
+ },[cle,maintenant,tournoi,reglages,appel]);
  async function activerSon(){try{const contexte=audioRef.current??new AudioContext();audioRef.current=contexte;await contexte.resume();setAudioActif(contexte.state==='running');if(contexte.state==='running'){const osc=contexte.createOscillator();const gain=contexte.createGain();osc.frequency.value=660;gain.gain.value=.06;osc.connect(gain);gain.connect(contexte.destination);osc.start();osc.stop(contexte.currentTime+.15);setPleinEcranErreur('Son activé : une courte tonalité de test doit être audible.');}}catch{setAudioActif(false);setPleinEcranErreur('Le navigateur bloque le son. Vérifiez les autorisations audio.');}}
  async function pleinEcran(){try{await document.documentElement.requestFullscreen();setPleinEcranErreur('');}catch{setPleinEcranErreur('Utilisez F11 ou le mode plein écran de votre navigateur.');}}
  return <main className={ecran?'tourneo-tv':'v2-page'}>{!ecran&&<TourneoNav active="tournoi" backHref={`/tournoi/${id}`} backLabel="Retour au tournoi"/>}<div className={ecran?'tourneo-tv-shell':'v2-shell'}>
@@ -150,9 +144,9 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
 
  </div></details><details className="tourneo-tv-fold"><summary>{tr('Appel des joueurs')}</summary><div className="tourneo-tv-fold-body">
  <label>{tr('Durée d’affichage des appels')}<select value={reglages.dureeAppel} disabled={!cle} onChange={e=>modifier({dureeAppel:Number(e.target.value)})}>{[30,60,90,120].map(d=><option key={d} value={d}>{d} {tr('secondes')}</option>)}</select></label>
- <label>{tr('Appeler un match sur la TV')}<select value={appel?.id??''} disabled={!cle||reglages.pause} onChange={e=>{const identifiant=e.target.value?Number(e.target.value):null;modifier({appel:identifiant,appelExpireA:identifiant===null?null:Date.now()+reglages.dureeAppel*1000,message:identifiant===null?reglages.message:'',annonceExpireA:null,defilement:identifiant===null,pageManuelle:identifiant===null?0:indexAppelTV(reglages.message),debutDefilement:Date.now()});}}><option value="">{tr('Aucun appel')}</option>{attendus.map(m=><option key={m.id} value={m.id}>#{m.id} · {nom(m,1)} / {nom(m,2)}</option>)}</select></label><p>{tr('Le match sélectionné est affiché immédiatement sur la TV. L’organisateur peut revenir au défilement après l’appel.')}</p>
- {appel&&<div className="tourneo-tv-active-call" role="status"><strong>{tr('Appel en cours')} : {nom(appel,1)} / {nom(appel,2)}{reglages.appelExpireA&&<small className="tourneo-tv-active-call-timer"> · {tr('Retour automatique dans')} {compteAReboursTV(maintenant,reglages.appelExpireA)||'--:--:--'}</small>}</strong><button type="button" disabled={!cle} onClick={()=>modifier({appel:null,appelExpireA:null,defilement:true,pageManuelle:0,debutDefilement:Date.now()})}>{tr('Terminer l’appel et reprendre la diffusion')}</button></div>}
- {attendus.length>0&&<div className="tourneo-tv-next"><h3>{tr('Prochains matchs à jouer')}</h3><ol>{attendus.slice(0,4).map(m=>{const c=planning.find(p=>p.matchId===m.id);return <li key={m.id}><span>{nom(m,1)} / {nom(m,2)}</span><small>#{m.id} · {tr('Terrain')} {c?.terrain??m.terrain??'—'}{c?` · ${heureCreneau(c.debut,tournoi?.options.depart||'')}`:''}</small><button type="button" disabled={!cle||reglages.pause} onClick={()=>modifier({appel:m.id,appelExpireA:Date.now()+reglages.dureeAppel*1000,message:'',annonceExpireA:null,defilement:false,pageManuelle:indexAppelTV(reglages.message),debutDefilement:Date.now()})}>{tr('Appeler sur la TV')}</button></li>;})}</ol></div>}</div></details></div></section>}
+ <label>{tr('Appeler un match sur la TV')}<select value={appel?.id??''} disabled={!cle||reglages.pause} onChange={e=>modifier(demarrerAppelTV(reglages,e.target.value?Number(e.target.value):null,Date.now()))}><option value="">{tr('Aucun appel')}</option>{attendus.map(m=><option key={m.id} value={m.id}>#{m.id} · {nom(m,1)} / {nom(m,2)}</option>)}</select></label><p>{tr('Le match sélectionné est affiché immédiatement sur la TV. L’organisateur peut revenir au défilement après l’appel.')}</p>
+ {appel&&<div className="tourneo-tv-active-call" role="status"><strong>{tr('Appel en cours')} : {nom(appel,1)} / {nom(appel,2)}{reglages.appelExpireA&&<small className="tourneo-tv-active-call-timer"> · {tr('Retour automatique dans')} {compteAReboursTV(maintenant,reglages.appelExpireA)||'--:--:--'}</small>}</strong><button type="button" disabled={!cle} onClick={()=>modifier(demarrerAppelTV(reglages,null,Date.now()))}>{tr('Terminer l’appel et reprendre la diffusion')}</button></div>}
+ {attendus.length>0&&<div className="tourneo-tv-next"><h3>{tr('Prochains matchs à jouer')}</h3><ol>{attendus.slice(0,4).map(m=>{const c=planning.find(p=>p.matchId===m.id);return <li key={m.id}><span>{nom(m,1)} / {nom(m,2)}</span><small>#{m.id} · {tr('Terrain')} {c?.terrain??m.terrain??'—'}{c?` · ${heureCreneau(c.debut,tournoi?.options.depart||'')}`:''}</small><button type="button" disabled={!cle||reglages.pause} onClick={()=>modifier(demarrerAppelTV(reglages,m.id,Date.now()))}>{tr('Appeler sur la TV')}</button></li>;})}</ol></div>}</div></details></div></section>}
  {ecran&&<header className="tourneo-tv-heading"><span className="tourneo-tv-brand tourneo-tv-brand-logo" aria-label="Logo Tourneo"><img src={tournoi?.logo||"/tourneo-icon.png"} alt={tournoi?.logo?tr("Logo du tournoi"):"Logo Tourneo"} width={88} height={88}/></span><h1>{tournoi?.nom||tr('Écran TV')}</h1><button onClick={()=>void activerSon()}>{audioActif?tr('Tester le son'):tr('Activer le son de reprise')}</button><button onClick={()=>void pleinEcran()}>{tr('Plein écran')}</button></header>}
  {ecran&&derniereReceptionRef.current>0&&maintenant-derniereReceptionRef.current>45000&&<p className="tourneo-tv-warning" role="alert">{tr('Connexion aux données interrompue : les derniers résultats reçus restent visibles. Vérifiez le réseau.')}</p>}
  {erreur&&<p className="tourneo-tv-warning" role="alert">{tr(erreur)} {tournoi&&tr('Les dernières données reçues restent affichées.')}</p>}{pleinEcranErreur&&<p role="status">{tr(pleinEcranErreur)}</p>}

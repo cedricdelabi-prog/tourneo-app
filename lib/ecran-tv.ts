@@ -74,3 +74,27 @@ export function indexAppelTV(message:string):number{return message?1:0;}
 
 /** Detect expired temporary broadcast actions after background-tab suspension. */
 export function actionTVExpiree(maintenant:number,expireA:number|null):boolean{return expireA!==null&&Number.isSafeInteger(expireA)&&expireA>0&&Number.isFinite(maintenant)&&maintenant>=expireA;}
+
+/** A player call owns slide zero. The previous public announcement is cleared first. */
+export function demarrerAppelTV(reglages:ReglagesTV,matchId:number|null,maintenant:number):Partial<ReglagesTV>{
+ const actif=matchId!==null&&Number.isSafeInteger(matchId)&&matchId>=0;
+ return {appel:actif?matchId:null,appelExpireA:actif?maintenant+reglages.dureeAppel*1000:null,
+  message:actif?'':reglages.message,annonceExpireA:actif?null:reglages.annonceExpireA,
+  defilement:!actif,pageManuelle:0,debutDefilement:maintenant};
+}
+
+/** Expiry of one notice must not interrupt another active public action. */
+export function terminerActionsTV(reglages:ReglagesTV,maintenant:number,appelExiste:boolean):Partial<ReglagesTV>|null{
+ if(reglages.pause)return null;
+ const annonceExpiree=actionTVExpiree(maintenant,reglages.annonceExpireA);
+ const appelExpire=actionTVExpiree(maintenant,reglages.appelExpireA)||(reglages.appel!==null&&!appelExiste);
+ if(!annonceExpiree&&!appelExpire)return null;
+ const patch:Partial<ReglagesTV>={};
+ if(annonceExpiree){patch.message='';patch.annonceExpireA=null;}
+ if(appelExpire){patch.appel=null;patch.appelExpireA=null;}
+ const annonceRestante=!!reglages.message&&!annonceExpiree;
+ const appelRestant=reglages.appel!==null&&!appelExpire;
+ if(annonceRestante||appelRestant){patch.pageManuelle=annonceRestante?0:0;patch.defilement=false;}
+ else {patch.pageManuelle=0;patch.defilement=true;patch.debutDefilement=maintenant;}
+ return patch;
+}
