@@ -52,7 +52,7 @@ assert.doesNotMatch(phase12,/create function public\.tourneo_album_public/i);
   assert.equal(prochaine(dates[0].photos_expirent_at,15),true,'standard expiry 15 days');
   assert.equal(prochaine(dates[1].photos_expirent_at,90),true,'expert expiry 90 days');
   await db.exec("update public.tournois set photos_expirent_at=now()+interval '365 days' where id='"+EXPIRED+"'");
-  assert.equal((await q(db,"select photos_expirent_at from public.tournois where id='"+EXPIRED+"'"))[0].photos_expirent_at,dates[0].photos_expirent_at,'deadline immutable');
+  assert.equal(new Date((await q(db,"select photos_expirent_at from public.tournois where id='"+EXPIRED+"'"))[0].photos_expirent_at).getTime(),new Date(dates[0].photos_expirent_at).getTime(),'deadline immutable');
 
   await db.exec("insert into storage.objects(bucket_id,name) values('tourneo-media','"+pathOwner+"')");
   await db.exec('begin');await db.exec('set local role anon');
