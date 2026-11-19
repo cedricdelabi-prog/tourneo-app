@@ -19,6 +19,15 @@ begin
   nullif(new.raw_user_meta_data->>'last_name',''),
   nullif(new.raw_user_meta_data->>'city',''),
   '#3B82F6') on conflict(id) do nothing;
+ exception when unique_violation then
+  -- Legacy 8-character UUID prefixes can collide; preserve existing player codes.
+  -- A full UUID fallback is unique without renumbering any existing user.
+  insert into public.profiles(id,display_name,player_code,first_name,last_name,city,favorite_color)
+  values(new.id,nom_affiche,'TRN-'||upper(replace(new.id::text,'-','')),
+   nullif(new.raw_user_meta_data->>'first_name',''),
+   nullif(new.raw_user_meta_data->>'last_name',''),
+   nullif(new.raw_user_meta_data->>'city',''),'#3B82F6')
+  on conflict(id) do nothing;
  return new;
 end $$;
 create trigger on_auth_user_created_tourneo after insert on auth.users
