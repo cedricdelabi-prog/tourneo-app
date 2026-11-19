@@ -1,0 +1,36 @@
+name: Tourneo V2 - contrôles sans déploiement
+on:
+  push:
+    branches:
+      - release-v2-preparation-2026-11-19
+    paths:
+      - 'components/EcranTV.tsx'
+      - 'lib/ecran-tv.ts'
+      - 'lib/modeles-affiche.ts'
+      - 'components/IdentiteVisuelleTournoi.tsx'
+      - 'app/tournoi/[id]/page.tsx'
+      - 'tests/ecran-tv.cjs'
+      - 'package*.json'
+      - '.github/workflows/v2-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verifier:
+    name: Types et tests TV
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout branche V2
+        uses: actions/checkout@v4
+      - name: Configurer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Installer les dépendances
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Vérifier le typage
+        run: npx tsc --noEmit
+      - name: Vérifier l'écran TV
+        run: npm run test:tv
