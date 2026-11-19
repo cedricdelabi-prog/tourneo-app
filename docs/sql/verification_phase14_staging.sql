@@ -13,7 +13,7 @@ with v(item,ok) as (
  union all select 'v2_anon_legacy_alias',has_function_privilege('anon','public.tourneo_public_compat_v2(uuid)','EXECUTE')
  union all select 'v2_private_schema_not_anon',not has_schema_privilege('anon','tourneo_private','USAGE')
  union all select 'v2_planning_marker_not_anon',not has_function_privilege('anon','tourneo_private.projection_planning_v2_marqueur()','EXECUTE')
- union all select 'v2_planning_definer_safe_search_path',exists(select 1 from pg_proc where oid='public.tourneo_public_v2(uuid)'::regprocedure and prosecdef and proconfig @> ARRAY['search_path='])
+ union all select 'v2_planning_definer_safe_search_path',exists(select 1 from pg_proc where oid='public.tourneo_public_v2(uuid)'::regprocedure and prosecdef and exists(select 1 from unnest(coalesce(proconfig,'{}'::text[])) as setting(value) where setting.value like 'search_path=%'))
  union all select 'v2_private_album_preserved',to_regclass('public.tourneo_album_photos') is not null
  union all select 'v2_shared_album_preserved',to_regclass('public.tourneo_album_partages') is not null
 )

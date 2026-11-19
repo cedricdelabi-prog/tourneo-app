@@ -68,7 +68,7 @@ begin
  or not has_function_privilege('anon','public.tourneo_public_compat_v2(uuid)','EXECUTE')
  or has_schema_privilege('anon','tourneo_private','USAGE')
  or not exists(select 1 from pg_proc where oid='public.tourneo_public_v2(uuid)'::regprocedure
-    and prosecdef and proconfig @> ARRAY['search_path='])
+    and prosecdef and exists(select 1 from unnest(coalesce(proconfig,'{}'::text[])) as setting(value) where setting.value like 'search_path=%'))
  then raise exception 'STAGING STOP: droits de partage public non sûrs'; end if;
 end $$;
 commit;

@@ -53,6 +53,7 @@ async function fixture(){
 }
 assert.match(sql,/tourneo\.v1_copy_verified/);
 assert.match(sql,/t\.id=p_id and t\.est_public is true/i);
+assert.match(sql,/security definer set search_path=''/i,'public RPC must use empty search_path');
 assert.match(sql,/'adaptationPlanning'/);
 assert.doesNotMatch(sql,/\bdrop\s+(?:table|column)\b/i);
 (async()=>{
