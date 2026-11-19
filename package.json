@@ -33,7 +33,7 @@
     "test:tv": "node tests/ecran-tv.cjs",
     "test:imprevus": "node tests/imprevus-tournoi.cjs",
     "test:cockpit": "node tests/cockpit-tournoi.cjs",
-    "test:bascule": "node tests/bascule-v2.cjs && node tests/migration-compatibilite.cjs && node tests/migration-socle-v2.cjs && node tests/migration-applicatif-v2.cjs && node tests/migration-notifications-v2.cjs && node tests/migration-partages-v2.cjs && node tests/migration-groupes-v2.cjs && node tests/migration-profils-v2.cjs && node tests/migration-tennis-v2.cjs && node tests/migration-olympiades-v2.cjs && node tests/migration-appels-affiches-v2.cjs && node tests/migration-joueurs-v2.cjs && node tests/migration-album-prive-v2.cjs && node tests/migration-album-partage-v2.cjs && node tests/migration-planning-public-v2.cjs",
+    "test:bascule": "node tests/bascule-v2.cjs && node tests/migration-compatibilite.cjs && node tests/migration-socle-v2.cjs && node tests/migration-applicatif-v2.cjs && node tests/migration-notifications-v2.cjs && node tests/migration-partages-v2.cjs && node tests/migration-groupes-v2.cjs && node tests/migration-profils-v2.cjs && node tests/migration-tennis-v2.cjs && node tests/migration-olympiades-v2.cjs && node tests/migration-appels-affiches-v2.cjs && node tests/migration-joueurs-v2.cjs && node tests/migration-album-prive-v2.cjs && node tests/migration-album-partage-v2.cjs && node tests/migration-planning-public-v2.cjs && node tests/migration-equipes-inscrites-v2.cjs",
     "preflight:v2": "node scripts/controle-bascule-v2.cjs"
   },
   "dependencies": {

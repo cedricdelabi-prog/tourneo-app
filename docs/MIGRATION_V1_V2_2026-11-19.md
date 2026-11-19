@@ -171,3 +171,11 @@ La fonction de partage historique V1 `get_tourneo_public` est **conservée tempo
 `tests/migration-planning-public-v2.cjs` rejoue les phases 1 à 14 sur un PGlite fictif et compare les anciens liens avec les projections V2. Il vérifie les horaires autorisés, le filtrage des données privées, le refus des tournois cachés, le maintien des UUID et scores V1, et l'arrêt transactionnel en cas de liens manquants. `docs/sql/verification_phase14_staging.sql` est un contrôle de staging en lecture seule.
 
 La migration reste **interdite** sur la production V1 et sur la base V2 de test existante. Une sauvegarde réelle, sa restauration puis des tests sur un environnement indépendant sont indispensables avant toute bascule.
+
+## Phase 15 — démarrage d'un tournoi avec inscriptions individuelles et équipes acceptées
+
+Le script `docs/sql/compatibilite_v1_v2_staging_PHASE15_EQUIPES_INSCRITES.sql` reprend le correctif V2 de `tourneo_demarrer` et l'adapte à la copie restaurée. Avant d'ouvrir les matchs, il vérifie que **chaque inscription acceptée** est bien reconnue parmi les participants, soit par son ancien marqueur `inscription:<UUID>`, soit par un `profilId` individuel, soit dans `membresOrigine` d'une équipe. Si une inscription acceptée manque, l'organisateur doit actualiser sa composition avant de pouvoir démarrer. Le démarrage ferme les inscriptions restantes ; un deuxième démarrage est refusé.
+
+Ce changement porte uniquement sur la logique du RPC : **la migration n'écrit pas les tournois historiques lors de son installation**. Les droits sont limités aux comptes connectés et la fonction vérifie que le demandeur est le propriétaire du tournoi. Son `search_path` est verrouillé. `tests/migration-equipes-inscrites-v2.cjs` éprouve ces règles en SQL réel PGlite sur une base entièrement fictive, avec refus d'un autre utilisateur, refus anonyme, détection des inscriptions manquantes et restauration de l'état initial après chaque scénario.
+
+Comme les phases précédentes, l'installation ne peut être envisagée qu'après une sauvegarde V1 réelle et sa restauration sur un staging indépendant. Les tests de compilation et de migration ne constituent pas encore une autorisation de bascule en production.
