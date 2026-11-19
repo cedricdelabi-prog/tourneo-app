@@ -6,6 +6,9 @@ on:
     paths:
       - 'components/EcranTV.tsx'
       - 'components/ImprevusTournoi.tsx'
+      - 'components/ProchaineActionTournoi.tsx'
+      - 'lib/cockpit-tournoi.ts'
+      - 'tests/cockpit-tournoi.cjs'
       - 'lib/imprevus-tournoi.ts'
       - 'lib/planning.ts'
       - 'tests/imprevus-tournoi.cjs'
@@ -42,6 +45,8 @@ jobs:
         run: npm run test:tv
       - name: Vérifier les scénarios d'imprévus
         run: npm run test:imprevus
+      - name: Vérifier le cockpit organisateur
+        run: npm run test:cockpit
       - name: Vérifier les retours de connexion sécurisés
         run: node tests/pronostics.cjs
       - name: Compiler la V2 hors publication

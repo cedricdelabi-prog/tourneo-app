@@ -183,3 +183,12 @@
 - Parcours Chromium en largeur mobile (390 px) : simulation d'un retard, fermeture d'un terrain, aperçu des impacts, téléchargement CSV, confirmation, annulation puis nouvelle application.
 - Vérifie qu'aucune modification du tournoi n'est enregistrée avant confirmation et que les scores déjà saisis sont conservés.
 - Étape intégrée au workflow GitHub Actions V2, sans utilisation de la V1 ni de comptes réels.
+
+## Tableau de bord « Suivi du tournoi en direct » (jour J)
+- Le bloc « Prochaine action » est remplacé par une vue d'ensemble de quatre compteurs : matchs validés, scores terminés à valider, saisies incomplètes et rencontres à jouer.
+- Progression calculée sur les résultats **réellement validés** et jamais sur les scores simplement saisis.
+- Priorités : propositions d'arbitres (si vérifiées), résultats prêts à valider, scores partiels, prochaine rencontre, puis partage du bilan.
+- Choix d'une rencontre par son horaire planifié, plutôt que par un identifiant de match arbitraire ; le raccourci se positionne sur le véritable identifiant DOM `organisateur-match-<id>`.
+- Raccourcis persistants vers le pilotage TV et les imprévus (ouverture automatique des panneaux concernés).
+- Les erreurs temporaires de lecture des propositions d'arbitres sont signalées sans masquer l'état des matchs locaux.
+- Tests métier dédiés et parcours mobile de bout en bout sur la base de test simulée, sans publication Vercel ni modification V1.

@@ -714,3 +714,41 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-imprevus-feedback{font-size:15px;line-height:1.5}
 @media(max-width:700px){.tourneo-imprevus-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:370px){.tourneo-imprevus-metrics{grid-template-columns:1fr}}
+
+/* Tourneo V2: organizer's day-of-match command centre, mobile-first. */
+.tourneo-cockpit{margin:15px 0 24px;padding:clamp(16px,2.5vw,26px);border:1px solid #367d8d;border-radius:18px;background:#102a3b;color:#eaf7fb;min-width:0}
+.tourneo-cockpit-heading{display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap}
+.tourneo-cockpit-heading>div:first-child{flex:1 1 260px;min-width:0}
+.tourneo-cockpit-heading h2{font-size:clamp(19px,2.5vw,28px);line-height:1.22;margin:7px 0 8px}
+.tourneo-cockpit-heading p{font-size:14px;line-height:1.5;margin:0;color:#c0dce5;max-width:640px}
+.tourneo-cockpit-percent{display:grid;justify-items:center;gap:5px;min-width:135px}
+.tourneo-cockpit-percent strong{font-size:clamp(31px,4.2vw,48px);font-variant-numeric:tabular-nums;line-height:1}
+.tourneo-cockpit-percent span{font-size:12px;color:#a9c6d0}
+.tourneo-cockpit-track{height:13px;width:100%;background:#365368;border-radius:999px;overflow:hidden;margin:18px 0 16px}
+.tourneo-cockpit-track span{display:block;background:#60dccb;height:100%;border-radius:999px;transition:width .4s ease}
+.tourneo-cockpit-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 17px}
+.tourneo-cockpit-metrics>div{display:grid;justify-items:center;gap:7px;min-width:0;text-align:center;border:1px solid #47667a;border-radius:12px;padding:13px 8px;background:#16374a}
+.tourneo-cockpit-metrics>div[data-urgent=true]{border-color:#bf9856;background:#3b3020}
+.tourneo-cockpit-metrics strong{font-size:clamp(23px,3.2vw,35px);font-variant-numeric:tabular-nums;line-height:1}
+.tourneo-cockpit-metrics span{font-size:12px;line-height:1.4;color:#cbdfeb}
+.tourneo-cockpit-next{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:15px;border:1px solid #397b88;border-radius:13px;background:#0d2232}
+.tourneo-cockpit-next>div{flex:1 1 240px;min-width:0}
+.tourneo-cockpit-next strong{font-size:15px}
+.tourneo-cockpit-next p{margin:6px 0;font-size:15px;line-height:1.45}
+.tourneo-cockpit-next .tourneo-cockpit-match{font-weight:600;color:#9ee6ef;overflow-wrap:anywhere}
+.tourneo-cockpit-next small{display:block;font-size:13px;line-height:1.4;color:#cfdae3}
+.tourneo-cockpit button,.tourneo-cockpit-tools a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 15px;border-radius:10px;border:1px solid #5fb2c2;background:#175c75;color:white;font:inherit;font-weight:650;cursor:pointer;text-align:center;text-decoration:none}
+.tourneo-cockpit button:hover,.tourneo-cockpit-tools a:hover{background:#207f8d}
+.tourneo-cockpit button:focus-visible,.tourneo-cockpit-tools a:focus-visible{outline:3px solid #8cf7e6;outline-offset:2px}
+.tourneo-cockpit-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.tourneo-cockpit-tools a{border-color:#577992;background:#16394e}
+@media(max-width:650px){
+.tourneo-cockpit-heading{gap:12px}
+.tourneo-cockpit-percent{display:flex;justify-content:flex-start;align-items:baseline;gap:10px}
+.tourneo-cockpit-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tourneo-cockpit-next>button{width:100%}
+.tourneo-cockpit-tools{display:grid;grid-template-columns:1fr 1fr}
+.tourneo-cockpit-tools button,.tourneo-cockpit-tools a{min-width:0;font-size:13px}
+}
+@media(max-width:345px){.tourneo-cockpit-tools{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.tourneo-cockpit-track span{transition:none}}

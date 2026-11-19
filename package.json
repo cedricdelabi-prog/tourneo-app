@@ -31,7 +31,8 @@
     "test:edition": "node tests/prochaine-edition.cjs && node tests/prochaine-edition-ui.cjs",
     "test:experience": "node tests/experience.cjs && node tests/experience-browser.cjs",
     "test:tv": "node tests/ecran-tv.cjs",
-    "test:imprevus": "node tests/imprevus-tournoi.cjs"
+    "test:imprevus": "node tests/imprevus-tournoi.cjs",
+    "test:cockpit": "node tests/cockpit-tournoi.cjs"
   },
   "dependencies": {
     "@capacitor/android": "8.6.2",
