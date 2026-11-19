@@ -107,3 +107,11 @@ Le script `docs/sql/compatibilite_v1_v2_staging_PHASE5_PARTAGES.sql` crée sur u
 Le script conserve temporairement le RPC brut V1 `get_tourneo_public` pour ne pas casser les anciennes installations avant leur retrait contrôlé. **Cette ancienne fonction doit être désactivée uniquement après migration et retrait de tous les anciens clients**, selon `docs/sql/desactiver_rpc_v1_non_filtre_post_migration.sql`. L'installation phase 5 refuse un doublon de lien, un partage manquant, une étape précédente absente ou une exécution sans confirmation explicite du staging.
 
 Le vrai SQL est éprouvé par `tests/migration-partages-v2.cjs` sur PGlite avec comptes et tournois fictifs : les deux formats de liens, le refus des tournois privés, le masquage du JSON interne et les privilèges anonymes. Ces contrôles ne valident ni une restauration réelle ni la mise en service sur le site public.
+
+## Phase 6 — clubs, accompagnateurs et langues sur staging
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE6_GROUPES_LANGUES.sql` intègre les tables de clubs, membres et participants, les politiques RLS et le partage d'un groupe via un code joueur. Cette phase reprend les règles de quota des groupes et vérifie que seule une personne autorisée peut les gérer. Elle ajoute aussi la préférence de langue **FR/EN/NL/DE**, et retire l'accès anonyme direct à `player_results` pour protéger les résultats personnels.
+
+L'installation est **interdite sur la production V1** : le script exige une copie restaurée, les phases précédentes et un drapeau explicite défini manuellement sur la connexion de staging. Aucune ligne des tables historiques n'est mise à jour. Les tests exécutent le vrai SQL sur une base fictive PGlite, avec vérification des refus d'accès, des langues et du maintien des anciens partages. `docs/sql/verification_phase6_staging.sql` rassemble les contrôles SQL en lecture seule.
+
+**Toujours à faire avant publication** : sauvegarde V1 réelle et restaurée dans un environnement indépendant, adaptation des migrations applicatives restantes, essais des parcours réels (dont la caméra et Android), sécurité du retrait de l'ancienne API, autorisation finale explicite. La CI verte ne prouve pas à elle seule que la bascule est prête.
