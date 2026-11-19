@@ -87,6 +87,38 @@ for(const n of [4,5,6,7,8,11,16,32]){
  const groupes=repartirPoules(es,2,'equilibre');assert.ok(Math.abs(groupes[0].length-groupes[1].length)<=1);
 }
 assert.throws(()=>lireSauvegarde('{"version":1}'));
+const exempleSauvegarde={
+ version:2,nomTournoi:'Tournoi de contrôle',sport:'petanque',formatTournoi:'complet',
+ equipes:[
+  {id:'equipe-a',nom:'Équipe A',joueurs:['Alice','Bob'],capitaine:'Alice',position:2,poule:1,
+   photo:'media-prive:u/tournois/test/photos/alice.webp',
+   membresOrigine:[{id:'joueur-a',nom:'Alice',profilId:'11111111-1111-4111-8111-111111111111'},
+                   {id:'joueur-b',nom:'Bob'}]},
+  {id:'equipe-b',nom:'Équipe B',joueurs:['Chloé','Daniel']}],
+ matchs:[{id:1,journee:1,equipe1Id:'equipe-a',equipe2Id:'equipe-b',score1:'13',score2:'7'}],
+ matchsValides:[1,1,42],optionsV2:OPTIONS_V2
+};
+const restauration=lireSauvegarde(JSON.stringify(exempleSauvegarde));
+assert.deepEqual(restauration.equipes[0].membresOrigine.map(m=>m.nom),['Alice','Bob'],
+ 'Restaurer la composition des équipes, pas seulement leurs noms');
+assert.equal(restauration.equipes[0].membresOrigine[0].profilId,'11111111-1111-4111-8111-111111111111');
+assert.equal(restauration.equipes[0].photo,exempleSauvegarde.equipes[0].photo);
+assert.equal(restauration.equipes[0].position,2);
+assert.equal(restauration.equipes[0].poule,1);
+assert.deepEqual(restauration.matchsValides,[1],'Écarter les matchs inexistants et les doublons');
+const fantome={...exempleSauvegarde,matchs:[{...exempleSauvegarde.matchs[0],equipe1Id:'inconnu'}]};
+assert.throws(()=>lireSauvegarde(JSON.stringify(fantome)),/Participant de match inconnu/);
+const imageExterne={...exempleSauvegarde,equipes:[{...exempleSauvegarde.equipes[0],photo:'https://tracking.invalid/image.png'},exempleSauvegarde.equipes[1]]};
+assert.equal(lireSauvegarde(JSON.stringify(imageExterne)).equipes[0].photo,undefined);
+const doublonOrigine={...exempleSauvegarde,equipes:[{...exempleSauvegarde.equipes[0],membresOrigine:[{id:'x',nom:'Alice'},{id:'x',nom:'Bob'}]},exempleSauvegarde.equipes[1]]};
+assert.throws(()=>lireSauvegarde(JSON.stringify(doublonOrigine)),/membres dupliqués/);
+const rotationValide={...exempleSauvegarde,formatTournoi:'rotation',
+ equipes:[...exempleSauvegarde.equipes,{id:'joueur-c',nom:'Charlie'},{id:'joueur-d',nom:'Dora'}],
+ matchs:[{id:2,journee:1,equipe1Id:'duo:equipe-a|equipe-b',equipe2Id:'duo:joueur-c|joueur-d',
+  joueurs1Ids:['equipe-a','equipe-b'],joueurs2Ids:['joueur-c','joueur-d'],score1:'',score2:''}],
+ matchsValides:[]};
+assert.equal(lireSauvegarde(JSON.stringify(rotationValide)).matchs.length,1,
+ 'Ne pas casser les sauvegardes en doubles à partenaires tournants');
 console.log('Tests rotation, tirages équilibrés et sauvegardes : OK');
 for(const n of [4,5,8]){
  const es=Array.from({length:n},(_,i)=>({id:String(i),nom:`J${i}`,emoji:'',couleur:''}));let ms=[],exemptions=[];
