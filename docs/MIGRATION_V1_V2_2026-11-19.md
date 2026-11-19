@@ -179,3 +179,11 @@ Le script `docs/sql/compatibilite_v1_v2_staging_PHASE15_EQUIPES_INSCRITES.sql` r
 Ce changement porte uniquement sur la logique du RPC : **la migration n'écrit pas les tournois historiques lors de son installation**. Les droits sont limités aux comptes connectés et la fonction vérifie que le demandeur est le propriétaire du tournoi. Son `search_path` est verrouillé. `tests/migration-equipes-inscrites-v2.cjs` éprouve ces règles en SQL réel PGlite sur une base entièrement fictive, avec refus d'un autre utilisateur, refus anonyme, détection des inscriptions manquantes et restauration de l'état initial après chaque scénario.
 
 Comme les phases précédentes, l'installation ne peut être envisagée qu'après une sauvegarde V1 réelle et sa restauration sur un staging indépendant. Les tests de compilation et de migration ne constituent pas encore une autorisation de bascule en production.
+
+## Phase 16 — discussions privées des membres du tournoi
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE16_DISCUSSIONS.sql` prépare la messagerie V2 avec quatre publics internes : tous les membres, joueurs, arbitres et organisateur. Les règles de lecture sont calculées côté SQL selon la relation effective avec le tournoi (organisateur, arbitre affecté, joueur accepté ou équipe du tournoi), et non selon les données déclarées par le navigateur. Les visiteurs anonymes et les comptes étrangers au tournoi n'ont aucun accès. Les messages ne peuvent pas être insérés directement : l'envoi passe par une fonction contrôlée, limitée à dix messages par minute, avec identifiant idempotent.
+
+Le test `tests/migration-discussions-v2.cjs` rejoue les phases 1 à 16 sur PGlite avec quatre utilisateurs fictifs, teste les messages visibles selon chaque rôle, le refus anonyme, les destinataires non autorisés, la suppression par l'auteur ou l'organisateur, le bannissement Auth et la préservation des profils/tournois historiques. `docs/sql/verification_phase16_staging.sql` vérifie les permissions et politiques de lecture en mode agrégé.
+
+**La modération administrative complète** (signalements, sanctions, retrait global) n'est pas encore installée sur ce staging : elle dépend du module d'administration et reste à valider avant la bascule. Aucun message réel n'a été envoyé ; la phase 16 reste interdite sur V1 production et sur la base V2 de test déjà configurée.
