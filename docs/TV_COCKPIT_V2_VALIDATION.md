@@ -164,3 +164,7 @@
 - Une seconde initialisation ne remplace jamais les commandes enregistrées sur le serveur, même avec d'autres réglages locaux.
 - La première configuration inclut tous les champs publics de diffusion mais **jamais** le brouillon de message de l'organisateur.
 - En cas de commandes non transmises, l'initialisation attend leur traitement plutôt que d'écraser l'état distant.
+
+## Fiabilité du pipeline de validation
+- La compilation Next.js et TypeScript est obligatoire avant les tests navigateur.
+- Le Chromium Playwright est installé sur un runner Ubuntu 24.04 sans dépendre d'une installation APT supplémentaire : le miroir Ubuntu a retourné des erreurs HTTP 503 lors d'une vérification antérieure.

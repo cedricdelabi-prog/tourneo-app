@@ -198,6 +198,8 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
      }
      return;
     }
+    // TypeScript needs an explicit null guard after the first-run initialization branch.
+    if(!r.data)return;
     const dateSignal=r.data.derniere_tv_at?Date.parse(String(r.data.derniere_tv_at)):0;
     setDerniereTVDistante(Number.isFinite(dateSignal)?dateSignal:0);
     const revision=Number(r.data.revision)||0;

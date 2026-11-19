@@ -45,6 +45,6 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
         run: npm run build
       - name: Installer Chromium pour le parcours TV simulé
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Tester la télécommande et la TV dans deux navigateurs isolés
         run: node tests/tv-multi-appareils-browser.cjs
