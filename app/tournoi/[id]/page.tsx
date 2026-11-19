@@ -55,6 +55,7 @@ import { supabase } from "@/lib/supabase";
 import { modifierEquipeEnCours } from "@/lib/modification-equipe";
 import { nomsPourTirage, type EquipeTiree } from "@/lib/outils-arbitre";
 import { synchroniserTournoi, lireRevision, type VersionTournoi } from "@/lib/synchronisation";
+import { comparerVersionsTournoi } from "@/lib/versions-conflit";
 import TourneoBrand from "@/components/TourneoBrand";
 import TourneoNav from "@/components/TourneoNav";
 const CLE = "tourneo-v04";
@@ -596,6 +597,9 @@ export default function TournoiPage() {
     const podium = classement.slice(0, 3);
     const journees = useMemo(() => [...new Set(matchs.map((match) => match.journee))].sort((a, b) => a - b), [matchs]);
     const joues = matchs.filter((match) => match.score1 !== "" && match.score2 !== "").length;
+    const comparaisonConflit = useMemo(() => conflitCloud ? comparerVersionsTournoi({
+        nom:nomTournoi,sport,formatTournoi,equipes,matchs,matchsValides,optionsV2
+    },conflitCloud) : null, [conflitCloud,nomTournoi,sport,formatTournoi,equipes,matchs,matchsValides,optionsV2]);
     const modificationParticipantsAutorisee = joues === 0;
     const nombrePoulesActuel = poules.length || Math.max(2, nombrePoules);
     const qualifiesTheoriques = nombrePoulesActuel * qualifiesParPoule;
@@ -2268,7 +2272,28 @@ ${lienPartage}`,
             <p style={styles.tournamentSubtitle}>
               {equipes.length}{tr(" participants \u00B7 ")}{joues}/{totalMatchsTheorique || matchs.length}{tr(" matchs termin\u00E9s")}</p>
             {tr(messageCloud) && <div style={styles.syncBadge}><span style={styles.syncDot}/>{tr(messageCloud)}</div>}
-            {conflitCloud && <section className="tourneo-sync-conflict" aria-label={tr("Comparer les versions")} role="status"><strong>{tr("Une autre version existe en ligne")}</strong><p>{tr("Cette copie contient ")}{matchsValides.length}{tr(" r\u00E9sultat(s) valid\u00E9(s). La version en ligne en contient ")}{Array.isArray(conflitCloud.donnees?.matchsValides) ? conflitCloud.donnees.matchsValides.length : 0}{tr(". Aucun remplacement automatique n\u2019a \u00E9t\u00E9 fait.")}</p><div><button type="button" onClick={sauvegarderFichier}>{tr("T\u00E9l\u00E9charger ma copie locale")}</button><button type="button" onClick={() => {
+            {conflitCloud && <section className="tourneo-sync-conflict" aria-label={tr("Comparer les versions")} role="status">
+              <strong>{tr("Une autre version existe en ligne")}</strong>
+              {comparaisonConflit?.disponible ? <>
+                <p>{trModele("Copie locale : {0} participant(s), {1} match(s), {2} résultat(s) validé(s).",comparaisonConflit.local.participants,comparaisonConflit.local.matchs,comparaisonConflit.local.valides)}</p>
+                <p>{trModele("Version en ligne : {0} participant(s), {1} match(s), {2} résultat(s) validé(s).",comparaisonConflit.distant.participants,comparaisonConflit.distant.matchs,comparaisonConflit.distant.valides)}</p>
+                <p><strong>{trModele("{0} rencontre(s) différente(s), {1} participant(s) modifié(s).",comparaisonConflit.matchsDifferents,comparaisonConflit.participantsDifferents)}</strong></p>
+                {comparaisonConflit.champsDifferents.length>0&&<p>{trModele("Autres différences : {0}",comparaisonConflit.champsDifferents.map(tr).join(', '))}</p>}
+                {!comparaisonConflit.matchsDifferents&&!comparaisonConflit.participantsDifferents&&!comparaisonConflit.champsDifferents.length&&<p>{tr("Aucun écart dans ces éléments, mais d’autres données peuvent différer.")}</p>}
+                {comparaisonConflit.lignes.length>0&&<details className="tourneo-sync-conflict-details" open>
+                  <summary>{tr("Détail des rencontres différentes")}</summary>
+                  <div className="tourneo-sync-conflict-table"><table><thead><tr>
+                    <th scope="col">{tr("Rencontre")}</th><th scope="col">{tr("Cette copie")}</th><th scope="col">{tr("En ligne")}</th>
+                  </tr></thead><tbody>{comparaisonConflit.lignes.map(ligne=><tr key={ligne.id}>
+                    <th scope="row"><span>#{ligne.id} · {ligne.rencontre}</span><small>{tr(ligne.raison)}</small></th>
+                    <td>{tr(ligne.local)}</td><td>{tr(ligne.distant)}</td>
+                  </tr>)}</tbody></table></div>
+                  <p className="tourneo-sync-conflict-note">{tr("✓ indique un résultat validé.")}</p>
+                  {comparaisonConflit.lignesMasquees>0&&<p>{trModele("{0} autre(s) rencontre(s) non affichée(s).",comparaisonConflit.lignesMasquees)}</p>}
+                </details>}
+              </> : <p>{tr("Comparaison indisponible : enregistrez votre copie avant toute décision.")}</p>}
+              <p>{tr("Ce résumé ne fusionne pas les versions. Aucune donnée n’a été remplacée.")}</p>
+              <div className="tourneo-sync-conflict-actions"><button type="button" onClick={sauvegarderFichier}>{tr("Télécharger ma copie locale")}</button><button type="button" onClick={() => {
                 if (!window.confirm(tr("Charger la version en ligne ? Une sauvegarde de cette copie locale sera téléchargée avant le rechargement.")))
                     return;
                 sauvegarderFichier();
@@ -2277,7 +2302,7 @@ ${lienPartage}`,
                 localStorage.removeItem(cacheKey);
                 localStorage.removeItem(revisionKey);
                 window.location.reload();
-            }}>{tr("Charger la version en ligne")}</button><button type="button" onClick={() => {
+            }}>{tr("Charger la version en ligne")}</button><button type="button" disabled={!comparaisonConflit?.disponible} onClick={() => {
                 if (!window.confirm(tr("Publier cette copie locale à la place de la version en ligne ? Les résultats de l’autre version seront remplacés.")))
                     return;
                 revisionCloud.current = conflitCloud.revision;

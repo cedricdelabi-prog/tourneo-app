@@ -20,6 +20,10 @@ on:
       - 'lib/planning.ts'
       - 'lib/sauvegarde.ts'
       - 'tests/moteur.cjs'
+      - 'lib/versions-conflit.ts'
+      - 'lib/traductions-conflits.ts'
+      - 'lib/langue.ts'
+      - 'tests/versions-conflit.cjs'
       - 'tests/imprevus-tournoi.cjs'
       - 'tests/experience-browser.cjs'
       - 'lib/ecran-tv.ts'
@@ -52,6 +56,8 @@ jobs:
         run: npx tsc --noEmit
       - name: Tester le moteur et la restauration des sauvegardes
         run: npm test
+      - name: Contrôler les conflits entre appareils
+        run: node tests/versions-conflit.cjs
       - name: Vérifier l'écran TV
         run: npm run test:tv
       - name: Vérifier les scénarios d'imprévus

@@ -779,3 +779,17 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-cockpit-queue button{flex:0 0 auto}
 @media(max-width:760px){.tourneo-match-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.tourneo-match-filters>label:first-child{grid-column:1/-1}}
 @media(max-width:480px){.tourneo-match-filters{grid-template-columns:minmax(0,1fr);padding:12px}.tourneo-match-filters>label:first-child{grid-column:auto}.tourneo-cockpit-queue li{flex-wrap:wrap}.tourneo-cockpit-queue li button{width:100%}}
+
+/* Conflits entre deux appareils : comparaison lisible sans fusion automatique. */
+.tourneo-sync-conflict{max-width:min(100%,820px);font-size:14px;line-height:1.5;}
+.tourneo-sync-conflict>strong{font-size:17px;}
+.tourneo-sync-conflict .tourneo-sync-conflict-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.tourneo-sync-conflict button:disabled{opacity:.55;cursor:not-allowed;}
+.tourneo-sync-conflict-details{margin:12px 0;border:1px solid #806743;border-radius:10px;padding:10px;}
+.tourneo-sync-conflict-details summary{cursor:pointer;font-weight:650;padding:3px;}
+.tourneo-sync-conflict .tourneo-sync-conflict-table{display:block;max-width:100%;overflow-x:auto;margin-top:10px;}
+.tourneo-sync-conflict table{width:100%;min-width:410px;border-collapse:collapse;font-size:14px;text-align:left;}
+.tourneo-sync-conflict th,.tourneo-sync-conflict td{padding:9px 7px;border-bottom:1px solid #705b38;vertical-align:top;}
+.tourneo-sync-conflict th:first-child{min-width:175px;max-width:260px;overflow-wrap:anywhere;}
+.tourneo-sync-conflict th small{display:block;margin-top:3px;font-size:12px;color:#ffd49a;font-weight:400;}
+.tourneo-sync-conflict-note{font-size:13px;}
