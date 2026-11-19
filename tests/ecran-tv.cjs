@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai}=m.exports;
-assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,pageManuelle:0});
+const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV}=m.exports;
+assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
 assert.equal(normaliserTV({defilement:false}).defilement,false,'organizer may disable auto-scroll');
@@ -10,6 +10,17 @@ assert.equal(normaliserTV({pageSponsors:true}).pageSponsors,true,'organizer may 
 assert.equal(normaliserTV({pageSponsors:'yes'}).pageSponsors,false,'invalid sponsor setting is rejected');
 assert.equal(normaliserTV({pageManuelle:4}).pageManuelle,4,'manual TV page is synchronized');
 assert.equal(normaliserTV({pageManuelle:-1}).pageManuelle,0,'manual page cannot be negative');
+assert.equal(normaliserTV({debutDefilement:1730000000000}).debutDefilement,1730000000000,'clock origin shared between windows');
+assert.equal(normaliserTV({debutDefilement:-10}).debutDefilement,0,'reject negative clock origin');
+const synchronise=normaliserTV({debutDefilement:10000,secondes:10,pageManuelle:2});
+assert.equal(pageCouranteTV(synchronise,10000),2,'start from chosen slide');
+assert.equal(pageCouranteTV(synchronise,19999),2,'slide stays active until next interval');
+assert.equal(pageCouranteTV(synchronise,20000),3,'next slide at interval boundary');
+assert.equal(pageCouranteTV(synchronise,40000),5,'both tabs use same deterministic count');
+assert.equal(pageCouranteTV({...synchronise,pause:true},40000),2,'pause freezes page');
+assert.equal(pageCouranteTV({...synchronise,defilement:false},40000),2,'manual navigation freezes page');
+assert.equal(pageCouranteTV({...synchronise,debutDefilement:40000,pageManuelle:5},40000),5,'resume without skipping chosen page');
+
 assert.equal(normaliserTV({pause:true,repriseA:1730000000000}).pause,true);
 assert.equal(normaliserTV({message:'a'.repeat(200)}).message.length,180);
 const liste=Array.from({length:35},(_,id)=>({id,equipe1Id:'a',equipe2Id:'b',journee:1,score1:'',score2:''}));
