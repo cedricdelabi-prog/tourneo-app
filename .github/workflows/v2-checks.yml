@@ -34,3 +34,10 @@ jobs:
         run: npx tsc --noEmit
       - name: Vérifier l'écran TV
         run: npm run test:tv
+      - name: Compiler la V2 hors publication
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://kmjfmjhdnokkaiolxiin.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-non-production-key-not-connected
+          NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED: 'false'
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
