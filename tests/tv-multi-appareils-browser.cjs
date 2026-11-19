@@ -24,6 +24,13 @@ async function contexte(browser,viewport){
   else if(path.endsWith('/tournois'))data=tournoi;
   else if(path.endsWith('/tourneo_tv_pilotage')){
    data=etat.reglages===null?null:{reglages:etat.reglages,revision:etat.revision,derniere_tv_at:etat.presence};
+  }else if(path.endsWith('/rpc/tv_pilotage_initialiser')){
+   const config=req.postDataJSON().p_reglages;
+   assert.equal(Object.prototype.hasOwnProperty.call(config,'brouillonAnnonce'),false,'initialization excludes private draft');
+   if(etat.reglages===null||Object.keys(etat.reglages).length===0){
+    etat.reglages=config;etat.revision++;
+   }
+   data=[{nouveaux_reglages:etat.reglages,nouvelle_revision:etat.revision}];
   }else if(path.endsWith('/rpc/tv_pilotage_ping')){
    etat.presence=new Date().toISOString();
    if(etat.reglages===null){etat.reglages={};etat.revision=1;}

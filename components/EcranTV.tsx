@@ -176,11 +176,25 @@ export default function EcranTV({ecran=false}:{ecran?:boolean}){
     if(!actif)return;
     if(r.error)throw Error(r.error.message);
     setEtatDistant(commandesManquantesRef.current?.tournoiId===id?'indisponible':'actif');
-    if(!r.data){
-     setDerniereTVDistante(0);
-     if(!ecran&&!initialisationDistantRef.current){
+    // A TV opening first can leave an empty remote record (presence only).
+    // Initialize only once, without overwriting a different organizer's commands.
+    const reglageVide=!r.data||!r.data.reglages||typeof r.data.reglages!=='object'
+      ||Array.isArray(r.data.reglages)||Object.keys(r.data.reglages).length===0;
+    if(reglageVide){
+     if(!r.data)setDerniereTVDistante(0);
+     if(!ecran&&!initialisationDistantRef.current&&ecrituresDistantesRef.current===0
+       &&commandesManquantesRef.current?.tournoiId!==id){
       initialisationDistantRef.current=true;
-      modifier({debutDefilement:reglagesRef.current.debutDefilement||Date.now()});
+      const locaux=reglagesRef.current;
+      const donneesInitiales=patchPourPilotageDistant(locaux,locaux);
+      const initial=await supabase.rpc('tv_pilotage_initialiser',{p_tournoi_id:id,p_reglages:donneesInitiales});
+      if(!actif)return;
+      const resultat=Array.isArray(initial.data)?initial.data[0]:null;
+      if(initial.error||!resultat)throw Error(initial.error?.message||'Initialisation TV impossible');
+      revisionDistantRef.current=Math.max(revisionDistantRef.current,Number(resultat.nouvelle_revision)||0);
+      const prochain=fusionnerPilotageDistant(resultat.nouveaux_reglages,reglagesRef.current);
+      reglagesRef.current=prochain;setReglages(prochain);
+      try{localStorage.setItem(cle,JSON.stringify(prochain));}catch{/* Remote settings remain available. */}
      }
      return;
     }

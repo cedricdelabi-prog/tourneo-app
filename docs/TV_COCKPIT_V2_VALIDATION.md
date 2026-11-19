@@ -157,3 +157,10 @@
 - Un bouton de réessai manuel reste utilisable, y compris après une expiration ou un rechargement de page.
 - L'horodatage de la panne est sauvegardé séparément dans le navigateur ; les anciennes files dépourvues d'horodatage ne sont jamais réémises automatiquement.
 - Réussite RPC confirmée avant de supprimer le message d'alerte et les commandes conservées.
+
+## Initialisation sans écrasement
+- Quand le premier écran connecté crée un enregistrement de présence distant vide, le cockpit organisateur initialisera la diffusion depuis ses réglages locaux existants.
+- Fonction SQL `tv_pilotage_initialiser` sur la **base de test V2 uniquement** : remplit l'enregistrement seulement s'il est absent ou si ses réglages sont vides.
+- Une seconde initialisation ne remplace jamais les commandes enregistrées sur le serveur, même avec d'autres réglages locaux.
+- La première configuration inclut tous les champs publics de diffusion mais **jamais** le brouillon de message de l'organisateur.
+- En cas de commandes non transmises, l'initialisation attend leur traitement plutôt que d'écraser l'état distant.

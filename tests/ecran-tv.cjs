@@ -57,6 +57,12 @@ assert.deepEqual(patchUnChamp,{pageManuelle:4},'atomic patch cannot overwrite un
 const patchDeuxChamps=patchPourPilotageDistant({message:'Annonce',brouillonAnnonce:'secret',annonceExpireA:1000},normaliserTV({message:'Annonce',brouillonAnnonce:'secret',annonceExpireA:1000}));
 assert.deepEqual(patchDeuxChamps,{message:'Annonce',annonceExpireA:1000},'broadcast patch omits drafts and preserves linked timing');
 assert.deepEqual(patchPourPilotageDistant({brouillonAnnonce:'privé'},org),{},'draft changes never travel to another device');
+const initialSettings=patchPourPilotageDistant(org,org);
+assert.equal(Object.prototype.hasOwnProperty.call(initialSettings,'brouillonAnnonce'),false,'initial remote configuration never sends a private draft');
+assert.equal(initialSettings.message,'Message public','initial remote configuration includes current published announcement');
+assert.equal(initialSettings.secondes,15,'initial TV settings include the complete current configuration');
+assert.equal(Object.keys(initialSettings).length,Object.keys(org).length-1,'all broadcast settings are initialized together');
+
 assert.equal(tvDistanteActive(100000,100000),true,'live remote display heartbeat');
 assert.equal(tvDistanteActive(145000,100000),true,'45 second heartbeat tolerance');
 assert.equal(tvDistanteActive(145001,100000),false,'remote display disconnected after timeout');
