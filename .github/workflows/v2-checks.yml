@@ -16,6 +16,10 @@ on:
       - 'docs/bascule-v2-preflight.json'
       - 'docs/sql/preflight_v1_v2.sql'
       - 'docs/sql/preflight_partages_v1_v2.sql'
+      - 'docs/sql/securiser_rpc_public_v2_post_migration.sql'
+      - 'docs/sql/compatibilite_liens_partage_v1.sql'
+      - 'docs/sql/desactiver_rpc_v1_non_filtre_post_migration.sql'
+      - 'tests/partage-compatibilite.cjs'
       - 'docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'
       - 'lib/imprevus-tournoi.ts'
       - 'lib/planning.ts'
@@ -81,6 +85,8 @@ jobs:
         run: npm run test:cockpit
       - name: Tester le prévol de migration V1 → V2 sans données réelles
         run: npm run test:bascule
+      - name: Tester les anciens liens et les RPC publics sur une base fictive
+        run: node tests/partage-compatibilite.cjs
       - name: Vérifier les retours de connexion sécurisés
         run: node tests/pronostics.cjs
       - name: Compiler la V2 hors publication
