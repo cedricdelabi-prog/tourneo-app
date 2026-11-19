@@ -8,8 +8,8 @@ const FORMATS=['complet','allerRetour','poules','poulesFinale','elimination','do
 /** Conserve les références de médias privés sans accepter de lien externe de suivi. */
 function nettoyerPhoto(value:unknown):string|undefined {
  if(typeof value!=='string'||value.length>4_000_000)return undefined;
- if(/^media-prive:[\\w./-]+$/.test(value)&&!value.includes('..'))return value;
- if(/^data:image\\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value))return value;
+ if(/^media-prive:[\w./-]+$/.test(value)&&!value.includes('..'))return value;
+ if(/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value))return value;
  return undefined;
 }
 
