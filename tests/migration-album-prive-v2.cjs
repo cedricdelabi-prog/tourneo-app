@@ -29,7 +29,7 @@ assert.match(phase12,/alter policy media_owner_insert/i);
 assert.match(phase12,/create table public\.tourneo_album_photos/i);
 assert.doesNotMatch(phase12,/alter table public\.tournois add column termine_at/i);
 assert.doesNotMatch(phase12,/create function public\.tourneo_album_public/i);
-(async()=>{
+if (require.main===module) (async()=>{
  const db=await preparer();
  try{
   const prior=await q(db,'select id,user_id,donnees,partage_id,est_public,photos_expirent_at from public.tournois');
@@ -108,3 +108,4 @@ assert.doesNotMatch(phase12,/create function public\.tourneo_album_public/i);
   console.log('Phase 12 fictive : mauvais anciens liens bloquent la migration : OK');
  }finally{await bad.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={preparer,phase12};
