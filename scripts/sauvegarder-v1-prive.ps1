@@ -24,24 +24,55 @@ Write-Warning "L'export n'est PAS une preuve de restauration : une repetition is
 $accord=Read-Host 'Saisir SAUVEGARDER pour continuer'
 if ($accord -cne 'SAUVEGARDER') { Write-Host 'Operation annulee.'; exit 0 }
 New-Item -ItemType Directory -Path $dossier -Force | Out-Null
-# La liaison ne modifie pas les tables de production. Supabase peut demander
-# une authentification locale, sans copier le mot de passe dans les scripts.
-Executer-Supabase ([string[]]@('link','--project-ref',$projet))
-
-$operations=@(
-    @{ nom='01-roles.sql'; args=@('db','dump','--linked','--role-only') },
-    @{ nom='02-schema-public.sql'; args=@('db','dump','--linked','--schema','public') },
-    @{ nom='03-schema-auth-storage.sql'; args=@('db','dump','--linked','--schema','auth,storage') },
-    @{ nom='04-data-public.sql'; args=@('db','dump','--linked','--schema','public','--data-only','--use-copy') },
-    @{ nom='05-data-auth.sql'; args=@('db','dump','--linked','--schema','auth','--data-only','--use-copy') },
-    @{ nom='06-data-storage.sql'; args=@('db','dump','--linked','--schema','storage','--data-only','--use-copy') }
-)
-foreach($operation in $operations) {
-    $sortie=Join-Path $dossier $operation.nom
-    Executer-Supabase ([string[]]($operation.args + @('-f',$sortie)))
-    $fichier=Get-Item -LiteralPath $sortie -ErrorAction Stop
-    if($fichier.Length -lt 20) { throw "Export vide : $($operation.nom)" }
-    Write-Host "OK : $($operation.nom), $($fichier.Length) octets"
+# Isoler la liaison CLI pour eviter de relier le depot V2 a la V1 par erreur.
+$ancienWorkdir=$env:SUPABASE_WORKDIR
+Push-Location -LiteralPath $dossier
+$env:SUPABASE_WORKDIR=$dossier
+try {
+    Executer-Supabase ([string[]]@('init','--yes'))
+    Executer-Supabase ([string[]]@('link','--project-ref',$projet))
+    $lienLocal=Join-Path $dossier 'supabase\.temp\project-ref'
+    if(-not (Test-Path -LiteralPath $lienLocal)) {
+        throw 'Projet lie non verifiable : archive refusee.'
+    }
+    $refLiee=(Get-Content -LiteralPath $lienLocal -Raw).Trim()
+    if($refLiee -cne $projet) {
+        throw 'ERREUR : le projet Supabase lie ne correspond pas a la V1 autorisee.'
+    }
+    $operations=@(
+        @{ nom='01-roles.sql'; args=@('db','dump','--linked','--role-only') },
+        @{ nom='02-schema-public.sql'; args=@('db','dump','--linked','--schema','public') },
+        @{ nom='03-schema-auth-storage.sql'; args=@('db','dump','--linked','--schema','auth,storage') },
+        @{ nom='04-data-public.sql'; args=@('db','dump','--linked','--schema','public','--data-only','--use-copy') },
+        @{ nom='05-data-auth.sql'; args=@('db','dump','--linked','--schema','auth','--data-only','--use-copy') },
+        @{ nom='06-data-storage.sql'; args=@('db','dump','--linked','--schema','storage','--data-only','--use-copy') }
+    )
+    foreach($operation in $operations) {
+        $sortie=Join-Path $dossier $operation.nom
+        Executer-Supabase ([string[]]($operation.args + @('-f',$sortie)))
+        $fichier=Get-Item -LiteralPath $sortie -ErrorAction Stop
+        if($fichier.Length -lt 20) { throw "Export vide : $($operation.nom)" }
+        Write-Host "OK : $($operation.nom), $($fichier.Length) octets"
+    }
+    # Presence des commandes COPY, pas encore preuve d'une restauration.
+    $copiesAttendues=@(
+        @{nom='04-data-public.sql';schema='public';table='profiles'},
+        @{nom='04-data-public.sql';schema='public';table='tournois'},
+        @{nom='05-data-auth.sql';schema='auth';table='users'},
+        @{nom='05-data-auth.sql';schema='auth';table='identities'}
+    )
+    foreach($copie in $copiesAttendues) {
+        $schema=[regex]::Escape($copie.schema)
+        $table=[regex]::Escape($copie.table)
+        $motif='(?i)^\s*COPY\s+"?'+$schema+'"?\."?'+$table+'"?\s*\('
+        $chemin=Join-Path $dossier $copie.nom
+        if(-not (Select-String -LiteralPath $chemin -Pattern $motif -Quiet)) {
+            throw "Export incomplet : table $($copie.schema).$($copie.table) absente de $($copie.nom)."
+        }
+    }
+} finally {
+    Pop-Location
+    $env:SUPABASE_WORKDIR=$ancienWorkdir
 }
 $empreintes=@()
 foreach($operation in $operations) {
