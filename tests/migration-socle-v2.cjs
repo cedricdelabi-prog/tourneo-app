@@ -7,6 +7,7 @@ const {PGlite}=require('@electric-sql/pglite');
 const dir=path.resolve(__dirname,'../docs/sql');
 const phase1=fs.readFileSync(path.join(dir,'compatibilite_v1_v2_staging_DRAFT.sql'),'utf8');
 const phase2=fs.readFileSync(path.join(dir,'compatibilite_v1_v2_staging_PHASE2_SOCLE.sql'),'utf8');
+assert.match(phase2,/\bbegin;\s*do\s+\$\$\s*begin/,'PL/pgSQL transaction opening delimiter must be valid');
 const verification=fs.readFileSync(path.join(dir,'verification_socle_phase2_staging.sql'),'utf8');
 const OWNER='10000000-0000-4000-8000-000000000001',OTHER='10000000-0000-4000-8000-000000000002';
 const TOURNOI='20000000-0000-4000-8000-000000000001';
