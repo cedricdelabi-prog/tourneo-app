@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - release-v2-preparation-2026-11-19
+      - tourneo-v2-dev
     paths:
       - 'components/EcranTV.tsx'
       - 'components/ImprevusTournoi.tsx'
@@ -17,6 +18,8 @@ on:
       - 'docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'
       - 'lib/imprevus-tournoi.ts'
       - 'lib/planning.ts'
+      - 'lib/sauvegarde.ts'
+      - 'tests/moteur.cjs'
       - 'tests/imprevus-tournoi.cjs'
       - 'tests/experience-browser.cjs'
       - 'lib/ecran-tv.ts'
@@ -47,6 +50,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Vérifier le typage
         run: npx tsc --noEmit
+      - name: Tester le moteur et la restauration des sauvegardes
+        run: npm test
       - name: Vérifier l'écran TV
         run: npm run test:tv
       - name: Vérifier les scénarios d'imprévus
