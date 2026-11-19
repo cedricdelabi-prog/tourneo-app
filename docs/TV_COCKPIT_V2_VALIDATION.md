@@ -61,3 +61,10 @@
 - À la fermeture normale de la TV, son signal est nettoyé; après crash, le signal devient périmé en 15 secondes.
 - Échanges par `localStorage` strictement locaux au même navigateur/profil : **aucune fonction de télécommande à distance n'est revendiquée**.
 - Tests unitaires inclus : signal présent, absent, périmé, données périmées, plusieurs écrans, messages invalides et faible dérive horaire.
+
+## Pause professionnelle
+- Le chronomètre est formaté dans une fonction partagée utilisée par le poste de pilotage et l'écran public.
+- L'organisateur peut prolonger ou raccourcir une pause de cinq minutes, sans toucher aux résultats et au planning.
+- L'heure de reprise atteinte **n'annule pas la pause** : l'organisateur confirme explicitement le retour des matchs.
+- Le signal sonore est joué à l'heure prévue si le navigateur a été activé pour l'audio et si l'écran est connecté.
+- Indicateur de présence : une fenêtre active n'est pas une preuve de connexion HDMI physique.

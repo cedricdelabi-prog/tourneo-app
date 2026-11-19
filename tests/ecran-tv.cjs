@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript');
 const m={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/ecran-tv.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,m,m.exports);
-const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV}=m.exports;
+const {normaliserTV,pagesTV,appelTV,statutMatchTV,repriseSonoreDansDelai,pageCouranteTV,statistiquesTV,filtrerMatchsTV,etatConnexionTV,compteAReboursTV}=m.exports;
 assert.deepEqual(normaliserTV(null),{secondes:15,pause:false,message:'',appel:null,defilement:true,repriseA:null,afficherSponsors:true,pageSponsors:false,afficherMatchs:true,afficherClassement:true,filtreMatchs:'tous',pageManuelle:0,debutDefilement:0});
 assert.equal(normaliserTV({secondes:-50,message:'a'.repeat(200)}).secondes,8);
 assert.equal(normaliserTV({secondes:Infinity}).secondes,15);
@@ -58,6 +58,13 @@ assert.equal(etatConnexionTV([{vuA:85000,donneesA:100000},{vuA:100000,donneesA:9
 assert.equal(etatConnexionTV([null,{},'bad',{vuA:Infinity,donneesA:100000}],100000),'deconnecte','malformed local messages ignored');
 assert.equal(etatConnexionTV([{vuA:106000,donneesA:100000}],100000),'deconnecte','future timestamps rejected');
 assert.equal(etatConnexionTV([{vuA:104000,donneesA:104000}],100000),'connecte','minor clock drift tolerated');
+assert.equal(compteAReboursTV(1000,65000),'00:01:04','pause timer in hours minutes seconds');
+assert.equal(compteAReboursTV(65000,65000),'00:00:00','timer expires exactly at resume time');
+assert.equal(compteAReboursTV(80000,65000),'00:00:00','timer never goes below zero');
+assert.equal(compteAReboursTV(1000,3601000),'01:00:00','one-hour pause renders properly');
+assert.equal(compteAReboursTV(1000,null),null,'no countdown without resume time');
+assert.equal(compteAReboursTV(0,65000),null,'no uninitialized countdown');
+
 const a={exports:{}};
 new Function('require','module','exports',ts.transpileModule(fs.readFileSync('lib/modeles-affiche.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(require,a,a.exports);
 const {normaliserIdentiteAffiche,copierIdentiteAffiche}=a.exports;

@@ -53,3 +53,11 @@ export function etatConnexionTV(signaux:readonly unknown[],maintenant:number):Et
  }
  return actif?'actualisationEnRetard':'deconnecte';
 }
+
+/** Visible countdown, also valid when the organizer extends a break. */
+export function compteAReboursTV(maintenant:number,repriseA:number|null):string|null{
+ if(!Number.isFinite(maintenant)||maintenant<=0||repriseA===null||!Number.isFinite(repriseA)||repriseA<=0)return null;
+ const secondes=Math.max(0,Math.ceil((repriseA-maintenant)/1000));
+ const n=(valeur:number)=>String(valeur).padStart(2,'0');
+ return `${n(Math.floor(secondes/3600))}:${n(Math.floor((secondes%3600)/60))}:${n(secondes%60)}`;
+}

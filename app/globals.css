@@ -610,3 +610,10 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 .tourneo-tv-refresh-button{display:inline-flex;justify-content:center;align-items:center;min-height:44px;padding:10px 16px;margin:0 0 16px;border-radius:11px;border:1px solid #6b849f;background:#183452;color:#fff;font-weight:650;cursor:pointer}
 .tourneo-tv-refresh-button:disabled{opacity:.5;cursor:not-allowed}
 .tourneo-tv-refresh-button:hover:not(:disabled){background:#244b6b}
+
+/* Break control: countdown and extension without leaving organizer cockpit. */
+.tourneo-tv-pause-status{padding:16px;border-radius:12px;border:1px solid #a57c39;background:#392b17;color:#ffebb7}
+.tourneo-tv-pause-status>strong{display:block;margin-bottom:6px}
+.tourneo-tv-pause-timer{display:block;font-variant-numeric:tabular-nums;font-size:clamp(25px,4vw,40px);font-weight:800;letter-spacing:.04em}
+.tourneo-tv-pause-status p{font-size:.9rem;line-height:1.5;margin:10px 0 12px}
+.tourneo-tv-pause-explainer{display:block;text-align:center;opacity:.84;margin:14px 0;font-size:clamp(13px,1.6vw,21px)}
