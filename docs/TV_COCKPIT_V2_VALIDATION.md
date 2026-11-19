@@ -192,3 +192,13 @@
 - Raccourcis persistants vers le pilotage TV et les imprévus (ouverture automatique des panneaux concernés).
 - Les erreurs temporaires de lecture des propositions d'arbitres sont signalées sans masquer l'état des matchs locaux.
 - Tests métier dédiés et parcours mobile de bout en bout sur la base de test simulée, sans publication Vercel ni modification V1.
+
+## Lot unique : filtre et actions rapides du planning
+- Recherche des rencontres par équipe, joueur ou numéro, sans distinction de majuscules ni d'accents.
+- Filtres cumulables par statut (validé, saisie complète à valider, score incomplet, à jouer) et par terrain réellement planifié.
+- Affichage du nombre de matchs correspondants, message en cas de liste vide et réinitialisation accessible sur mobile.
+- Badges de statut sur les fiches. Filtrer n'altère ni les scores ni le classement, et désactive la réorganisation des rencontres masquées.
+- Tableau de bord : jusqu'à cinq résultats urgents (à valider ou incomplets) avec raccourci vers la véritable fiche de match.
+- Un raccourci retire les filtres, positionne la fiche au centre de l'écran, la met en évidence et lui donne le focus pour le clavier.
+- Vérifications : tests unitaires des statuts et filtres, test Chromium en format mobile pour la recherche, la réinitialisation et la navigation.
+- Livraison prévue en une seule mise à jour de la branche `release-v2-preparation-2026-11-19`, sans migration SQL et sans modification de la V1.

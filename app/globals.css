@@ -752,3 +752,30 @@ body:has(.tourneo-tv)>.tourneo-legal-footer{display:none}
 }
 @media(max-width:345px){.tourneo-cockpit-tools{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.tourneo-cockpit-track span{transition:none}}
+
+/* Organizer V2: searchable match list and one-click priority queue. */
+.tourneo-match-filters{display:grid;grid-template-columns:minmax(180px,1.6fr) repeat(2,minmax(155px,1fr));gap:12px;margin:18px 0;padding:16px;border:1px solid #466c82;border-radius:14px;background:#10253a;min-width:0}
+.tourneo-match-filters>label{display:grid;gap:7px;min-width:0;color:#dceefa;font-size:14px;font-weight:650}
+.tourneo-match-filters input,.tourneo-match-filters select{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #607b95;border-radius:10px;background:#172d43;color:#fff;font:inherit}
+.tourneo-match-filters input:focus-visible,.tourneo-match-filters select:focus-visible{outline:2px solid #76e3d6;outline-offset:2px}
+.tourneo-match-filter-result{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:#c9dce8}
+.tourneo-match-filter-result button,.tourneo-match-empty button{min-height:40px;padding:9px 13px;border:1px solid #71b8c2;border-radius:9px;background:#20465e;color:white;font:inherit;cursor:pointer}
+.tourneo-filter-reorder-hint{font-size:13px;color:#acc8d4;line-height:1.45}
+.tourneo-match-empty{border:1px dashed #65849b;border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;color:#d6e6f0}
+.tourneo-match-status{display:inline-flex;align-items:center;white-space:nowrap;padding:7px 10px;border:1px solid #506b81;border-radius:999px;font-weight:750;font-size:12px;color:#e9f7ff;background:#234057}
+.tourneo-match-status[data-statut=valide]{border-color:#378f7f;background:#164d46;color:#b6ffe3}
+.tourneo-match-status[data-statut=aValider]{border-color:#ba8a43;background:#49341d;color:#ffe4a9}
+.tourneo-match-status[data-statut=saisieIncomplet]{border-color:#a47580;background:#452636;color:#ffd0dd}
+.tourneo-unified-match[data-cible=true]{border-color:#7debe3;box-shadow:0 0 0 3px #4ebec8aa,0 0 28px #30c9b82e}
+.tourneo-unified-match:focus{outline:3px solid #7debe3;outline-offset:3px}
+.tourneo-cockpit-queue{margin-top:14px;border:1px solid #486a81;background:#122c40;border-radius:13px;padding:16px}
+.tourneo-cockpit-queue h3{font-size:17px;margin:0 0 12px}
+.tourneo-cockpit-queue ol{margin:0;padding:0;list-style:none}
+.tourneo-cockpit-queue li{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid #345469}
+.tourneo-cockpit-queue li>div{min-width:0;flex:1}
+.tourneo-cockpit-queue li strong{font-size:14px;line-height:1.4;overflow-wrap:anywhere;display:block}
+.tourneo-cockpit-queue li small{font-size:12px;color:#bad7e4;line-height:1.4;display:block;margin-top:4px}
+.tourneo-cockpit-queue>p{font-size:12px;color:#bad7e4;line-height:1.4;margin:10px 0 0}
+.tourneo-cockpit-queue button{flex:0 0 auto}
+@media(max-width:760px){.tourneo-match-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.tourneo-match-filters>label:first-child{grid-column:1/-1}}
+@media(max-width:480px){.tourneo-match-filters{grid-template-columns:minmax(0,1fr);padding:12px}.tourneo-match-filters>label:first-child{grid-column:auto}.tourneo-cockpit-queue li{flex-wrap:wrap}.tourneo-cockpit-queue li button{width:100%}}

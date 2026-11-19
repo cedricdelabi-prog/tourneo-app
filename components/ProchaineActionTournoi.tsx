@@ -33,6 +33,11 @@ export default function ProchaineActionTournoi({id,matchs,equipes,valides,option
  const bilan=useMemo(()=>bilanCockpitTournoi(matchs,valides,options),[matchs,valides,options]);
  if(!bilan.total&&!termine)return null;
  const prioritaire=bilan.prioritaire;
+ const urgences=bilan.liste.filter(ligne=>ligne.statut==='aValider'||ligne.statut==='saisieIncomplet').slice(0,5);
+ function ouvrirMatch(id:number){
+  surOnglet('matchs');
+  window.dispatchEvent(new CustomEvent('tourneo:voir-match',{detail:{id}}));
+ }
  const arbitres=typeof propositions==='number'&&propositions>0;
  const statut=arbitres?'arbitrage':prioritaire?.statut==='aValider'?'validation':prioritaire?.statut==='saisieIncomplet'?'saisie':prioritaire?'prochain':termine?'bilan':'attente';
  const phrase=arbitres?trModele('{0} proposition(s) d’arbitre à examiner',propositions):
@@ -46,10 +51,8 @@ export default function ProchaineActionTournoi({id,matchs,equipes,valides,option
  function ouvrirPriorite(){
   if(arbitres){surOnglet('arbitrage');return;}
   if(statut==='bilan'){surPartage();return;}
-  surOnglet('matchs');
-  if(prioritaire)window.setTimeout(()=>{
-   document.getElementById(`organisateur-match-${prioritaire.match.id}`)?.scrollIntoView({behavior:'smooth',block:'center'});
-  },100);
+  if(prioritaire)ouvrirMatch(prioritaire.match.id);
+  else surOnglet('matchs');
  }
  return <section className="tourneo-cockpit" aria-label={tr('Pilotage des matchs')}>
   <div className="tourneo-cockpit-heading">
@@ -80,6 +83,17 @@ export default function ProchaineActionTournoi({id,matchs,equipes,valides,option
    </div>
    <button type="button" onClick={ouvrirPriorite}>{action}</button>
   </div>
+  {urgences.length>0&&<div className="tourneo-cockpit-queue">
+    <h3>{tr('Résultats à traiter en priorité')}</h3>
+    <ol>{urgences.map(item=><li key={item.match.id}>
+      <div><strong>{nomParticipant(item.match.equipe1Id,equipes)} / {nomParticipant(item.match.equipe2Id,equipes)}</strong>
+       <small>{item.statut==='aValider'?tr('Résultat à valider'):tr('Score incomplet')}
+        {item.creneau&&<> · {trModele('Terrain {0}',item.creneau.terrain)} · {heureCreneau(item.creneau.debut,options.depart)}</>}
+       </small></div>
+      <button type="button" aria-label={trModele('Ouvrir le match {0}',item.match.id)} onClick={()=>ouvrirMatch(item.match.id)}>{tr('Voir le match')}</button>
+    </li>)}</ol>
+    {(bilan.aValider+bilan.saisiesIncompletes)>urgences.length&&<p>{trModele('{0} autres résultats à traiter dans le planning',bilan.aValider+bilan.saisiesIncompletes-urgences.length)}</p>}
+  </div>}
   <div className="tourneo-cockpit-tools">
    <button type="button" onClick={surImprevu}>{tr('Gérer un imprévu')}</button>
    <Link href={`/tournoi/${encodeURIComponent(id)}/tv`}>{tr('Piloter l’écran TV')}</Link>

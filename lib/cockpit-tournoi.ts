@@ -1,4 +1,4 @@
-import type {Match} from '@/types';
+import type {Equipe,Match} from '@/types';
 import type {OptionsV2} from '@/lib/options-v2';
 import {scoreValide} from '@/lib/formats-avances';
 import {planifierMatchs,type Creneau} from '@/lib/planning';
@@ -35,4 +35,20 @@ export function bilanCockpitTournoi(matchs:readonly Match[],valides:readonly num
   total:liste.length,valides:confirmes,aValider,saisiesIncompletes,aJouer,
   progression:liste.length?Math.round(100*confirmes/liste.length):0,prioritaire,liste
  };
+}
+
+export type FiltreMatchsCockpit=StatutCockpit|'tous';
+const rechercheNormalisee=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr').trim();
+
+/** Filter display only, never scores, validation or saved match order. */
+export function filtrerMatchsCockpit(liste:readonly MatchCockpit[],filtre:FiltreMatchsCockpit,recherche:string,terrain:number|null,equipes:readonly Equipe[]):MatchCockpit[]{
+ const texte=rechercheNormalisee(recherche);
+ const noms=new Map(equipes.map(e=>[e.id,rechercheNormalisee(e.nom)]));
+ return liste.filter(({match,statut,creneau})=>{
+  if(filtre!=='tous'&&statut!==filtre)return false;
+  if(terrain!==null&&(creneau?.terrain??match.terrain)!==terrain)return false;
+  if(!texte)return true;
+  const cible=[String(match.id),noms.get(match.equipe1Id)||rechercheNormalisee(match.equipe1Id),noms.get(match.equipe2Id)||rechercheNormalisee(match.equipe2Id)].join(' ');
+  return cible.includes(texte);
+ });
 }
