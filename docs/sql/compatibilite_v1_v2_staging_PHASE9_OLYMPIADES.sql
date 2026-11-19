@@ -70,7 +70,7 @@ revoke all on function tourneo_private.olympiade_publique(uuid) from public;
 -- La projection interne ne peut être appelée que par le wrapper contrôlé.
 revoke execute on function tourneo_private.olympiade_publique(uuid) from anon,authenticated;
 create or replace function public.tourneo_olympiade_publique(p_id uuid)
-returns jsonb language sql stable security definer set search_path='' as $ select tourneo_private.olympiade_publique(p_id); $;
+returns jsonb language sql stable security definer set search_path='' as $$ select tourneo_private.olympiade_publique(p_id); $$;
 revoke all on function public.tourneo_olympiade_publique(uuid) from public;
 grant execute on function public.tourneo_olympiade_publique(uuid) to anon,authenticated;
 commit;

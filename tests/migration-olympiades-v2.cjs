@@ -26,6 +26,7 @@ assert.doesNotMatch(phase9,/grant usage on schema tourneo_private to anon/i);
 assert.doesNotMatch(phase9,/alter table public\.tournois add column revision/i);
 assert.match(phase9,/create trigger revision_tournoi/);
 assert.match(phase9,/create trigger revision_olympiade/);
+assert.match(phase9,/set search_path='' as \$\$ select tourneo_private\.olympiade_publique\(p_id\); \$\$;/,'public SQL wrapper must have complete PostgreSQL dollar quotes');
 (async()=>{
  const db=await preparerStaging();
  try{

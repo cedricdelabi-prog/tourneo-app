@@ -87,6 +87,7 @@ const phase9=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v
 assert.match(phase9,/tourneo\.v1_copy_verified/);
 assert.match(phase9,/create table public\.tourneo_olympiades\s*\(/i);
 assert.match(phase9,/create trigger revision_tournoi/i);
+assert.match(phase9,/as \$\$ select tourneo_private\.olympiade_publique\(p_id\); \$\$;/,'avoid malformed dollar quoting');
 assert.match(phase9,/revoke execute on function tourneo_private\.olympiade_publique\(uuid\) from anon,authenticated/);
 assert.doesNotMatch(phase9,/grant usage on schema tourneo_private to anon/i);
 assert.ok(!/drop\s+(?:table|column)/i.test(phase9));
