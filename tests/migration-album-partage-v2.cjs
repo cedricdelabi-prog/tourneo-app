@@ -30,7 +30,7 @@ assert.match(phase13,/p\.apercu_path is not null/);
 assert.match(phase13,/storage\.allow_any_operation/);
 assert.match(phase13,/public\.tourneo_album_public\(p_tournoi uuid\).*security definer/i);
 assert.doesNotMatch(phase13,/\bdrop\s+(?:table|column)\b/i);
-(async()=>{
+if (require.main===module) (async()=>{
  const db=await setup();
  try{
   const tours=await q(db,'select id,user_id,nom,sport,donnees,partage_id,est_public,photos_expirent_at from public.tournois');
@@ -118,3 +118,4 @@ assert.doesNotMatch(phase13,/\bdrop\s+(?:table|column)\b/i);
   console.log('Phase 13 fictive : liens V1 manquants bloquent installation atomique : OK');
  }finally{await invalid.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={setup,phase13};
