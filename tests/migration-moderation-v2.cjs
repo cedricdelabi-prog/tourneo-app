@@ -79,15 +79,18 @@ assert.doesNotMatch(phase17,/\bdrop\s+(?:table|column)\b/i);
   await q(db,decide('masquer','Masquer les propos signalés'));
   assert.equal((await q(db,"select count(*)::int as n from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].n,0,'masked message is hidden by RLS even from organizer');
   await q(db,decide('suspendre_24h','Suspendre temporairement le compte'));
+  await db.exec('commit');
+  // Hors session cliente : inspection de la base fictive avec les seuls droits du test.
   const first=(await q(db,"select actif,jusquau from tourneo_private.sanctions_discussions where user_id='"+OTHER+"'"))[0];
   assert.equal(first.actif,true);assert.ok(first.jusquau);
-  await q(db,decide('suspendre_24h','Suspendre temporairement le compte'));
-  assert.equal(new Date((await q(db,"select jusquau from tourneo_private.sanctions_discussions where user_id='"+OTHER+"'"))[0].jusquau).getTime(),new Date(first.jusquau).getTime(),'replay must not extend sanctions');
-  const journal=(await q(db,"select count(*)::int as n from tourneo_private.journal_admin"))[0].n;
-  assert.equal(journal,2,'only original decisions should be audited');
-  await db.exec('commit');
   assert.equal((await q(db,"select masque from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].masque,true,'message remains flagged for audit');
-
+  assert.equal((await q(db,"select count(*)::int as n from tourneo_private.journal_admin"))[0].n,2,'two decisions audited');
+  await role(db,OWNER);
+  await q(db,decide('suspendre_24h','Suspendre temporairement le compte'));
+  await db.exec('commit');
+  const again=(await q(db,"select jusquau from tourneo_private.sanctions_discussions where user_id='"+OTHER+"'"))[0];
+  assert.equal(new Date(again.jusquau).getTime(),new Date(first.jusquau).getTime(),'replay must not extend sanctions');
+  assert.equal((await q(db,"select count(*)::int as n from tourneo_private.journal_admin"))[0].n,2,'replay must not be audited twice');
   await role(db,PLAYER);
   assert.equal((await q(db,"select count(*)::int as n from public.tourneo_discussions where id='"+MESSAGE+"'"))[0].n,0,'masked content invisible');
   await reset(db);
