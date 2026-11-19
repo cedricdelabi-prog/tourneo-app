@@ -29,6 +29,7 @@ begin
   nullif(new.raw_user_meta_data->>'last_name',''),
   nullif(new.raw_user_meta_data->>'city',''),
   '#3B82F6') on conflict(id) do nothing;
+ return new;
  exception when unique_violation then
   -- Legacy 8-character UUID prefixes can collide; preserve existing player codes.
   -- A full UUID fallback is unique without renumbering any existing user.
