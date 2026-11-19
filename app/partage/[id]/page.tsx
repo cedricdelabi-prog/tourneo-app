@@ -128,8 +128,7 @@ export default function PartagePage() {
             enCours = true;
             try {
                 let resultat = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
-                if (resultat.error && /PGRST202|schema cache|could not find/i.test(resultat.error.code + " " + resultat.error.message))
-                    resultat = await supabase.rpc("get_tourneo_public", { p_id: tournoiId });
+                // Never fall back to V1 get_tourneo_public: it exposes unsanitized JSON.
                 if (!actif)
                     return;
                 // An existing V1 share link can contain partage_id rather than tournois.id.
