@@ -137,3 +137,9 @@ Ces scripts exigent toujours une **copie V1 restaurée et confirmée sur un stag
 Le script exige une **copie V1 réellement restaurée**, une confirmation manuelle sur cette connexion, les neuf premières phases installées et la présence des anciens identifiants de partage. `tests/migration-appels-affiches-v2.cjs` simule les appels entre comptes et vérifie les interdictions anonymes et les modèles privés, sur une base PGlite fictive. `docs/sql/verification_phase10_staging.sql` permet le contrôle de la copie restaurée en lecture seule.
 
 Important : aucun appel réel n'a été envoyé et aucune photo ou affiche de production n'a été lue, créée ou modifiée. Les tests automatiques ne remplacent pas les essais sur une restauration authentique de la V1 ni la validation des clients existants avant la bascule.
+
+## Phase 11 — espace personnel du joueur, sans album photo
+
+`docs/sql/compatibilite_v1_v2_staging_PHASE11_JOUEURS.sql` ajoute à la copie V1 restaurée l'accès `tourneo_mes_participations` : un utilisateur connecté ne consulte que les rencontres où son profil participe. Le résultat transmet les adversaires, le terrain et les scores **validés**, pas le JSON historique complet ni les contacts privés. L'appel est interdit aux visiteurs anonymes. L'album photo est volontairement **exclu**, car ses règles de stockage, d'expiration et de partage nécessitent une phase de sécurité distincte.
+
+`tests/migration-joueurs-v2.cjs` reproduit les contrôles sur PGlite et des joueurs entièrement fictifs : refus anon, absence de JWT, accès aux seuls matchs du joueur, exclusion des autres rencontres et préservation des données V1. Il ne remplace pas un essai de restauration réelle. Le contrôle SQL agrégé en lecture seule est `docs/sql/verification_phase11_staging.sql`.
