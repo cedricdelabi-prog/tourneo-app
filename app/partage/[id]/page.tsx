@@ -128,19 +128,17 @@ export default function PartagePage() {
                 return;
             enCours = true;
             try {
-                // Compatibility RPC enforces est_public for BOTH V1 tournament IDs and share IDs.
-                // The direct V2 RPC is permitted only in the isolated V2 test environment,
-                // where the legacy compatibility function is not installed.
-                let resultat = await supabase.rpc("tourneo_public_compat_v2", { p_id: tournoiId });
-                const compatAbsente = !!resultat.error && /PGRST202|schema cache|could not find/i.test(
-                    resultat.error.code + " " + resultat.error.message
-                );
-                if (compatAbsente && process.env.NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED !== "true")
-                    resultat = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
+                let ligne: Tournoi | null;
+                if (process.env.NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED === "true") {
+                    const reponse = await fetch(`/api/partage?id=${encodeURIComponent(tournoiId)}`, { cache: "no-store" });
+                    ligne = reponse.ok ? await reponse.json() : null;
+                } else {
+                    const resultat = await supabase.rpc("tourneo_public_v2", { p_id: tournoiId });
+                    ligne = resultat.error ? null : Array.isArray(resultat.data) ? resultat.data[0] : resultat.data;
+                }
                 if (!actif)
                     return;
-                const ligne = Array.isArray(resultat.data) ? resultat.data[0] : resultat.data;
-                if (resultat.error || !ligne)
+                if (!ligne)
                     throw new Error("Tournoi introuvable ou partage public indisponible.");
                 setTournoi({ ...ligne, donnees: normaliserDonnees(ligne.donnees) });
                 setErreur("");

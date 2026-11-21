@@ -53,6 +53,24 @@ async function preparer({nom='Tournoi fictif',partage=true}={}){
   assert.equal((await db.query("select count(*)::int as n from public.tournois")).rows[0].n,1);
   console.log('Migration additive sur V1 fictive : conservations des UUID, scores, profils et partage : OK');
  }finally{await db.close();}
+ const production=await preparer({nom:'    '});
+ try{
+  const extension=fs.readFileSync(path.resolve(__dirname,'../docs/sql/production_v2_colonnes_compatibilite.sql'),'utf8');
+  const historique=async()=> (await production.query('select id,user_id,nom,donnees,partage_id,est_public from public.tournois')).rows;
+  const avant=await historique();
+  await production.exec(extension);
+  assert.deepEqual(await historique(),avant);
+  const contrainteRevision=fs.readFileSync(path.resolve(__dirname,'../docs/sql/production_v2_revision_tournois.sql'),'utf8');
+  await production.exec(contrainteRevision);
+  await assert.rejects(production.exec('update public.tournois set revision=-1'),/tourneo_v2_compat_revision_check/);
+  assert.deepEqual(await historique(),avant);
+  const result=(await production.query('select revision,termine_at,photos_expirent_at,ville_publique,updated_at is not null as horodate from public.tournois cross join public.profiles')).rows[0];
+  assert.deepEqual({...result,revision:String(result.revision)},{revision:'0',termine_at:null,photos_expirent_at:null,ville_publique:false,horodate:true});
+  await production.exec("update public.tournois set nom='Tournoi corrigé par la V1'");
+  assert.equal((await historique())[0].nom,'Tournoi corrigé par la V1');
+  console.log('Extension de production : données et écriture V1 préservées');
+ }finally{await production.close();}
+
  const invalide=await preparer({nom:'    '});
  try{
   await assert.rejects(invalide.exec(sql),/violates|invalid|constraint|Legacy data|constraints|nom/i,'draft migration must reject invalid legacy names');
