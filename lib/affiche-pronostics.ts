@@ -1,3 +1,4 @@
+import {HOTE_PUBLIC_V2} from '@/lib/url-publique';
 import {peindreVisuelAffiche} from '@/lib/visuel-affiche';
 import type {TexteAffiche,ContexteAffiche} from '@/lib/affiche';
 import {illustrationSport} from '@/lib/illustration-sport';
@@ -22,5 +23,5 @@ export function peindreAffichePronostics(c:CanvasRenderingContext2D,H:number,t:T
  const rows=[t.date,t.lieu,t.organisateur].filter(Boolean);if(t.date)text(t.date,85,infoTop+40,24,1065,1,'#e3edf7');if(t.lieu)text(t.lieu,85,infoTop+92,23,1065,2,'#e3edf7');if(t.organisateur)text(t.organisateur,85,infoTop+185,21,1065,1,'#a8d0e2');
  if(!rows.length)text(tr('Horaires et lieu : renseignez-vous auprès de l’organisateur.'),85,infoTop+70,27,1065,2,'#c3dce9');
  if(sponsors.length){text(tr('Avec le soutien de'),75,H-152,18,1090,1,'#a9d0df');const cellule=1090/sponsors.length;for(let i=0;i<sponsors.length;i++){const s=sponsors[i],mw=Math.min(155,cellule-18),mh=65,r=Math.min(mw/s.width,mh/s.height),x=75+i*cellule+cellule/2;c.fillStyle='#fff';c.fillRect(x-mw/2-6,H-139,mw+12,77);c.drawImage(s,x-s.width*r/2,H-133+(65-s.height*r)/2,s.width*r,s.height*r);}}
- text(tr('Organisez vos tournois avec Tourneo')+' · tourneo-app.vercel.app',75,H-24,21,1090,1,'#8cbbcf');
+ text(tr('Organisez vos tournois avec Tourneo')+' · '+HOTE_PUBLIC_V2,75,H-24,21,1090,1,'#8cbbcf');
 }
