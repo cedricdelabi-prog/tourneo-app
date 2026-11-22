@@ -1,0 +1,72 @@
+# Tourneo — bascule vers www.tourneo.org
+
+État vérifié le 22 novembre 2026. Cette fiche est un **plan de bascule**, pas une autorisation de modifier V1, les bases de données ou de publier de nouveaux liens.
+
+## Situation confirmée
+
+- Domaine `tourneo.org` enregistré dans l'équipe Vercel `tourneo`.
+- `www.tourneo.org` associé au projet de production `tourneo-app`.
+- `tourneo.org` : redirection permanente 308 vers `www.tourneo.org`.
+- DNS des deux noms : `misconfigured: false` dans Vercel.
+- Certificats HTTPS créés, renouvellement automatique activé.
+- Dernière V2 sur `tourneo-v2-dev` : tests automatisés GitHub validés.
+- **L'accessibilité HTTP/HTTPS de bout en bout sur un réseau public reste à valider** : les environnements de vérification accessibles à l'assistant ne résolvent pas non plus l'ancienne URL Vercel. Cela ne prouve donc pas une panne du nouveau domaine.
+- L'adresse historique `https://tourneo-app.vercel.app` reste associée au site : la préserver pour les liens et QR codes déjà diffusés.
+
+## Prérequis Supabase Auth (projet production UNIQUEMENT)
+
+Projet : `gjtxlzhfqcecyfciyllc` (Tourneo).
+Ne pas modifier le projet de test `kmjfmjhdnokkaiolxiin`.
+
+Ouvrir :
+https://supabase.com/dashboard/project/gjtxlzhfqcecyfciyllc/auth/url-configuration
+
+Dans **Authentication > URL Configuration > Redirect URLs** :
+
+1. Conserver toutes les entrées de l'ancienne adresse.
+2. Ajouter `https://www.tourneo.org` et `https://www.tourneo.org/**`.
+3. Ne pas supprimer les retours de connexion existants pendant la transition.
+4. Conserver provisoirement le Site URL historique jusqu'au test complet des e-mails et connexions sur le nouveau domaine.
+5. Pour la connexion Google via Supabase, vérifier un aller-retour complet sur la nouvelle adresse avec un compte de test. Les pages Tourneo utilisent `window.location.origin` pour le paramètre `redirectTo`.
+6. Contrôler aussi la création de compte, la confirmation e-mail, le mot de passe oublié et le retour vers les pages de pronostics.
+
+Les redirect URLs ne sont **pas** modifiables avec les outils Supabase connectés actuellement. Ne pas supposer qu'elles ont été enregistrées sans confirmation.
+
+Documentation officielle :
+https://supabase.com/docs/guides/auth/redirect-urls
+
+## Tests utilisateurs avant activation
+
+- Ouvrir `https://www.tourneo.org` sans erreur DNS, de certificat ou d'accès.
+- Ouvrir `https://tourneo.org` et constater la redirection vers `https://www.tourneo.org`.
+- Vérifier les écrans d'accueil, de connexion, d'inscription et de récupération de mot de passe.
+- Se connecter avec Google puis avec un compte existant ; vérifier ses tournois.
+- Vérifier qu'un tournoi public, les inscriptions et les pronostics restent accessibles sur mobile, PC et iPhone.
+- Vérifier les QR codes des affiches (annonce, inscriptions, pronostics, résultats) et la conservation de ceux créés avec l'ancien domaine.
+- Revalider le parcours Android ; ne pas changer l'URL de `capacitor.config.ts` sans test/passage en production Android spécifique.
+- Ne pas changer le logo officiel ni l'identité graphique Tourneo.
+
+## Activation contrôlée des URL produites par Tourneo V2
+
+`lib/url-publique.ts` centralise l'origine des URL et `lib/affiche-pronostics.ts` le nom de domaine imprimé.
+
+La variable **publique** Vercel `NEXT_PUBLIC_TOURNEO_PUBLIC_ORIGIN` doit valoir exactement :
+
+```
+https://www.tourneo.org
+```
+
+À renseigner **dans Production uniquement**, **après** validation des prérequis. Elle est inactive tant qu'elle n'est pas présente dans le build de production. Il faut reconstruire / redéployer la version V2 révisée après avoir configuré la variable ; la branche de test continue d'utiliser `tourneo-v2-test.vercel.app`.
+
+Éviter de promouvoir une prévisualisation compilée avec les variables de test. Ne pas modifier `main` ni la V1.
+
+## Retour arrière
+
+- En cas d'erreur de connexion / d'URL dans les nouveaux QR codes, retirer ou corriger `NEXT_PUBLIC_TOURNEO_PUBLIC_ORIGIN` pour Production et redéployer la dernière version saine.
+- Conserver `tourneo-app.vercel.app` actif pendant et après la transition.
+- N'effacer aucun compte, tournoi, donnée Supabase, ni ancien lien ; ne pas supprimer les redirect URLs historiques.
+- Vérifier que les nouvelles affiches et QR codes pointent bien vers le domaine affiché dans l'application.
+
+## Communication (après validation)
+
+Mettre à jour les communications futures et les supports modifiables : page Facebook Tourneo en mode Work, présentation, affiche club, QR code, emailing futurs, signatures et description de l'application. Conserver la charte et le logo officiels. Toujours mentionner **Android disponible** et **accès web sur PC et appareils Apple**. Aucun nouveau message envoyé automatiquement aux utilisateurs dans le cadre de cette fiche.
