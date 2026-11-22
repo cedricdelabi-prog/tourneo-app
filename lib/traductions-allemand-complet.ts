@@ -460,6 +460,7 @@ export const traductionsAllemandCompletes: Record<string,string> = {
   "Tirage gratuit, sans mise d’argent. Convenez du choix du service ou du terrain selon les règles de votre sport.": "Kostenlose Auslosung, keine Anzahlung. Vereinbaren Sie die Wahl des Dienstes oder des Platzes gemäß den Regeln Ihrer Sportart.",
   "Désigner comme arbitre": "Zum Schiedsrichter ernennen",
   "Participants disponibles": "Teilnehmer vorhanden",
+  "Choisissez un participant lié ou saisissez son code joueur, disponible dans Mon profil.": "Wählen Sie einen verknüpften Teilnehmer oder geben Sie den Spielercode aus Mein Profil ein.",
   "Choisissez un participant lié ou recherchez le nom affiché de son compte Tourneo. Pas besoin de connaître son code.": "Wählen Sie einen verknüpften Teilnehmer aus oder suchen Sie nach dem angezeigten Namen seines Tourneo-Kontos. Sie müssen den Code nicht kennen.",
   "Rechercher un compte Tourneo": "Suchen Sie nach einem Tourneo-Konto",
   "Nom ou pseudo dans Tourneo": "Name oder Spitzname in Tourneo",

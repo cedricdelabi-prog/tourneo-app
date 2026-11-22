@@ -1,9 +1,11 @@
+import {traductionsConflits} from '@/lib/traductions-conflits';
 import {traductionsCorrections} from '@/lib/traductions-corrections';
 // Shared German catalogue with hand-written discovery and navigation wording.
 import {traductionsLivraison} from '@/lib/traductions-livraison';
 import {traductionsAllemandCompletes} from '@/lib/traductions-allemand-complet';
 export const traductionsAllemand: Record<string, string> = {
   ...traductionsAllemandCompletes,
+  ...Object.fromEntries(Object.entries(traductionsConflits).map(([fr,v])=>[fr,v.de])),
   ...Object.fromEntries(Object.entries(traductionsCorrections).map(([fr,v])=>[fr,v.de])),
   ...Object.fromEntries(Object.entries(traductionsLivraison).map(([fr,v])=>[fr,v.de])),
   "S’inscrire": "Registrieren", "Accès au compte": "Kontozugang",

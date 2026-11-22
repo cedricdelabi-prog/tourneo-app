@@ -283,6 +283,10 @@ export const traductionsPronostics:Record<string,{en:string;nl:string}>={
     "en": "Available participants",
     "nl": "Beschikbare deelnemers"
   },
+  "Choisissez un participant lié ou saisissez son code joueur, disponible dans Mon profil.": {
+    "en": "Pick a linked participant or enter their player code from My profile.",
+    "nl": "Kies een gekoppelde deelnemer of voer de spelerscode uit Mijn profiel in."
+  },
   "Choisissez un participant lié ou recherchez le nom affiché de son compte Tourneo. Pas besoin de connaître son code.": {
     "en": "Pick a linked participant or search their Tourneo display name. You do not need their code.",
     "nl": "Kies een gekoppelde deelnemer of zoek de schermnaam van hun Tourneo-account. U hoeft de code niet te kennen."

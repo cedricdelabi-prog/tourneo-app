@@ -1140,8 +1140,8 @@ export default function TournoiPage() {
         if (!code)
             return false;
         setMessageCodeJoueur("Recherche du joueur…");
-        const reponse = await supabase.rpc("tourneo_profils_identites", { p_code: code });
-        const error=reponse.error, data=Array.isArray(reponse.data)?reponse.data[0]:null;
+        const { data, error } = await supabase.rpc("tourneo_profils_publics", { p_code: code })
+            .select("id,display_name,favorite_color,avatar_url").maybeSingle();
         if (error || !data) {
             setMessageCodeJoueur("Code Tourneo introuvable.");
             return false;
