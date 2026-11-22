@@ -1,6 +1,6 @@
 {
   "objet": "Préparation de la bascule de Tourneo V1 vers V2 ; inventaire agrégé, aucune donnée personnelle ni secret",
-  "dateControle": "2026-11-19",
+  "dateControle": "2026-11-22",
   "sourceProduction": "gjtxlzhfqcecyfciyllc",
   "cibleDeMigration": "gjtxlzhfqcecyfciyllc",
   "baseEssaisIndependante": "kmjfmjhdnokkaiolxiin",
@@ -8,14 +8,14 @@
   "inventaireV1": {
     "comptes": 59,
     "profils": 59,
-    "identitesAuth": 60,
-    "tournois": 24,
+    "identitesAuth": 61,
+    "tournois": 25,
     "tournoisOrphelins": 0,
     "profilsOrphelins": 0,
     "partageManquants": 0,
     "partageDupliques": 0,
     "resultatsJsonMalformes": 0,
-    "objetsStorage": 0
+    "objetsStorage": 1
   },
   "inventaireEssais": {
     "comptes": 2,
@@ -28,7 +28,7 @@
   "preuves": {
     "inventaireProductionActualise": {
       "statut": "a_faire",
-      "preuve": "Lecture seule le 2026-11-19 : 59 comptes, 59 profils, 60 identités Auth, 24 tournois, 24 liens sans anomalie. Manque le rapprochement avec une sauvegarde réelle restaurable : statut toujours a_faire."
+      "preuve": "Lecture seule du 2026-11-22 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois, 25 liens sans anomalie. La concordance avec une sauvegarde réellement restaurable reste à établir : statut a_faire."
     },
     "sauvegardeRestaurableComplete": {
       "statut": "a_faire",
@@ -48,7 +48,7 @@
     },
     "urlsPartageHistoriquesVerifiees": {
       "statut": "a_faire",
-      "preuve": ""
+      "preuve": "2026-11-22 : 25 tournois publics, 25 liens /partage/<id> reconnus par la RPC V1 et la RPC V2 ; 25/25 identifiants secondaires reconnus par la RPC de compatibilité V2. Reste à vérifier le parcours navigateur historique, la sécurité et une restauration isolée."
     },
     "droitsRlsEtFonctionsVerifies": {
       "statut": "a_faire",
@@ -71,19 +71,19 @@
       "preuve": ""
     }
   },
-  "notes": "Mesure V1 du 19/11/2026 : 59 comptes, 59 profils, 60 identités Auth et 24 tournois. Le premier inventaire comptait 25 tournois ; ne jamais supposer que ces chiffres resteront stables. Avant toute bascule, refaire l'inventaire et contrôler sa cohérence avec la sauvegarde.",
+  "notes": "Inventaire 22/11/2026 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois publics, 25 identifiants de partage, 1 objet Storage (tourneo-media, 48 191 octets). Inventaire du 19/11/2026 : 59 comptes, 60 identités, 24 tournois, 0 objet Storage. Les chiffres évoluent. Aucune restauration de sauvegarde ni autorisation de bascule n'est déduite de ces constats.",
   "controleLectureSeule": {
-    "date": "2026-11-19",
+    "date": "2026-11-22",
     "type": "SQL SELECT uniquement sur production et test ; aucune écriture ni export de comptes",
     "requete": "docs/sql/preflight_v1_v2.sql",
     "production": {
       "comptes": 59,
-      "identitesAuth": 60,
+      "identitesAuth": 61,
       "profils": 59,
-      "tournois": 24,
-      "tournoisPublics": 24,
-      "identifiantsPartage": 24,
-      "objetsStorage": 0,
+      "tournois": 25,
+      "tournoisPublics": 25,
+      "identifiantsPartage": 25,
+      "objetsStorage": 1,
       "tournoisOrphelins": 0,
       "profilsOrphelins": 0,
       "comptesSansProfil": 0,
@@ -110,8 +110,17 @@
       "filtreEstPublic": false,
       "projectionDonneesJsonBrutes": true,
       "tournoisPrivesActuellement": 0,
-      "consigne": "NE PAS changer cette RPC sur la V1 active. Préparer un remplacement compatible sur une copie restaurée, tester les anciens liens et retirer l'accès brut uniquement lors de la bascule validée."
+      "consigne": "NE PAS changer cette RPC sur la V1 active. Préparer un remplacement compatible sur une copie restaurée, tester les anciens liens et retirer l'accès brut uniquement lors de la bascule validée.",
+      "dateVerificationSecurite": "2026-11-19"
     },
-    "conclusion": "Inventaire réel cohérent, mais ni sauvegarde, ni rapprochement de la sauvegarde, ni restauration indépendante réalisés. Le préflight reste BLOQUÉ."
+    "conclusion": "22/11/2026 : inventaire agrégé cohérent et 25/25 correspondances des liens côté RPC. Un objet média doit être sauvegardé séparément des métadonnées SQL. Aucun export complet, restauration isolée, contrôle utilisateur final ou accord de déploiement validé. PRÉVOL TOUJOURS BLOQUÉ.",
+    "controleCompatibilitePartage": {
+      "date": "2026-11-22",
+      "totalPublics": 25,
+      "liensParIdReconnusV1": 25,
+      "liensParIdReconnusV2": 25,
+      "aliasSecondairesReconnusV2": 25,
+      "portee": "SQL SELECT agrégé uniquement; aucun clic utilisateur en navigateur et aucune restauration vérifiés"
+    }
   }
 }

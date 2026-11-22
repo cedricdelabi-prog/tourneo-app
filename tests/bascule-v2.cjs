@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {evaluerBascule,PREUVES,MANIFEST}=require('../scripts/controle-bascule-v2.cjs');
 const m=JSON.parse(fs.readFileSync(MANIFEST,'utf8'));
 const controle=m.controleLectureSeule;
-assert.equal(controle?.date,'2026-11-19','last inventory proof must be dated');
+assert.equal(controle?.date,'2026-11-22','last inventory proof must be dated');
 assert.equal(m.branchePreparation,'tourneo-v2-dev','release work must stay on dedicated V2 branch');
 assert.equal(controle.production.comptes,m.inventaireV1.comptes);
 assert.equal(controle.production.tournois,m.inventaireV1.tournois);
@@ -20,7 +20,10 @@ assert.equal(m.preuves.droitsRlsEtFonctionsVerifies.statut,'a_faire','legacy fun
 const report=evaluerBascule(m);
 assert.equal(report.pret,false,'No production launch while backups and restore tests are missing');
 assert.equal(report.comptes,m.inventaireV1.comptes);assert.equal(report.tournois,m.inventaireV1.tournois);
-assert.equal(m.inventaireV1.tournois,24,'Most recent observed inventory');
+assert.equal(m.inventaireV1.tournois,25,'Most recent observed inventory');
+assert.equal(m.inventaireV1.objetsStorage,1,'Backup must include the media object in production');
+assert.equal(controle.controleCompatibilitePartage.liensParIdReconnusV2,25);
+assert.equal(controle.controleCompatibilitePartage.aliasSecondairesReconnusV2,25);
 assert.ok(report.blocages.some(s=>s.includes('Inventaire de production V1 récent')));
 assert.ok(report.blocages.some(s=>s.includes('Sauvegarde complète')));
 assert.ok(report.blocages.some(s=>s.includes('Accord final explicite')));
