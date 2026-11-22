@@ -206,6 +206,10 @@ console.log('Tourneo V2 : lancement bloqué sans sauvegarde/restauration/accord,
     assert.equal(liens(true, domaine).ORIGINE_PUBLIQUE_V2, 'https://tourneo-app.vercel.app');
   }
   assert.match(lire('lib/affiche-pronostics.ts'), /HOTE_PUBLIC_V2/);
+  assert.match(lire('lib/flyers-a6.ts'), /HOTE_PUBLIC_V2/);
+  assert.doesNotMatch(lire('lib/flyers-a6.ts'), /tourneo-app\.vercel\.app/);
+  assert.match(lire('app/tournoi/[id]/affiches/resultats/page.tsx'), /HOTE_PUBLIC_V2/);
+  assert.doesNotMatch(lire('app/tournoi/[id]/affiches/resultats/page.tsx'), /tourneo-app\.vercel\.app/);
   assert.doesNotMatch(lire('lib/affiche-pronostics.ts'), /tourneo-app\.vercel\.app/);
   assert.match(lire('capacitor.config.ts'), /https:\/\/tourneo-v2-test\.vercel\.app/);
   assert.match(lire('app/login/page.tsx'), /window\.location\.origin/);

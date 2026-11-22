@@ -1,4 +1,5 @@
 import {peindreVisuelAffiche} from '@/lib/visuel-affiche';
+import {HOTE_PUBLIC_V2} from '@/lib/url-publique';
 import type {TexteAffiche,ContexteAffiche} from '@/lib/affiche';
 // A4 at 300 dpi, four identical A6 cards; content stays inside printer margins.
 export function peindreFlyersA6(canvas:HTMLCanvasElement,t:TexteAffiche,marque:HTMLImageElement,logo:HTMLImageElement|null,qr:HTMLImageElement|null,sponsors:HTMLImageElement[],tr:(s:string)=>string,contexte?:ContexteAffiche,photo?:HTMLImageElement|null){
@@ -16,7 +17,7 @@ export function peindreFlyersA6(canvas:HTMLCanvasElement,t:TexteAffiche,marque:H
   if(t.message)text(t.message,80,sponsors.length?1525:1590,26,2,'#526b7b',1080);
   // Sponsor logos are optional and kept apart from the QR and practical details.
   if(sponsors.length){const y=1650,cell=1060/sponsors.length;for(let i=0;i<sponsors.length;i++){const s=sponsors[i],r=Math.min((cell-18)/s.width,55/s.height);c.drawImage(s,90+i*cell+(cell-s.width*r)/2,y-50,s.width*r,s.height*r);}}
-  text('tourneo-app.vercel.app',80,1690,27,1,'#526b7b');c.restore();
+  text(HOTE_PUBLIC_V2,80,1690,27,1,'#526b7b');c.restore();
  }
  c.save();c.strokeStyle='#7f949f';c.lineWidth=2;c.setLineDash([12,12]);c.beginPath();c.moveTo(1240,20);c.lineTo(1240,3488);c.moveTo(20,1754);c.lineTo(2460,1754);c.stroke();c.restore();
 }
