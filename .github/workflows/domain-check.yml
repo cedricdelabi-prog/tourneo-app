@@ -17,6 +17,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
+      - name: Lire les fichiers source V2
+        uses: actions/checkout@v4
+      - name: Auditer les liens Tourneo codés en dur
+        shell: bash
+        run: |
+          echo "Fichiers V2 qui referencent un ancien domaine ou le domaine officiel :"
+          git grep -nIE 'tourneo-app[.]vercel[.]app|tourneo-v2-test[.]vercel[.]app|tourneo[.]org' -- app components lib public capacitor.config.ts || true
+          echo "Revoir les anciennes references avant activation des nouveaux QR codes."
       - name: Verifier les domaines depuis un reseau public
         shell: bash
         run: |
