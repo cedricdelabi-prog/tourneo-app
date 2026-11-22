@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $originalProfile=$env:USERPROFILE
 $originalWorkdir=$env:SUPABASE_WORKDIR
-$originalExitCode=$global:LASTEXITCODE
+$originalExitCode=0
 $temp=if($env:RUNNER_TEMP){$env:RUNNER_TEMP}else{[IO.Path]::GetTempPath()}
 $base=Join-Path $temp ('tourneo-media-test-'+[guid]::NewGuid().ToString('N'))
 $global:MediaProjetRef='gjtxlzhfqcecyfciyllc'
@@ -58,6 +58,7 @@ try {
     }
 
     # La sauvegarde doit refuser de lire un projet different.
+    Start-Sleep -Milliseconds 150
     $global:MediaProjetRef='test-mauvais-projet'
     $avant=@($global:MediaHistorique | Where-Object {$_ -match '^storage cp '}).Count
     $refuse=$false
@@ -68,6 +69,7 @@ try {
     }
 
     # Une copie Storage vide ne peut pas produire un manifeste valide.
+    Start-Sleep -Milliseconds 150
     $global:MediaProjetRef='gjtxlzhfqcecyfciyllc'
     $global:MediaVides=$true
     $refuse=$false

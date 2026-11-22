@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $projet = 'gjtxlzhfqcecyfciyllc'
 $racine = Join-Path $env:USERPROFILE 'Tourneo-sauvegardes-PRIVEES'
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
 $dossier = Join-Path $racine "Storage-V1-$stamp"
 $ancienWorkdir = $env:SUPABASE_WORKDIR
 if (-not (Get-Command supabase -ErrorAction SilentlyContinue)) {
@@ -16,6 +16,7 @@ Write-Warning 'Ce script telecharge seulement les fichiers du bucket tourneo-med
 Write-Host "Projet Supabase attendu : $projet"
 $accord = Read-Host 'Saisir SAUVEGARDER pour copier les medias vers votre PC'
 if ($accord -cne 'SAUVEGARDER') { Write-Host 'Annule.'; exit 0 }
+if (Test-Path -LiteralPath $dossier) { throw 'Archive cible deja existante : refaire la sauvegarde dans un nouveau dossier.' }
 New-Item -ItemType Directory -Path $dossier -Force | Out-Null
 Push-Location -LiteralPath $dossier
 $env:SUPABASE_WORKDIR = $dossier
