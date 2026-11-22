@@ -167,3 +167,47 @@ assert.match(phase17,/revoke all on tourneo_private\.administrateurs,tourneo_pri
 assert.match(phase17,/tourneo_private\.moderation_admin/);
 assert.doesNotMatch(phase17,/\bdrop\s+(?:table|column)\b/i);
 console.log('Tourneo V2 : lancement bloqué sans sauvegarde/restauration/accord, inventaire agrégé et protection production : OK');
+
+// Contrôles du futur domaine officiel : aucune activation implicite en test.
+(() => {
+  const vm = require('node:vm');
+  const ts = require('typescript');
+  const lire = relative => fs.readFileSync(path.join(__dirname, '..', relative), 'utf8');
+  const transpile = ts.transpileModule(lire('lib/url-publique.ts'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  function liens(production, domaine) {
+    const exports = {};
+    vm.runInNewContext(transpile, {
+      exports,
+      URL,
+      process: { env: {
+        NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED: production ? 'true' : 'false',
+        NEXT_PUBLIC_TOURNEO_PUBLIC_ORIGIN: domaine,
+      } },
+    }, { timeout: 1000 });
+    return exports;
+  }
+  const test = liens(false, 'https://www.tourneo.org');
+  assert.equal(test.ORIGINE_PUBLIQUE_V2, 'https://tourneo-v2-test.vercel.app');
+  assert.equal(test.urlPubliqueTournoi('id/ +&', 'inscriptions'), 'https://tourneo-v2-test.vercel.app/inscriptions/id%2F%20%2B%26');
+  assert.equal(test.HOTE_PUBLIC_V2, 'tourneo-v2-test.vercel.app');
+
+  const ancienne = liens(true);
+  assert.equal(ancienne.ORIGINE_PUBLIQUE_V2, 'https://tourneo-app.vercel.app');
+  assert.equal(ancienne.urlPubliqueTournoi('tournoi'), 'https://tourneo-app.vercel.app/partage/tournoi');
+
+  const officielle = liens(true, 'https://www.tourneo.org');
+  assert.equal(officielle.ORIGINE_PUBLIQUE_V2, 'https://www.tourneo.org');
+  assert.equal(officielle.HOTE_PUBLIC_V2, 'www.tourneo.org');
+  assert.equal(officielle.urlPubliqueTournoi('tournoi', 't'), 'https://www.tourneo.org/t/tournoi');
+
+  for (const domaine of ['http://www.tourneo.org', 'https://tourneo.org', 'https://www.tourneo.org/', 'https://example.org']) {
+    assert.equal(liens(true, domaine).ORIGINE_PUBLIQUE_V2, 'https://tourneo-app.vercel.app');
+  }
+  assert.match(lire('lib/affiche-pronostics.ts'), /HOTE_PUBLIC_V2/);
+  assert.doesNotMatch(lire('lib/affiche-pronostics.ts'), /tourneo-app\.vercel\.app/);
+  assert.match(lire('capacitor.config.ts'), /https:\/\/tourneo-v2-test\.vercel\.app/);
+  assert.match(lire('app/login/page.tsx'), /window\.location\.origin/);
+  console.log('Tourneo V2 : origine de domaine, QR codes, affiches et isolement test/production : OK');
+})();
