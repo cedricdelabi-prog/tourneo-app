@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const estProduction = process.env.NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED === 'true';
+  const estProduction = process.env.VERCEL_ENV === 'production';
   if (!estProduction) {
     return { rules: { userAgent: '*', disallow: '/' } };
   }

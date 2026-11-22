@@ -4,7 +4,7 @@ const origine = 'https://www.tourneo.org';
 const pagesPubliques = ['/', '/guides', '/formats-tournoi', '/aide', '/contact'] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  if (process.env.NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED !== 'true') {
+  if (process.env.VERCEL_ENV !== 'production') {
     return [];
   }
 

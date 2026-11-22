@@ -4,7 +4,7 @@ import Contenu from '@/components/DecouvrirTourneo';
 const origineOfficielle = 'https://www.tourneo.org';
 const title = 'Tourneo | Organiser un tournoi sportif facilement';
 const description = 'Découvrez Tourneo : organisez vos tournois, préparez les rencontres et partagez scores, classements et pronostics avec les joueurs et les spectateurs.';
-const estProduction = process.env.NEXT_PUBLIC_TOURNEO_V2_PRODUCTION_APPROVED === 'true';
+const estProduction = process.env.VERCEL_ENV === 'production';
 
 export const metadata: Metadata = {
   title,
