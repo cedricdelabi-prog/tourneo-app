@@ -33,3 +33,9 @@ SQL source : `docs/sql/preflight_v1_v2.sql`. Aucun nom, courriel ou identifiant 
 ## Points non validés
 
 Aucune sauvegarde Auth + base + Storage réellement restaurée dans un environnement isolé n'a été produite au cours de ce contrôle. Les connexions Google, confirmation d'e-mail et mot de passe oublié sur le nouveau domaine demandent un test réel. Les vérifications de sécurité des RPC V1, des anciennes sessions et de la compatibilité Android restent des conditions de bascule globale. Ce rapport n'autorise aucun déploiement ni modification des données en production.
+
+## Contrôle HTTP exhaustif des anciens liens (22 novembre 2026)
+
+L'API publique `/api/partage?id=<uuid>` retourne un contenu de tournoi avec HTTP **200 pour les 25 identifiants publics** sur `https://www.tourneo.org` ET sur `https://tourneo-app.vercel.app`. Deux pages de tournoi ont également été vérifiées en HTML sur chacun des deux domaines. Aucun identifiant ni contenu utilisateur n'a été conservé dans ce rapport.
+
+Contrôle des droits SQL du même jour : `get_tourneo_public(uuid)` est désormais interdit aux rôles `anon` et `authenticated` (contrairement au constat initial du 19/11). Les nouveaux liens publics passent par une route serveur. L'audit de sécurité des fonctions privilégiées et l'éventuelle compatibilité d'une ancienne APK restent à réaliser avant migration totale.

@@ -12,6 +12,7 @@
 - Dernière V2 sur `tourneo-v2-dev` : tests automatisés GitHub validés.
 - **Contrôle public validé le 22/11/2026** : GitHub Actions a obtenu HTTP 200 sur `https://www.tourneo.org/`, `https://www.tourneo.org/login` et `https://tourneo-app.vercel.app/`, ainsi qu'une redirection 308 du domaine racine. Le contrôle a aussi vérifié que `/api/partage` retourne bien 404 pour un identifiant inexistant.
 - L'adresse historique `https://tourneo-app.vercel.app` reste associée au site : la préserver pour les liens et QR codes déjà diffusés.
+- **25/25 liens de tournois publics vérifiés en HTTPS le 22/11/2026** via `/api/partage` sur `www.tourneo.org` et `tourneo-app.vercel.app` : réponses 200. Deux pages HTML de tournois ont aussi répondu 200 sur chacun des domaines.
 
 ## Prérequis Supabase Auth (projet production UNIQUEMENT)
 

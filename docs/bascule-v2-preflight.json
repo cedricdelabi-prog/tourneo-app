@@ -47,12 +47,12 @@
       "preuve": "22/11/2026 : l'utilisateur confirme s'etre connecte avec Google depuis https://www.tourneo.org/login et retrouver ses tournois. Une validation individuelle ne prouve pas la conservation des 59 comptes, des anciens tokens, de la confirmation email et de la recuperation du mot de passe ; statut a_faire jusqu'aux essais de restauration et de migration."
     },
     "urlsPartageHistoriquesVerifiees": {
-      "statut": "a_faire",
-      "preuve": "2026-11-22 : 25 tournois publics, 25 liens /partage/<id> reconnus par la RPC V1 et la RPC V2 ; 25/25 identifiants secondaires reconnus par la RPC de compatibilité V2. Reste à vérifier le parcours navigateur historique, la sécurité et une restauration isolée."
+      "statut": "valide",
+      "preuve": "22/11/2026 : vérification réelle en HTTPS, sans exposition de données personnelles, du service /api/partage pour chacun des 25 identifiants de tournoi public : 25/25 réponses HTTP 200 sur www.tourneo.org et 25/25 réponses HTTP 200 sur tourneo-app.vercel.app. Deux pages complètes /partage/<id> ont aussi répondu HTTP 200 sur les deux domaines. En SQL, 25/25 ID principaux et 25/25 alias secondaires sont reconnus par les fonctions de compatibilité V2. Les nouveaux QR codes ne changent pas tant qu'une production V2 révisée n'est pas publiée."
     },
     "droitsRlsEtFonctionsVerifies": {
       "statut": "a_faire",
-      "preuve": "V1 inspection metadata 2026-11-19 : ancienne RPC get_tourneo_public SECURITY DEFINER accessible à anon, renvoyant donnees JSON sans filtre est_public. La sécurisation reste impérative sur une copie puis à la bascule, SANS couper la V1 actuelle."
+      "preuve": "22/11/2026 : l'ancienne RPC get_tourneo_public(uuid) est interdite pour anon et authenticated ; la RPC V2 directe est interdite pour anon ; les pages publiques passent par le serveur /api/partage. L'analyse de sécurité Supabase signale toutefois des RPC SECURITY DEFINER exécutables par des rôles publics ; audit du code, des jetons serveur et de l'APK Android à finaliser sur copie avant d'autoriser la migration."
     },
     "parcoursTournoiEtTvReelsVerifies": {
       "statut": "a_faire",
@@ -105,15 +105,16 @@
     },
     "partageV1": {
       "fonction": "public.get_tourneo_public(uuid)",
-      "accessibleAnonyme": true,
+      "accessibleAnonyme": false,
       "fonctionSecurityDefiner": true,
       "filtreEstPublic": false,
       "projectionDonneesJsonBrutes": true,
       "tournoisPrivesActuellement": 0,
-      "consigne": "NE PAS changer cette RPC sur la V1 active. Préparer un remplacement compatible sur une copie restaurée, tester les anciens liens et retirer l'accès brut uniquement lors de la bascule validée.",
-      "dateVerificationSecurite": "2026-11-19"
+      "consigne": "Vérification 22/11/2026 : la RPC historique get_tourneo_public(uuid) n'est plus exécutable par anon ni authenticated (has_function_privilege=false). La fonction est néanmoins présente et renvoie des données brutes si appelée avec un rôle privilégié. Ne pas modifier les droits V1 sans évaluation Android et restaurabilité. Audit complet des RPC SECURITY DEFINER restant à faire.",
+      "dateVerificationSecurite": "2026-11-22",
+      "accessibleAuthenticated": false
     },
-    "conclusion": "22/11/2026 : inventaire et liens V1/V2 coherents, site HTTPS valide, un utilisateur confirme Google et ses tournois sur www.tourneo.org. Une sauvegarde SQL + media restauree en isolation, la validation des parcours restants et l'accord de deploiement V2 restent indispensables : PREVOL BLOQUE.",
+    "conclusion": "22/11/2026 : inventaire cohérent ; 25/25 liens publics opérationnels sur ancienne et nouvelle adresse en HTTPS ; Google confirmé par l'utilisateur ; ancienne RPC non accessible à anon/authenticated. Backup Auth + SQL + fichiers Storage non exporté ni restauré en isolation, audits sécurité et Android à finaliser : PREVOL TOUJOURS BLOQUÉ.",
     "controleCompatibilitePartage": {
       "date": "2026-11-22",
       "totalPublics": 25,
@@ -129,6 +130,17 @@
       "connexionGoogle": "fonctionnelle selon le retour utilisateur",
       "accesTournois": "fonctionnel selon le retour utilisateur",
       "portee": "Un parcours utilisateur declare reussi ; aucune validation automatique des 59 comptes ni des courriels"
+    },
+    "verificationLiensPublicsHTTP": {
+      "date": "2026-11-22",
+      "protocole": "HTTPS",
+      "route": "/api/partage?id=<identifiant-de-tournoi-public>",
+      "attendus": 25,
+      "reponsesOKNouvelleAdresse": 25,
+      "reponsesOKAncienneAdresse": 25,
+      "pagesHTMLTesteEsParAdresse": 2,
+      "erreurs": 0,
+      "note": "Réponses HTTP 200 confirmées via la connexion Vercel ; aucun identifiant ni donnée du tournoi n'a été archivé dans ce manifeste."
     }
   }
 }
