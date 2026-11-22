@@ -1,4 +1,19 @@
 export const traductionsLivraison:Record<string,{en:string;nl:string;de:string}> = {
+  "Un compte Tourneo existe déjà avec cette adresse. Connectez-vous ou utilisez « Mot de passe oublié ? ».": {
+    "en": "A Tourneo account already uses this address. Sign in or select “Forgot your password?”.",
+    "nl": "Er bestaat al een Tourneo-account met dit adres. Log in of kies ‘Wachtwoord vergeten?’.",
+    "de": "Für diese Adresse gibt es bereits ein Tourneo-Konto. Melden Sie sich an oder wählen Sie „Passwort vergessen?“."
+  },
+  "Si vous créez un compte, consultez vos e-mails pour confirmer votre adresse. Si vous avez déjà un compte Tourneo, connectez-vous ou utilisez « Mot de passe oublié ? ».": {
+    "en": "If you are creating an account, check your email to confirm your address. If you already have a Tourneo account, sign in or select “Forgot your password?”.",
+    "nl": "Maakt u een account aan? Controleer uw e-mail om uw adres te bevestigen. Hebt u al een Tourneo-account? Log in of kies ‘Wachtwoord vergeten?’.",
+    "de": "Wenn Sie ein Konto erstellen, prüfen Sie Ihre E-Mails und bestätigen Sie Ihre Adresse. Wenn Sie bereits ein Tourneo-Konto haben, melden Sie sich an oder wählen Sie „Passwort vergessen?“."
+  },
+  "J’ai déjà un compte": {
+    "en": "I already have an account",
+    "nl": "Ik heb al een account",
+    "de": "Ich habe bereits ein Konto"
+  },
   "Notifications": {
     "en": "Notifications",
     "nl": "Meldingen",

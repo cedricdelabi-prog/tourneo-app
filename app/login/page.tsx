@@ -111,8 +111,15 @@ export default function LoginPage() {
                             first_name: prenom.trim(), last_name: nom.trim(), display_name: pseudo.trim() || `${prenom.trim()} ${nom.trim()}`, city: ville.trim(),structure:structure.trim()||undefined,
                         } },
                 });
-                if (error)
+                if (error) {
+                    if (error.code === "user_already_exists" || error.code === "email_exists" || /^user already registered[.!]?$/i.test(error.message)) {
+                        setMode("connexion");
+                        setPassword("");
+                        notifier("Un compte Tourneo existe déjà avec cette adresse. Connectez-vous ou utilisez « Mot de passe oublié ? ».", "info");
+                        return;
+                    }
                     throw error;
+                }
                 if (data.session) {
                     if(data.user)await assurerProfilCompte(data.user);
                     redirection = true;
@@ -120,7 +127,7 @@ export default function LoginPage() {
                     window.location.href = retourPronostics(window.location.search);
                 }
                 else
-                    notifier("Demande prise en compte. Consultez vos e-mails pour confirmer votre adresse, puis connectez-vous.", "succes");
+                    notifier("Si vous créez un compte, consultez vos e-mails pour confirmer votre adresse. Si vous avez déjà un compte Tourneo, connectez-vous ou utilisez « Mot de passe oublié ? ».", "info");
             }
             else {
                 const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
@@ -237,9 +244,14 @@ export default function LoginPage() {
                 ? tr("Se connecter") : tr("Créer mon compte")}
         </button>
 
-        {mode === "connexion" && (<button type="button" style={s.link} onClick={motDePasseOublie}>
+        {mode === "inscription" && <button type="button" style={s.link} onClick={() => {
+            setMode("connexion");
+            setPassword("");
+            notifier("");
+        }}>{tr("J’ai déjà un compte")}</button>}
+        <button type="button" style={s.link} onClick={motDePasseOublie}>
             {action === "reset" ? tr("Envoi du lien…") : tr("Mot de passe oublié ?")}
-          </button>)}
+        </button>
 
         </fieldset>
         </form>
