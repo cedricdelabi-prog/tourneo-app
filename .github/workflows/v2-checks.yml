@@ -90,6 +90,8 @@ on:
       - 'lib/compatibilite-v1.ts'
       - 'tests/compatibilite-v1.cjs'
       - 'scripts/sauvegarder-v1-prive.ps1'
+      - 'scripts/sauvegarder-media-v1-prive.ps1'
+      - 'tests/sauvegarde-media-v1.ps1'
       - 'scripts/verifier-archive-v1.ps1'
       - 'tests/sauvegarde-cli-v1.cjs'
       - 'tests/sauvegarde-cli-v1.ps1'
@@ -134,6 +136,9 @@ jobs:
       - name: Tester le vrai script de sauvegarde avec une fausse CLI PowerShell
         shell: pwsh
         run: ./tests/sauvegarde-cli-v1.ps1
+      - name: Tester la copie privee des medias avec une fausse CLI PowerShell
+        shell: pwsh
+        run: ./tests/sauvegarde-media-v1.ps1
       - name: Vérifier les scores hérités de la V1
         run: node tests/compatibilite-v1.cjs
       - name: Contrôler les conflits entre appareils
