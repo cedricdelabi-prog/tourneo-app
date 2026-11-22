@@ -5,6 +5,9 @@ on:
       - release-v2-preparation-2026-11-19
       - tourneo-v2-dev
     paths:
+      - 'app/page.tsx'
+      - 'app/robots.ts'
+      - 'app/sitemap.ts'
       - 'components/EcranTV.tsx'
       - 'components/ImprevusTournoi.tsx'
       - 'components/ProchaineActionTournoi.tsx'
