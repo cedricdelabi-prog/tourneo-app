@@ -10,7 +10,7 @@
 - DNS des deux noms : `misconfigured: false` dans Vercel.
 - Certificats HTTPS créés, renouvellement automatique activé.
 - Dernière V2 sur `tourneo-v2-dev` : tests automatisés GitHub validés.
-- **L'accessibilité HTTP/HTTPS de bout en bout sur un réseau public reste à valider** : les environnements de vérification accessibles à l'assistant ne résolvent pas non plus l'ancienne URL Vercel. Cela ne prouve donc pas une panne du nouveau domaine.
+- **Contrôle public validé le 22/11/2026** : GitHub Actions a obtenu HTTP 200 sur `https://www.tourneo.org/`, `https://www.tourneo.org/login` et `https://tourneo-app.vercel.app/`, ainsi qu'une redirection 308 du domaine racine. Le contrôle a aussi vérifié que `/api/partage` retourne bien 404 pour un identifiant inexistant.
 - L'adresse historique `https://tourneo-app.vercel.app` reste associée au site : la préserver pour les liens et QR codes déjà diffusés.
 
 ## Prérequis Supabase Auth (projet production UNIQUEMENT)
@@ -30,7 +30,7 @@ Dans **Authentication > URL Configuration > Redirect URLs** :
 5. Pour la connexion Google via Supabase, vérifier un aller-retour complet sur la nouvelle adresse avec un compte de test. Les pages Tourneo utilisent `window.location.origin` pour le paramètre `redirectTo`.
 6. Contrôler aussi la création de compte, la confirmation e-mail, le mot de passe oublié et le retour vers les pages de pronostics.
 
-Les redirect URLs ne sont **pas** modifiables avec les outils Supabase connectés actuellement. Ne pas supposer qu'elles ont été enregistrées sans confirmation.
+Le 22/11/2026, l'utilisateur a indiqué avoir ajouté les URL de retour dans Supabase, puis a confirmé que **la connexion Google et l'accès à ses tournois fonctionnent sur `www.tourneo.org`**. Cela valide son parcours, mais pas les e-mails de récupération, les inscriptions ni la conservation de toutes les sessions des 59 comptes. Les paramètres Auth ne sont pas lisibles directement avec les connecteurs disponibles.
 
 Documentation officielle :
 https://supabase.com/docs/guides/auth/redirect-urls
@@ -50,13 +50,13 @@ https://supabase.com/docs/guides/auth/redirect-urls
 
 `lib/url-publique.ts` centralise l'origine des URL et `lib/affiche-pronostics.ts` le nom de domaine imprimé.
 
-La variable **publique** Vercel `NEXT_PUBLIC_TOURNEO_PUBLIC_ORIGIN` doit valoir exactement :
+La variable **publique** Vercel `NEXT_PUBLIC_TOURNEO_PUBLIC_ORIGIN` est désormais enregistrée pour **Production uniquement** dans Vercel et vaut :
 
 ```
 https://www.tourneo.org
 ```
 
-À renseigner **dans Production uniquement**, **après** validation des prérequis. Elle est inactive tant qu'elle n'est pas présente dans le build de production. Il faut reconstruire / redéployer la version V2 révisée après avoir configuré la variable ; la branche de test continue d'utiliser `tourneo-v2-test.vercel.app`.
+La variable ne modifie pas le déploiement existant : elle sera prise en compte uniquement lors d'un **nouveau déploiement V2 vérifié en production**, après sauvegarde, restauration isolée et accord explicite. La branche de test conserve `tourneo-v2-test.vercel.app`.
 
 Éviter de promouvoir une prévisualisation compilée avec les variables de test. Ne pas modifier `main` ni la V1.
 
