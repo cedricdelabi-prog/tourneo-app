@@ -25,6 +25,19 @@ jobs:
           echo "Fichiers V2 qui referencent un ancien domaine ou le domaine officiel :"
           git grep -nIE 'tourneo-app[.]vercel[.]app|tourneo-v2-test[.]vercel[.]app|tourneo[.]org' -- app components lib public capacitor.config.ts || true
           echo "Revoir les anciennes references avant activation des nouveaux QR codes."
+      - name: Verifier le service de partage public sans donnees personnelles
+        shell: bash
+        run: |
+          set -euo pipefail
+          reponse="$(mktemp)"
+          statut="$(curl --silent --show-error --max-time 25 --output "$reponse" --write-out '%{http_code}' 'https://www.tourneo.org/api/partage?id=00000000-0000-4000-8000-000000000000')"
+          if [[ "$statut" != "404" ]] || ! grep -q 'Tournoi introuvable' "$reponse"; then
+            echo "::error::Le service de partage anonyme ne fonctionne pas comme attendu (code $statut)."
+            rm -f "$reponse"
+            exit 1
+          fi
+          rm -f "$reponse"
+          echo "Service de partage public : disponible, identifiants inconnus correctement refuses (404)."
       - name: Verifier les domaines depuis un reseau public
         shell: bash
         run: |
