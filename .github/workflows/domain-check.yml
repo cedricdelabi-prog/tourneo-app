@@ -1,0 +1,82 @@
+name: Tourneo - verification publique du domaine
+
+on:
+  push:
+    branches:
+      - tourneo-v2-dev
+    paths:
+      - '.github/workflows/domain-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  domaine-officiel:
+    name: DNS, HTTPS, redirection et ancienne adresse
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verifier les domaines depuis un reseau public
+        shell: bash
+        run: |
+          set -uo pipefail
+          echecs=0
+          for domaine in www.tourneo.org tourneo.org tourneo-app.vercel.app; do
+            echo "::group::DNS de $domaine"
+            if getent ahostsv4 "$domaine"; then
+              echo "DNS IPv4 : OK"
+            else
+              echo "::error::Echec de resolution DNS : $domaine"
+              echecs=$((echecs + 1))
+            fi
+            echo "::endgroup::"
+          done
+
+          for adresse in \
+            'https://www.tourneo.org/' \
+            'https://www.tourneo.org/login' \
+            'https://tourneo-app.vercel.app/'; do
+            echo "::group::HTTPS $adresse"
+            sortie="$(mktemp)"
+            code="$(curl --fail-with-body --location --silent --show-error \
+              --max-time 25 --output "$sortie" --write-out '%{http_code}' \
+              "$adresse")" || echecs=$((echecs + 1))
+            echo "Code HTTP : $code"
+            if [[ "$code" != "200" ]]; then
+              echo "::error::Le parcours public ne renvoie pas HTTP 200 : $adresse ($code)"
+              echecs=$((echecs + 1))
+            elif ! grep -qi 'tourneo' "$sortie"; then
+              echo "::error::La page chargee ne contient pas la marque Tourneo : $adresse"
+              echecs=$((echecs + 1))
+            else
+              echo "Page Tourneo en HTTPS : OK"
+            fi
+            rm -f "$sortie"
+            echo "::endgroup::"
+          done
+
+          echo "::group::Redirection de tourneo.org vers www.tourneo.org"
+          en_tetes="$(mktemp)"
+          code="$(curl --silent --show-error --max-time 25 \
+            --output /dev/null --dump-header "$en_tetes" \
+            --write-out '%{http_code}' 'https://tourneo.org/')" || echecs=$((echecs + 1))
+          echo "Code de redirection : $code"
+          if [[ "$code" != "308" && "$code" != "301" && "$code" != "302" && "$code" != "307" ]]; then
+            echo "::error::Redirection HTTPS attendue, code recu : $code"
+            echecs=$((echecs + 1))
+          elif ! grep -Eiq '^location: https://www\.tourneo\.org/?([[:space:]]|\r)?$' "$en_tetes"; then
+            echo "::error::tourneo.org ne renvoie pas vers l'adresse officielle"
+            grep -i '^location:' "$en_tetes" || true
+            echecs=$((echecs + 1))
+          else
+            echo "Redirection officielle : OK"
+          fi
+          rm -f "$en_tetes"
+          echo "::endgroup::"
+
+          if [[ "$echecs" -ne 0 ]]; then
+            echo "::error::Bascule publique NON validee ($echecs erreur(s))."
+            exit 1
+          fi
+          echo "DNS, HTTPS, redirection et ancienne adresse : OK."
