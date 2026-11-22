@@ -92,6 +92,7 @@ foreach($operation in $operations) {
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $dossier 'controle-hash.json') -Encoding UTF8
 # Avant d'annoncer l'archive, controler les empreintes ET la presence effective des lignes.
 & (Join-Path $PSScriptRoot 'verifier-archive-v1.ps1') -Dossier $dossier
-Write-Host "Archive creee : $dossier"
+Write-Host "Archive SQL creee : $dossier (media Storage a sauvegarder separement)."
+Write-Warning 'ATTENTION : les fichiers binaires Supabase Storage ne sont PAS inclus dans un db dump. Le 22/11/2026, un fichier etait present dans tourneo-media. Verifier et sauvegarder TOUS les medias actuels, hors depot, sur un disque chiffre, avant de declarer cette sauvegarde complete.'
 Write-Warning 'Proteger et conserver cette archive dans un emplacement chiffre, puis realiser une restauration isolee.'
 Write-Warning "Ne JAMAIS executer 'supabase db reset --linked' ou une migration V2 sur la V1."

@@ -78,4 +78,4 @@ if($utilisateurs -lt 1 -or $tournois -lt 1 -or $profils -ne $utilisateurs -or $i
     throw "REFUS : export vide ou incoherent (comptes $utilisateurs, profils $profils, identites $identites, tournois $tournois)."
 }
 Write-Host "Tourneo V1 : 6 empreintes valides et lignes presentes (comptes $utilisateurs, profils $profils, identites $identites, tournois $tournois)."
-Write-Warning 'Verification des fichiers UNIQUEMENT : pas de preuve de restauration, connexions Auth et fonctions non testees.'
+Write-Warning 'Verification des fichiers SQL UNIQUEMENT : les contenus binaires de Storage ne sont PAS sauvegardes par db dump. Copie privee separee et restauration restent obligatoires.'

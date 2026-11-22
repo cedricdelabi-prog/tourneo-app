@@ -21,6 +21,7 @@ assert.match(s,/Get-Content -LiteralPath \$lienLocal/);
 assert.match(s,/Pop-Location/);
 assert.match(s,/Select-String -LiteralPath \$chemin/);
 assert.match(s,/verifier-archive-v1\.ps1/);
+assert.match(s,/fichiers binaires Supabase Storage ne sont PAS inclus/);
 const verify=fs.readFileSync('scripts/verifier-archive-v1.ps1','utf8');
 assert.match(verify,/Get-FileHash -LiteralPath \$fichier -Algorithm SHA256/);
 assert.match(verify,/function Compter-Copy/);
