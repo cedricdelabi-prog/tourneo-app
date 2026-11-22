@@ -38,6 +38,20 @@ La V2 de test compte déjà deux utilisateurs de test et un objet Storage ; **ne
 
 Ne jamais lancer `supabase db reset --linked`, `supabase db push` ou les migrations V2 directement sur le projet de production à ce stade.
 
+## Sauvegarde des fichiers médias (séparée de la base)
+
+Le **22 novembre 2026**, la production contient au moins **1 fichier Storage** dans le bucket `tourneo-media` (48 191 octets). La commande `supabase db dump` ne télécharge pas les véritables fichiers : elle exporte uniquement leurs métadonnées.
+
+Sur le même **PC Windows chiffré**, avec Supabase CLI installé et connecté, exécuter **après la sauvegarde SQL** :
+
+```powershell
+.\scripts\sauvegarder-media-v1-prive.ps1
+```
+
+Le script refuse un projet erroné, ne supprime rien et télécharge les fichiers du bucket `tourneo-media` dans `%USERPROFILE%\Tourneo-sauvegardes-PRIVEES\Storage-V1-<date>`. Il crée un manifeste SHA-256 local. Ne pas envoyer l'archive ni son contenu dans ChatGPT ou GitHub. Après l'export, comparer le nombre de fichiers au total courant du bucket dans Supabase. Si d'autres buckets sont ajoutés avant la migration, les sauvegarder également.
+
+**Attention :** un export SQL et cette copie de médias ne prouvent pas que la restauration fonctionne. Une restauration hors production avec vérification des comptes, tournois, Auth et médias reste obligatoire avant le déploiement global V2.
+
 ## Contrôle automatique sans accès à la V1
 
 La CI GitHub exécute le **vrai script PowerShell** en remplaçant uniquement la commande Supabase par une simulation. Elle vérifie : six fichiers SQL générés, manifeste d'empreintes, présence de vraies lignes COPY fictives, refus des fichiers altérés, des exports Auth vides ou incomplets, refus d'un mauvais projet lié et maintien du dossier de travail et de la liaison V2. Aucune vraie donnée n'est utilisée.
