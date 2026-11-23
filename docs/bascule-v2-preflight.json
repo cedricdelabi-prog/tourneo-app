@@ -67,11 +67,11 @@
       "preuve": ""
     },
     "accordExpliciteMiseEnProduction": {
-      "statut": "a_faire",
-      "preuve": ""
+      "statut": "valide",
+      "preuve": "23/11/2026 : le propriétaire demande explicitement « bon ben publi tout comment ca se fait que se ne soit pas fait » dans la conversation Tourneo. Cette autorisation ne dispense pas des preuves techniques obligatoires de sauvegarde restaurée, compatibilité, sécurité, Android et retour arrière ; aucune migration destructive n'est autorisée par ce seul marqueur."
     }
   },
-  "notes": "Inventaire 22/11/2026 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois publics, 25 identifiants de partage, 1 objet Storage (tourneo-media, 48 191 octets). Inventaire du 19/11/2026 : 59 comptes, 60 identités, 24 tournois, 0 objet Storage. Les chiffres évoluent. Aucune restauration de sauvegarde ni autorisation de bascule n'est déduite de ces constats.",
+  "notes": "Inventaire 22/11/2026 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois publics, 25 identifiants de partage, 1 objet Storage (tourneo-media, 48 191 octets). Inventaire du 19/11/2026 : 59 comptes, 60 identités, 24 tournois, 0 objet Storage. Les chiffres évoluent. Aucune restauration de sauvegarde ni autorisation de bascule n'est déduite de ces constats. Demande explicite de publication totale reçue le 23/11/2026 ; publication retenue par les prérequis techniques encore manquants, et non par défaut d'accord.",
   "controleLectureSeule": {
     "date": "2026-11-22",
     "type": "SQL SELECT uniquement sur production et test ; aucune écriture ni export de comptes",
