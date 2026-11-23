@@ -71,3 +71,15 @@ La variable ne modifie pas le déploiement existant : elle sera prise en compte 
 ## Communication (après validation)
 
 Mettre à jour les communications futures et les supports modifiables : page Facebook Tourneo en mode Work, présentation, affiche club, QR code, emailing futurs, signatures et description de l'application. Conserver la charte et le logo officiels. Toujours mentionner **Android disponible** et **accès web sur PC et appareils Apple**. Aucun nouveau message envoyé automatiquement aux utilisateurs dans le cadre de cette fiche.
+
+## Compteur communautaire public (23 novembre 2026)
+
+- Demande utilisateur : afficher une preuve sociale crédible du nombre de comptes inscrits sur Tourneo.
+- Production Supabase `gjtxlzhfqcecyfciyllc` : migration autonome et additive `tourneo_v2_compteur_communautaire_public_isole` appliquée sans modifier les tables Auth, profils ou tournois.
+- L'accès anonyme à `public.tourneo_communaute_publique()` a été testé dans la base de test puis en production ; réponse réelle le 23/11 : `{"minimum":50,"maximum":59,"mesure":"comptes_confirmes"}` pour **58 comptes confirmés**. L'interface n'affiche pas un faux chiffre précis, seulement la borne inférieure « 50+ ».
+- Pour éviter de promouvoir les autres changements V2 en attente, déploiement de **six fichiers seulement** basé sur la production précédemment active `2e93babd584e3ad624a7e9cb5c127e754a8fb264`.
+- Branche de maintenance isolée `tourneo-v2-compteur-hotfix`, SHA `f567544e19e5d440336caf95ee5e322693e18138`.
+- Build de test indépendant `tourneo-v2-test` : READY, page HTTP 200.
+- Build de production `dpl_CaGRsLYKRfvMe4L1gVPUk2D7LFrQ` : READY, promu sur `www.tourneo.org`, `tourneo.org` et l'ancienne URL Vercel.
+- Contrôles après promotion : accueil HTTP 200, connexion HTTP 200, ancienne URL HTTP 200, identifiant de partage inexistant refusé en HTTP 404. Les fichiers JavaScript servis par `www.tourneo.org` contiennent `tourneo_communaute_publique` et le texte d'accueil « Déjà {0}+ inscrits sur Tourneo » ; l'affichage navigateur après hydratation n'a pas été testé avec un vrai navigateur.
+- `main` et les fichiers V1 n'ont pas été modifiés. Les preuves de sauvegarde/restauration et les autres prérequis de publication globale V2 restent à faire : **ce hotfix ne valide pas la migration globale**.
