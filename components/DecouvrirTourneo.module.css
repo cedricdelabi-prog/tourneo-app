@@ -8,3 +8,10 @@
 .partageIcone svg{width:34px;height:34px}.connexion svg{display:inline-block;vertical-align:middle}
 .acces{display:flex;align-items:center;gap:20px}.inscription{display:inline-flex;align-items:center;gap:14px;min-height:44px;padding:12px 17px;border-radius:11px;background:#087cfa;font-size:14px;font-weight:700;white-space:nowrap}.inscription:hover{background:#176ee1}
 @media(max-width:620px){.acces{gap:13px}.inscription{font-size:12px;padding:11px 13px;gap:9px}.entete{padding:8px 0}}
+
+/* Compteur public : comptes réellement confirmés, borne inférieure uniquement. */
+.preuveSociale{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:18px;color:#d0e5f2;font-size:13px;line-height:1.4}
+.preuveSocialeIcone{width:9px;height:9px;flex:0 0 auto;border-radius:50%;background:#39d5d6;box-shadow:0 0 0 5px #39d5d61a}
+.preuveSocialeNombre{font-weight:750;color:#e8faff}
+.preuveSocialeDetail{color:#9ab4c6;font-size:11px}
+@media(max-width:620px){.preuveSociale{gap:8px;margin:17px 0 2px;font-size:12px}.preuveSocialeDetail{font-size:10px}}

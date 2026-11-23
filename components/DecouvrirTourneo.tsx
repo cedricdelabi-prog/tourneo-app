@@ -6,6 +6,7 @@ import TourneoBrand from "@/components/TourneoBrand";
 import SelecteurLangue from "@/components/SelecteurLangue";
 import { tr, trModele, useLangue } from "@/lib/langue";
 import styles from "./DecouvrirTourneo.module.css";
+import CompteurCommunaute from "@/components/CompteurCommunaute";
 
 const ecrans = [
   {
@@ -114,6 +115,7 @@ export default function DecouvrirTourneo() {
             <ul className={styles.atouts}>{courant.atouts.map(t => <li key={t}><span aria-hidden="true">✓</span>{tr(t)}</li>)}</ul>
             <div className={styles.actions}><Link href="/login?mode=inscription" onClick={terminer} className={styles.principal}>{tr(ecran === 3 ? "C’est parti !" : "Créer mon tournoi")} <span aria-hidden="true"><FlechePartage/></span></Link>
               {ecran === 0 && <button type="button" onClick={() => choisir(1)} className={styles.secondaire}>{tr("Découvrir Tourneo")} <span aria-hidden="true">→</span></button>}</div>
+            <CompteurCommunaute/>
           </div>
           <div className={styles.visuel}><Apercu ecran={ecran}/><p>{tr(courant.legende)}</p></div>
         </div>
