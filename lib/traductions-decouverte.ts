@@ -63,4 +63,6 @@ export const traductionsDecouverte: Record<string, { en: string; nl: string }> =
   ["Pour les petits défis et les grands moments.", "For little challenges and big moments.", "Voor kleine uitdagingen en grote momenten."],
   ["En savoir plus", "Find out more", "Meer weten"],
   ["Découvrir Tourneo avant de me connecter", "Discover Tourneo before signing in", "Ontdek Tourneo voordat ik inlog"],
+  ["Déjà {0}+ inscrits sur Tourneo", "Already {0}+ members on Tourneo", "Al {0}+ leden op Tourneo"],
+  ["Comptes confirmés", "Confirmed accounts", "Bevestigde accounts"],
 ].map(([fr, en, nl]) => [fr, { en, nl }]));

@@ -99,6 +99,11 @@ on:
       - 'app/partage/[id]/page.tsx'
       - 'tests/imprevus-tournoi.cjs'
       - 'tests/experience-browser.cjs'
+      - 'components/CompteurCommunaute.tsx'
+      - 'lib/compteur-communaute.ts'
+      - 'tests/compteur-communaute.cjs'
+      - 'components/DecouvrirTourneo.tsx'
+      - 'components/DecouvrirTourneo.module.css'
       - 'lib/ecran-tv.ts'
       - 'lib/modeles-affiche.ts'
       - 'components/IdentiteVisuelleTournoi.tsx'
@@ -139,6 +144,8 @@ jobs:
       - name: Tester la copie privee des medias avec une fausse CLI PowerShell
         shell: pwsh
         run: ./tests/sauvegarde-media-v1.ps1
+      - name: Vérifier le compteur public des inscrits Tourneo
+        run: node tests/compteur-communaute.cjs
       - name: Vérifier les scores hérités de la V1
         run: node tests/compatibilite-v1.cjs
       - name: Contrôler les conflits entre appareils

@@ -9,6 +9,8 @@ export const traductionsAllemand: Record<string, string> = {
   ...Object.fromEntries(Object.entries(traductionsCorrections).map(([fr,v])=>[fr,v.de])),
   ...Object.fromEntries(Object.entries(traductionsLivraison).map(([fr,v])=>[fr,v.de])),
   "S’inscrire": "Registrieren", "Accès au compte": "Kontozugang",
+  "Déjà {0}+ inscrits sur Tourneo": "Bereits {0}+ Mitglieder bei Tourneo",
+  "Comptes confirmés": "Bestätigte Konten",
   "LE PLAISIR DE SE RETROUVER": "GEMEINSAM EINE GUTE ZEIT HABEN",
   "Un tournoi. Tout le monde dans le jeu.": "Ein Turnier. Alle sind dabei.",
   "Entre amis, au club, au camping ou à l’école : Tourneo vous aide à organiser les rencontres et à partager les bons moments.": "Mit Freunden, im Verein, auf dem Campingplatz oder in der Schule: Tourneo hilft euch, Spiele zu organisieren und gemeinsam eine gute Zeit zu haben.",
