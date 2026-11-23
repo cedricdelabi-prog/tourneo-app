@@ -17,14 +17,15 @@ create policy album_partages_ajout on public.tourneo_album_partages for insert t
 create policy album_partages_modification on public.tourneo_album_partages for update to authenticated using(user_id=(select auth.uid()))with check(user_id=(select auth.uid())and exists(select 1 from public.tourneo_album_photos p where p.id=photo_id and p.tournoi_id=tourneo_album_partages.tournoi_id and p.user_id=(select auth.uid()))and exists(select 1 from storage.objects o where o.bucket_id='tourneo-media'and o.name=path)and(apercu_path is null or exists(select 1 from storage.objects o where o.bucket_id='tourneo-media'and o.name=apercu_path)));
 
 -- Only a coarse range of confirmed accounts. No user identifiers or anonymous visitor tracking.
-create function tourneo_private.communaute_publique()returns jsonb language plpgsql stable security definer set search_path='' as $$declare n bigint;pas bigint;begin
+create or replace function tourneo_private.communaute_publique()returns jsonb language plpgsql stable security definer set search_path='' as $declare n bigint;pas bigint;begin
  select count(*)into n from auth.users where email_confirmed_at is not null and deleted_at is null and not coalesce(is_anonymous,false)and(banned_until is null or banned_until<=now());
  pas:=case when n<100 then 10 when n<1000 then 100 else 1000 end;
  return jsonb_build_object('minimum',(n/pas)*pas,'maximum',(n/pas)*pas+pas-1,'mesure','comptes_confirmes');
-end$$;
-create function public.tourneo_communaute_publique()returns jsonb language sql stable security invoker set search_path='' as $$select tourneo_private.communaute_publique()$$;
-revoke all on function public.tourneo_communaute_publique(),tourneo_private.communaute_publique()from public;
-grant execute on function public.tourneo_communaute_publique(),tourneo_private.communaute_publique()to anon,authenticated;
+end$;
+-- Exposed wrapper remains explicitly bounded; anon never receives broad USAGE on tourneo_private.
+create or replace function public.tourneo_communaute_publique()returns jsonb language sql stable security definer set search_path='' as $select tourneo_private.communaute_publique()$;
+revoke all on function public.tourneo_communaute_publique(),tourneo_private.communaute_publique()from public,anon,authenticated;
+grant execute on function public.tourneo_communaute_publique()to anon,authenticated;
 
 -- Moderation is limited to albums already explicitly shared. No privilege to private originals.
 create function tourneo_private.admin_albums_partages(p_page integer)returns jsonb language plpgsql stable security definer set search_path='' as $$begin
