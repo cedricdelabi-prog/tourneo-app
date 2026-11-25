@@ -4,12 +4,13 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Organiser un tournoi de badminton : matchs, poules et classement | Tourneo',
   description: 'Préparez un tournoi amical de badminton : choix des poules, nombre de matchs, durée et suivi des résultats avec Tourneo.',
-  alternates: { canonical: 'https://www.tourneo.org/guides/tournoi-badminton' },
+  alternates: {"canonical":"https://www.tourneo.org/guides/tournoi-badminton","languages":{"fr":"https://www.tourneo.org/guides/tournoi-badminton","en":"https://www.tourneo.org/guides/tournoi-badminton/en","de":"https://www.tourneo.org/guides/tournoi-badminton/de","x-default":"https://www.tourneo.org/guides/tournoi-badminton"}},
 };
 
 export default function Page() {
   return <main style={{ maxWidth: 840, margin: 'auto', padding: '48px 20px', color: 'white', lineHeight: 1.7 }}>
     <Link href="/guides">← Tous les guides</Link>
+    <nav aria-label="Languages"><Link href="/guides/tournoi-badminton" lang="fr">Français</Link> · <Link href="/guides/tournoi-badminton/en" lang="en">English</Link> · <Link href="/guides/tournoi-badminton/de" lang="de">Deutsch</Link></nav>
     <h1>Comment organiser un tournoi de badminton ?</h1>
     <p>Pour un tournoi amical en club, choisissez le simple ou le double, le nombre de terrains et les règles de chaque rencontre avant les inscriptions.</p>
     <h2>Exemple : 16 joueurs en simple</h2>
