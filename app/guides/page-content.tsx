@@ -4,6 +4,7 @@ import {tr,trModele,useLangue} from "@/lib/langue";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 const guides = [
+    ["/guides/tournoi-badminton", "🏸", "Tournoi de badminton", "Poules, nombre de matchs, terrains et classement."],
     ["/guides/outils-et-olympiades", "🎲", "Outils arbitre et Olympiades", "Chrono, points, tirage des équipes et journée avec plusieurs activités."],
     ["/guides/organiser-tournoi", "🏆", "Organiser un tournoi de A à Z", "Les étapes essentielles, de la préparation jusqu'au classement final."],
     ["/guides/nombre-matchs", "🧮", "Calculer le nombre de matchs", "Estimer rapidement le nombre de rencontres selon le format."],

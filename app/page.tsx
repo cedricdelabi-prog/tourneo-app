@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Contenu from '@/components/DecouvrirTourneo';
 
 const origineOfficielle = 'https://www.tourneo.org';
-const title = 'Tourneo | Organiser un tournoi sportif facilement';
-const description = 'Découvrez Tourneo : organisez vos tournois, préparez les rencontres et partagez scores, classements et pronostics avec les joueurs et les spectateurs.';
+const title = 'Tourneo | Application pour organiser vos tournois sportifs';
+const description = 'Organisez vos tournois de pétanque, badminton, fléchettes et autres sports. Gérez les inscriptions, les matchs, les scores et les classements avec Tourneo.';
 const estProduction = process.env.VERCEL_ENV === 'production';
 
 export const metadata: Metadata = {
