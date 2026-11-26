@@ -28,7 +28,7 @@ const {verifier,ATTENDUS}=require('../scripts/auditer-archive-ipv4-v1.cjs');
   fs.appendFileSync(path.join(dir,'05-data-auth.sql'),'\n');
   r=await verifier(dir); // le script n'invente pas de hash d'origine pour comparer; il recalcule
   assert.equal(r.comptes,2);
-  fs.writeFileSync(path.join(dir,'05-data-auth.sql'),fixtures['05-data-auth.sql'].replace('i2\tfictif-2',''));
+  fs.writeFileSync(path.join(dir,'05-data-auth.sql'),fixtures['05-data-auth.sql'].replace('i2\tfictif-2'+String.fromCharCode(92)+'n',''));
   await assert.rejects(verifier(dir),/incoherents/);
   fs.writeFileSync(path.join(dir,'05-data-auth.sql'),fixtures['05-data-auth.sql'].replace('\\.\nCOPY auth.identities','COPY auth.identities'));
   await assert.rejects(verifier(dir),/COPY incomplet|COPY/);
