@@ -2,7 +2,7 @@
 -- Preserve the V1 profile creation trigger and existing user identities.
 -- Run after the additive V2 profile constraints on a restored V1 staging copy.
 begin;
-do $
+do $$
 begin
  if current_setting('tourneo.v1_copy_verified',true) is distinct from 'true'
  then raise exception 'STAGING STOP: copie restauree non confirmee'; end if;
