@@ -23,6 +23,7 @@ async function compterCopie(fichier,schema,table){
    if(!dansBloc){if(pattern.test(ligne)){if(vu)STOP('plusieurs blocs '+schema+'.'+table);vu=true;dansBloc=true;}continue;}
    if(ligne==='\\.'){dansBloc=false;termine=true;continue;}
    if(ligne.length===0)STOP('ligne vide a l interieur du bloc COPY '+schema+'.'+table);
+   if(/^COPY\\s+[a-z_][\\w]*\\.[a-z_][\\w]*\\s*\\(/i.test(ligne))STOP('COPY imbrique ou terminateur manquant '+schema+'.'+table);
    if(termine)STOP('COPY supplementaire '+schema+'.'+table);
    n++;
   }
