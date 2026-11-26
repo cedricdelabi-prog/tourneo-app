@@ -18,8 +18,8 @@ WITH e AS (
   SELECT 'public.tournois', id::text,
     md5(id::text || '|' || user_id::text || '|' || coalesce(nom,'<null>') ||
         '|' || coalesce(sport,'<null>') || '|' || coalesce(donnees::text,'<null>') ||
-        '|' || coalesce(partage_id::text,'<null>') || '|' || coalesce(est_public::text,'<null>'))
-    FROM public.tournois
+        '|' || coalesce(to_jsonb(t)->>'partage_id','<null>') || '|' || coalesce(to_jsonb(t)->>'est_public','<null>'))
+    FROM public.tournois t
   UNION ALL
   SELECT 'storage.objects', id::text,
     md5(id::text || '|' || coalesce(bucket_id,'<null>') || '|' || coalesce(name,'<null>'))
