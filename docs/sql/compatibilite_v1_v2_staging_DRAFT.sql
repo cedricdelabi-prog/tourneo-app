@@ -1,10 +1,13 @@
 -- TOURNEO V2 PRODUCTION: PHASE 1 COMPATIBILITY (DRAFT; DO NOT EXECUTE ON PRODUCTION)
 -- This is an additive schema-only starting point, NOT the full V2 migration.
 -- Run ONLY on a RESTORED STAGING COPY after verified full Auth/DB/Storage backup.
+-- Requires the verified-staging session flag set OUTSIDE this file on the same connection.
 -- Preserves partage_id and est_public; avoids dropping V1 columns.
 begin;
-do $$
+do $
 begin
+ if current_setting('tourneo.v1_copy_verified',true) is distinct from 'true'
+ then raise exception 'STAGING STOP: copie restauree non explicitement confirmee'; end if;
  if to_regclass('public.tournois') is null or to_regclass('public.profiles') is null then
    raise exception 'V1 tables missing';
  end if;
