@@ -77,6 +77,10 @@ on:
       - 'docs/sql/compatibilite_v1_v2_staging_PHASE17_MODERATION.sql'
       - 'docs/sql/verification_phase17_staging.sql'
       - 'tests/migration-moderation-v2.cjs'
+      - 'tests/migration-finales-v2.cjs'
+      - 'docs/sql/compatibilite_v1_v2_staging_PHASE18_LIENS_TV.sql'
+      - 'docs/sql/compatibilite_v1_v2_staging_PHASE19_PRONOSTICS.sql'
+      - 'docs/sql/compatibilite_v1_v2_staging_PHASE20_SERVICES.sql'
       - 'supabase/functions/purge-photos-v2/index.js'
       - 'supabase/functions/purge-photos-v2/config.mjs'
       - 'supabase/functions/purge-photos-v2/purge.mjs'
@@ -170,6 +174,8 @@ jobs:
         run: npm run test:cockpit
       - name: Tester le prévol de migration V1 → V2 sans données réelles
         run: npm run test:bascule
+      - name: Tester la fin de migration V1 vers V2 (phases 18 a 20 fictives)
+        run: node tests/migration-finales-v2.cjs
       - name: Tester les anciens liens et les RPC publics sur une base fictive
         run: node tests/partage-compatibilite.cjs
       - name: Vérifier les retours de connexion sécurisés
