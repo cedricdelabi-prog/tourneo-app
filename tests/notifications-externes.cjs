@@ -1,4 +1,24 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
+// Le worker ne doit jamais utiliser la production par erreur ni renvoyer vers le site test.
+const sourceWorker=fs.readFileSync('supabase/functions/notifications-tourneo/index.ts','utf8');
+const debut=sourceWorker.indexOf('const url='),fin=sourceWorker.indexOf('const compteAndroid=');
+assert.ok(debut>=0&&fin>debut);
+const configProjet=new Function('Deno',sourceWorker.slice(debut,fin)+'\nreturn site;');
+const testRef='kmjfmjhdnokkaiolxiin',prodRef='gjtxlzhfqcecyfciyllc';
+function cible(url,ref,approved){
+ return configProjet({env:{get:k=>({SUPABASE_URL:url,TOURNEO_NOTIFICATIONS_PROJECT_REF:ref,TOURNEO_NOTIFICATIONS_PRODUCTION_APPROVED:approved})[k]}});
+}
+const testUrl='https://'+testRef+'.supabase.co',prodUrl='https://'+prodRef+'.supabase.co';
+assert.equal(cible(testUrl),'https://tourneo-v2-test.vercel.app');
+assert.throws(()=>cible(prodUrl));
+assert.throws(()=>cible(prodUrl,prodRef));
+assert.throws(()=>cible(prodUrl,prodRef,'false'));
+assert.equal(cible(prodUrl,prodRef,'true'),'https://www.tourneo.org');
+assert.throws(()=>cible(testUrl,prodRef,'true'));
+assert.throws(()=>cible(prodUrl,testRef,'true'));
+assert.throws(()=>cible('https://other.supabase.co','other','true'));
+assert.throws(()=>cible(prodUrl+'/other',prodRef,'true'));
+assert.throws(()=>cible('http://'+prodRef+'.supabase.co',prodRef,'true'));
 const m={exports:{}};new Function('module','exports',ts.transpileModule(fs.readFileSync('supabase/functions/notifications-tourneo/transport.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(m,m.exports);
 (async()=>{const site='https://v2.example.test',base={id:'job',bail:'bail',canal:'push',lien:'/activite',email:null,abonnements:[{id:'device'}]};let sent=0,acks=[];const ack=async(j,ok,expired)=>acks.push({ok,expired});
  await m.exports.traiterEnvois([base],site,async()=>{sent++;return 201},async()=>false,ack);assert.equal(sent,1);assert.equal(acks.pop().ok,true);
