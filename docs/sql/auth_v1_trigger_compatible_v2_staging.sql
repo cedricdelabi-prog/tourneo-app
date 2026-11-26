@@ -2,8 +2,10 @@
 -- Preserve the V1 profile creation trigger and existing user identities.
 -- Run after the additive V2 profile constraints on a restored V1 staging copy.
 begin;
-do $$
+do $
 begin
+ if current_setting('tourneo.v1_copy_verified',true) is distinct from 'true'
+ then raise exception 'STAGING STOP: copie restauree non confirmee'; end if;
  if not exists (
  select 1 from pg_trigger t join pg_class c on c.oid=t.tgrelid
  join pg_namespace n on n.oid=c.relnamespace
