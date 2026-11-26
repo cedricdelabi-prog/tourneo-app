@@ -83,3 +83,9 @@ Le chemin correspond a l'archive privee preparee le 26 novembre 2026. Le script 
 **Controle des empreintes :** si le fichier `controle-hash-ipv4.json` cree par la nouvelle procedure est present, l'outil compare les sept noms, tailles et SHA-256 aux valeurs de ce manifeste, et refuse toute difference. Sans manifeste d'origine (cas possible de l'archive manuelle du 26/11), il affiche un avertissement explicite et ne pretendra pas avoir verifie l'absence de modification depuis la sauvegarde. **Limites importantes :** l'outil ne controle pas l'integralite de chaque enregistrement SQL et n'execute aucune restauration. Il ne valide pas non plus l'authentification Google, les sessions, les donnees binaires au-dela de la signature PNG, ou les permissions/RLS.
 
 Un resultat `STRUCTURE COHERENTE` est **une verification preliminaire**, pas un feu vert pour lancer la migration. **Ne jamais transmettre le dossier prive au depot ou a une conversation.**
+
+## Verrou supplementaire des premieres phases de migration
+
+Le 26 novembre 2026, la phase 1 `compatibilite_v1_v2_staging_DRAFT.sql` et l'adaptation du declencheur Auth `auth_v1_trigger_compatible_v2_staging.sql` ont ete harmonisees avec les autres phases : elles exigent maintenant, sur la meme session PostgreSQL, le marqueur `tourneo.v1_copy_verified=true` avant toute modification. Les tests simulent un refus sans ce marqueur.
+
+**Ce marqueur n'identifie pas techniquement un projet Supabase** : un operateur ayant le droit de changer la configuration d'une session peut l'activer sur n'importe quelle base. Il ne doit donc jamais remplacer la verification manuelle du projet cible, la restauration isolee, les empreintes comparees, l'audit des permissions et l'accord de publication. La phase 1 demeure un brouillon reserve a la copie restauree et non a la V1.
