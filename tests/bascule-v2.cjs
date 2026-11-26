@@ -3,7 +3,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {evaluerBascule,PREUVES,MANIFEST}=require('../scripts/controle-bascule-v2.cjs');
 const m=JSON.parse(fs.readFileSync(MANIFEST,'utf8'));
 const controle=m.controleLectureSeule;
-assert.equal(controle?.date,'2026-11-22','last inventory proof must be dated');
+assert.match(m.dateControle,/^\d{4}-\d{2}-\d{2}$/,'release inventory must have a valid date format');
+assert.equal(controle?.date,m.dateControle,'read-only inventory and preflight manifest must refer to the same check date');
 assert.equal(m.branchePreparation,'tourneo-v2-dev','release work must stay on dedicated V2 branch');
 assert.equal(controle.production.comptes,m.inventaireV1.comptes);
 assert.equal(controle.production.tournois,m.inventaireV1.tournois);
