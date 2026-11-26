@@ -81,6 +81,8 @@ on:
       - 'docs/sql/compatibilite_v1_v2_staging_PHASE18_LIENS_TV.sql'
       - 'docs/sql/compatibilite_v1_v2_staging_PHASE19_PRONOSTICS.sql'
       - 'docs/sql/compatibilite_v1_v2_staging_PHASE20_SERVICES.sql'
+      - 'supabase/functions/notifications-tourneo/**'
+      - 'tests/notifications-externes.cjs'
       - 'supabase/functions/purge-photos-v2/index.js'
       - 'supabase/functions/purge-photos-v2/config.mjs'
       - 'supabase/functions/purge-photos-v2/purge.mjs'
@@ -152,6 +154,8 @@ jobs:
         run: node tests/sauvegarde-ipv4-v1.cjs
       - name: Auditer une archive IPv4 synthetique hors connexion
         run: node tests/auditer-archive-ipv4-v1.cjs
+      - name: Vérifier les alertes et le verrou du projet de notifications
+        run: npm run test:alertes
       - name: Vérifier la purge et le ciblage du bon projet Supabase
         run: npm run test:purge
       - name: Tester le vrai script de sauvegarde avec une fausse CLI PowerShell
