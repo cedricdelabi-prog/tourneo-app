@@ -57,3 +57,13 @@ Le script refuse un projet erroné, ne supprime rien et télécharge les fichier
 La CI GitHub exécute le **vrai script PowerShell** en remplaçant uniquement la commande Supabase par une simulation. Elle vérifie : six fichiers SQL générés, manifeste d'empreintes, présence de vraies lignes COPY fictives, refus des fichiers altérés, des exports Auth vides ou incomplets, refus d'un mauvais projet lié et maintien du dossier de travail et de la liaison V2. Aucune vraie donnée n'est utilisée.
 
 Cette simulation ne prouve pas que le logiciel Supabase CLI sera correctement configuré sur le PC, ni que l'export sera restaurable. L'étape de restauration isolée reste obligatoire avant la bascule.
+
+## Alternative IPv4 testee sur Windows (26 novembre 2026)
+
+Sur le PC de production de la sauvegarde, le nom direct `db.gjtxlzhfqcecyfciyllc.supabase.co` ne permettait pas de joindre PostgreSQL depuis Docker (IPv6). Les exports manuels ont reussi via le pooler IPv4 `aws-0-eu-west-1.pooler.supabase.com:5432`, utilisateur `postgres.gjtxlzhfqcecyfciyllc`. Le script historique `sauvegarder-v1-prive.ps1` continue d'utiliser `--linked` et peut donc echouer sur ce reseau. Ne pas reutiliser cette ancienne procedure pour cette configuration sans correction.
+
+Une nouvelle procedure distincte est disponible dans `scripts/sauvegarder-v1-ipv4-prive.ps1` : elle utilise Docker avec `pg_dump` et `pg_dumpall` par le pooler IPv4, demande le mot de passe PostgreSQL de maniere masquee, le retire de l'environnement a la fin et inscrit 7 fichiers SQL et leurs empreintes SHA-256 dans un nouveau dossier local chiffre, jamais sur GitHub.
+
+Cette procedure est **facultative** pour une sauvegarde future : l'utilisateur a deja constitue le 26/11/2026 une archive manuelle comportant 7 fichiers SQL et un PNG dans `Tourneo-sauvegardes-PRIVEES/V1-IPv4-20261126-133739`. Il ne faut pas ecraser cette archive. Le test local avec un PostgreSQL generique a echoue sur le role Supabase `supabase_admin` manquant ; **cela ne demontre pas une restauration reussie**. Les fichiers doivent rester prives.
+
+La validation statique CI du nouveau script n'est ni un essai de restauration ni un export reel. Toute migration en production reste interdite tant qu'une copie conforme (Supabase Auth, stockage binaire, donnees et roles) n'a pas ete restauree et que la migration V2 complete n'a pas ete essayee sur cette copie.
