@@ -95,6 +95,8 @@ on:
       - 'tests/compatibilite-v1.cjs'
       - 'scripts/sauvegarder-v1-prive.ps1'
       - 'scripts/sauvegarder-v1-ipv4-prive.ps1'
+      - 'scripts/auditer-archive-ipv4-v1.cjs'
+      - 'tests/auditer-archive-ipv4-v1.cjs'
       - 'tests/sauvegarde-ipv4-v1.cjs'
       - 'scripts/sauvegarder-media-v1-prive.ps1'
       - 'tests/sauvegarde-media-v1.ps1'
@@ -144,6 +146,8 @@ jobs:
         run: node tests/sauvegarde-cli-v1.cjs
       - name: Verifier la nouvelle sauvegarde IPv4 sans acces production
         run: node tests/sauvegarde-ipv4-v1.cjs
+      - name: Auditer une archive IPv4 synthetique hors connexion
+        run: node tests/auditer-archive-ipv4-v1.cjs
       - name: Vérifier la purge et le ciblage du bon projet Supabase
         run: npm run test:purge
       - name: Tester le vrai script de sauvegarde avec une fausse CLI PowerShell
