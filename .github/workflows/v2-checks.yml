@@ -19,6 +19,8 @@ on:
       - 'docs/bascule-v2-preflight.json'
       - 'docs/sql/preflight_v1_v2.sql'
       - 'docs/sql/verifier_ecarts_v2_20261126.sql'
+      - 'docs/sql/audit_rpc_partage_v1_v2_readonly.sql'
+      - 'docs/SECURITE_PARTAGE_AVANT_BASCULE_V2.md'
       - 'docs/sql/controle_restauration_v1_readonly.sql'
       - 'docs/sql/preflight_partages_v1_v2.sql'
       - 'docs/sql/securiser_rpc_public_v2_post_migration.sql'
