@@ -7,7 +7,7 @@ const sql=fs.readFileSync(path.resolve(__dirname,'../docs/sql/compatibilite_v1_v
 const preflight=fs.readFileSync(path.resolve(__dirname,'../docs/sql/preflight_v1_v2.sql'),'utf8');
 const userId='11111111-1111-4111-8111-111111111111',tournoiId='22222222-2222-4222-8222-222222222222';
 const partageId='33333333-3333-4333-8333-333333333333';
-async function preparer({nom='Tournoi fictif',partage=true}={}){
+async function preparer({nom='Tournoi fictif',partage=true,arm=true}={}){
  const db=new PGlite();
  await db.exec(`
  create schema auth; create schema storage;
@@ -33,9 +33,19 @@ async function preparer({nom='Tournoi fictif',partage=true}={}){
  '{"equipes":[{"id":"e-1","nom":"Fictif"}],"matchs":[{"id":1,"score1":"13","score2":"7"}]}'::jsonb,
  ${partage?"'"+partageId+"'":"null"},true);
  `);
+ if(arm)await db.exec("select set_config('tourneo.v1_copy_verified','true',false)");
  return db;
 }
 (async()=>{
+ // Sans confirmation de restauration isolée, même une V1 fictive intègre
+ // doit refuser la phase 1 sans aucune modification des tables.
+ const nonArme=await preparer({arm:false});
+ try{
+  await assert.rejects(nonArme.exec(sql),/STAGING STOP/);
+  await nonArme.exec('rollback;').catch(()=>{});
+  const verif=(await nonArme.query("select count(*)::int as n from information_schema.columns where table_schema='public' and table_name='tournois' and column_name='revision'")).rows[0];
+  assert.equal(verif.n,0,'La phase 1 non armée doit rester sans effet');
+ } finally {await nonArme.close();}
  const db=await preparer();
  try{
   const pre=(await db.query(preflight)).rows[0];
