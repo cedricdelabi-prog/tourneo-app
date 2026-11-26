@@ -74,6 +74,15 @@ assert.match(auditPartage,/tourneo_partage_web_v2/);
 assert.match(auditPartage,/tourneo_pronostics_lecture/);
 assert.doesNotMatch(auditPartage,/^\\s*(?:insert\\s+into|update\\s+\\S+\\s+set|delete\\s+from|truncate\\s+|drop\\s+|alter\\s+|create\\s+(?:table|function|policy|view|trigger))\\b/im,
   'Audit RPC must not include SQL mutations');
+// Comparaison des empreintes de sauvegarde : controles purement read-only.
+const empreintes=fs.readFileSync(path.join(__dirname,'../docs/sql/empreintes_restauration_v1_readonly.sql'),'utf8');
+for(const table of ['auth.users','auth.identities','public.profiles','public.tournois','storage.objects'])
+ assert.ok(empreintes.includes(table),'Empreinte manquante pour '+table);
+assert.match(empreintes,/string_agg/);
+assert.match(empreintes,/md5/);
+assert.match(empreintes,/to_jsonb\(t\)->>'partage_id'/);
+assert.doesNotMatch(empreintes,/^\s*(?:insert\s+into|update\s+\S+\s+set|delete\s+from|truncate\s+|drop\s+|alter\s+|create\s+(?:table|function|policy|view|trigger))\b/im,
+ 'Le script des empreintes ne doit pas modifier la base');
 const draft=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'),'utf8');
 assert.match(draft,/STAGING COPY/);
 assert.ok(!/drop\s+(?:table|column)/i.test(draft),'Staging compatibility cannot remove legacy columns');
