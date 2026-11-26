@@ -1,6 +1,6 @@
 'use strict';
 // Archive synthetique uniquement, aucun compte et aucun fichier Tourneo reel.
-const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),crypto=require('node:crypto');
 const {verifier,ATTENDUS}=require('../scripts/auditer-archive-ipv4-v1.cjs');
 (async()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'tourneo-fixture-archive-'));
@@ -25,6 +25,19 @@ const {verifier,ATTENDUS}=require('../scripts/auditer-archive-ipv4-v1.cjs');
   assert.equal(r.fichiersSql,7);assert.equal(r.mediasPng,1);
   assert.equal(r.comptes,2);assert.equal(r.profils,2);assert.equal(r.identites,2);assert.equal(r.tournois,1);
   assert.equal(r.restaurationValidee,false);
+  assert.equal(r.empreintesManifesteVerifiees,false);
+  assert.match(r.avertissementEmpreintes,/Aucun manifeste/);
+  const manifeste={projet:'gjtxlzhfqcecyfciyllc',restaurationValidee:false,
+   mediasBinairesInclus:false,
+   fichiers:ATTENDUS.map(nom=>({nom,octets:fs.statSync(path.join(dir,nom)).size,
+    sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(dir,nom))).digest('hex')}))};
+  fs.writeFileSync(path.join(dir,'controle-hash-ipv4.json'),JSON.stringify(manifeste));
+  r=await verifier(dir);
+  assert.equal(r.empreintesManifesteVerifiees,true);
+  fs.appendFileSync(path.join(dir,'02-schema-public.sql'),'-- changement fictif\n');
+  await assert.rejects(verifier(dir),/empreinte SHA-256 ou taille/);
+  fs.writeFileSync(path.join(dir,'02-schema-public.sql'),'-- Schema fictif 02-schema-public.sql\nselect 1;\n');
+  fs.rmSync(path.join(dir,'controle-hash-ipv4.json'));
   fs.appendFileSync(path.join(dir,'05-data-auth.sql'),'\n');
   r=await verifier(dir); // le script n'invente pas de hash d'origine pour comparer; il recalcule
   assert.equal(r.comptes,2);
