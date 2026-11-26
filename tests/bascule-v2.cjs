@@ -83,8 +83,12 @@ assert.match(empreintes,/md5/);
 assert.match(empreintes,/to_jsonb\(t\)->>'partage_id'/);
 assert.doesNotMatch(empreintes,/^\s*(?:insert\s+into|update\s+\S+\s+set|delete\s+from|truncate\s+|drop\s+|alter\s+|create\s+(?:table|function|policy|view|trigger))\b/im,
  'Le script des empreintes ne doit pas modifier la base');
+const authTriggerStage=fs.readFileSync(path.join(__dirname,'../docs/sql/auth_v1_trigger_compatible_v2_staging.sql'),'utf8');
+assert.match(authTriggerStage,/current_setting\('tourneo\.v1_copy_verified'/);
+assert.match(authTriggerStage,/STAGING STOP/);
 const draft=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'),'utf8');
 assert.match(draft,/STAGING COPY/);
+assert.match(draft,/current_setting\('tourneo\.v1_copy_verified'/);
 assert.ok(!/drop\s+(?:table|column)/i.test(draft),'Staging compatibility cannot remove legacy columns');
 assert.match(draft,/partage_id/);
 const phase2=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2_staging_PHASE2_SOCLE.sql'),'utf8');
