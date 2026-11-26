@@ -1,14 +1,14 @@
 {
   "objet": "Préparation de la bascule de Tourneo V1 vers V2 ; inventaire agrégé, aucune donnée personnelle ni secret",
-  "dateControle": "2026-11-22",
+  "dateControle": "2026-11-26",
   "sourceProduction": "gjtxlzhfqcecyfciyllc",
   "cibleDeMigration": "gjtxlzhfqcecyfciyllc",
   "baseEssaisIndependante": "kmjfmjhdnokkaiolxiin",
   "branchePreparation": "tourneo-v2-dev",
   "inventaireV1": {
-    "comptes": 59,
-    "profils": 59,
-    "identitesAuth": 61,
+    "comptes": 65,
+    "profils": 65,
+    "identitesAuth": 67,
     "tournois": 25,
     "tournoisOrphelins": 0,
     "profilsOrphelins": 0,
@@ -28,7 +28,7 @@
   "preuves": {
     "inventaireProductionActualise": {
       "statut": "a_faire",
-      "preuve": "Lecture seule du 2026-11-22 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois, 25 liens sans anomalie. La concordance avec une sauvegarde réellement restaurable reste à établir : statut a_faire."
+      "preuve": "26/11/2026 : lecture seule via Supabase : 65 comptes Auth, 67 identites, 65 profils, 25 tournois publics, 25 liens de partage, 1 objet Storage. Zero compte sans profil, orphelin, lien manquant/duplique, structure JSON malformee ou nom incompatible. Concordance avec les fichiers SQL locaux et restauration complete encore non validees. Aucune modification de production."
     },
     "sauvegardeRestaurableComplete": {
       "statut": "a_faire",
@@ -71,15 +71,15 @@
       "preuve": "23/11/2026 : le propriétaire demande explicitement « bon ben publi tout comment ca se fait que se ne soit pas fait » dans la conversation Tourneo. Cette autorisation ne dispense pas des preuves techniques obligatoires de sauvegarde restaurée, compatibilité, sécurité, Android et retour arrière ; aucune migration destructive n'est autorisée par ce seul marqueur."
     }
   },
-  "notes": "Inventaire 22/11/2026 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois publics, 25 identifiants de partage, 1 objet Storage (tourneo-media, 48 191 octets). Inventaire du 19/11/2026 : 59 comptes, 60 identités, 24 tournois, 0 objet Storage. Les chiffres évoluent. Aucune restauration de sauvegarde ni autorisation de bascule n'est déduite de ces constats. Demande explicite de publication totale reçue le 23/11/2026 ; publication retenue par les prérequis techniques encore manquants, et non par défaut d'accord.",
+  "notes": "Inventaire 22/11/2026 : 59 comptes, 59 profils, 61 identités Auth, 25 tournois publics, 25 identifiants de partage, 1 objet Storage (tourneo-media, 48 191 octets). Inventaire du 19/11/2026 : 59 comptes, 60 identités, 24 tournois, 0 objet Storage. Les chiffres évoluent. Aucune restauration de sauvegarde ni autorisation de bascule n'est déduite de ces constats. Demande explicite de publication totale reçue le 23/11/2026 ; publication retenue par les prérequis techniques encore manquants, et non par défaut d'accord. 26/11/2026 : 65 comptes, 67 identites Auth, 65 profils, 25 tournois, 1 objet Storage; sauvegarde locale de 7 SQL + 1 PNG confirmee par utilisateur, MAIS test de restauration echoue sur PostgreSQL generique (supabase_admin absent). La restauration complete et le test sur copie compatible Supabase restent non verifies.",
   "controleLectureSeule": {
-    "date": "2026-11-22",
-    "type": "SQL SELECT uniquement sur production et test ; aucune écriture ni export de comptes",
+    "date": "2026-11-26",
+    "type": "SQL SELECT uniquement sur la production ; aucun compte individuel ou secret retourne",
     "requete": "docs/sql/preflight_v1_v2.sql",
     "production": {
-      "comptes": 59,
-      "identitesAuth": 61,
-      "profils": 59,
+      "comptes": 65,
+      "identitesAuth": 67,
+      "profils": 65,
       "tournois": 25,
       "tournoisPublics": 25,
       "identifiantsPartage": 25,
@@ -114,7 +114,7 @@
       "dateVerificationSecurite": "2026-11-22",
       "accessibleAuthenticated": false
     },
-    "conclusion": "22/11/2026 : inventaire cohérent ; 25/25 liens publics opérationnels sur ancienne et nouvelle adresse en HTTPS ; Google confirmé par l'utilisateur ; ancienne RPC non accessible à anon/authenticated. Backup Auth + SQL + fichiers Storage non exporté ni restauré en isolation, audits sécurité et Android à finaliser : PREVOL TOUJOURS BLOQUÉ.",
+    "conclusion": "26/11/2026 : inventaire V1 actualise en lecture seule, 65 comptes et 25 tournois sans anomalie detectee ; reste a valider la restauration et la compatibilite V2 sur une copie de V1. Bascule bloquee.",
     "controleCompatibilitePartage": {
       "date": "2026-11-22",
       "totalPublics": 25,
