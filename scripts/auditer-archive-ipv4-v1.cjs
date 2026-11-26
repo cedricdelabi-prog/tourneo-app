@@ -34,14 +34,40 @@ async function compterCopie(fichier,schema,table){
 async function verifier(archive){
  if(!archive||!fs.existsSync(archive)||!fs.statSync(archive).isDirectory())STOP('dossier local absent');
  const root=fs.realpathSync(archive);
- const result={dossierVerifie:true,fichiersSql:0,mediasPng:0,comptes:0,profils:0,identites:0,tournois:0,objets_storage:0,sha256Calcules:0,restaurationValidee:false};
+ const result={dossierVerifie:true,fichiersSql:0,mediasPng:0,comptes:0,profils:0,identites:0,tournois:0,objets_storage:0,sha256Calcules:0,empreintesManifesteVerifiees:false,restaurationValidee:false};
+ const manifestPath=path.join(root,'controle-hash-ipv4.json');
+ let hashes=null;
+ if(fs.existsSync(manifestPath)){
+  if(!fs.statSync(manifestPath).isFile()||fs.statSync(manifestPath).size>100000)STOP('manifeste hash non valide');
+  let manifest;
+  try{manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8').replace(/^\\uFEFF/,''));}
+  catch{STOP('manifeste hash illisible');}
+  if(manifest.projet!=='gjtxlzhfqcecyfciyllc'||manifest.restaurationValidee!==false
+     ||manifest.mediasBinairesInclus!==false||!Array.isArray(manifest.fichiers)||manifest.fichiers.length!==ATTENDUS.length)
+   STOP('manifeste hash incomplet ou source incorrecte');
+  hashes=new Map();
+  for(const item of manifest.fichiers){
+   if(!ATTENDUS.includes(item.nom)||hashes.has(item.nom)||!Number.isSafeInteger(item.octets)
+      ||item.octets<20||typeof item.sha256!=='string'||!/^[a-f0-9]{64}$/i.test(item.sha256))
+    STOP('manifeste hash invalide');
+   hashes.set(item.nom,item);
+  }
+  result.empreintesManifesteVerifiees=true;
+ }else{
+  result.avertissementEmpreintes='Aucun manifeste original: les SHA-256 sont calcules mais non comparables a un export de reference.';
+ }
  for(const nom of ATTENDUS){
   if(!nomCorrect(nom))STOP('nom export non conforme');
   const cible=path.join(root,nom);
   if(!fs.existsSync(cible)||!fs.statSync(cible).isFile()||fs.statSync(cible).size<20)STOP('fichier SQL absent ou trop petit : '+nom);
   const buffer=fs.createReadStream(cible);const hash=crypto.createHash('sha256');
   for await(const chunk of buffer)hash.update(chunk);
-  hash.digest('hex'); // calcul de controle; pas de transmission ni impression
+  const empreinte=hash.digest('hex');
+  if(hashes){
+   const ref=hashes.get(nom);
+   if(!ref||ref.octets!==fs.statSync(cible).size||ref.sha256.toLowerCase()!==empreinte)
+    STOP('empreinte SHA-256 ou taille incorrecte pour '+nom);
+  }
   result.fichiersSql++;result.sha256Calcules++;
  }
  for(const bloc of BLOCS)result[bloc.label]=await compterCopie(path.join(root,bloc.file),bloc.schema,bloc.table);
@@ -65,6 +91,8 @@ async function main(){
   process.stdout.write('TOURNEO — AUDIT ARCHIVE HORS LIGNE : STRUCTURE COHERENTE (PAS UNE RESTAURATION)\n');
   process.stdout.write('SQL : '+rapport.fichiersSql+' | PNG : '+rapport.mediasPng+' | Comptes : '+rapport.comptes+' | Profils : '+rapport.profils+' | Identites : '+rapport.identites+' | Tournois : '+rapport.tournois+' | Storage SQL : '+rapport.objets_storage+'\n');
   if(rapport.avertissementMedias)process.stdout.write('ATTENTION : '+rapport.avertissementMedias+'\n');
+  if(rapport.avertissementEmpreintes)process.stdout.write('ATTENTION : '+rapport.avertissementEmpreintes+'\n');
+  else process.stdout.write('Empreintes SQL comparees au manifeste : 7/7 conformes.\n');
   process.stdout.write('Restauration validee : NON. Fichiers prives non envoyes ni modifies.\n');
  }catch(e){console.error(e.message);process.exitCode=2;}
 }
