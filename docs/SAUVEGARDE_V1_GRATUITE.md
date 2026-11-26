@@ -67,3 +67,19 @@ Une nouvelle procedure distincte est disponible dans `scripts/sauvegarder-v1-ipv
 Cette procedure est **facultative** pour une sauvegarde future : l'utilisateur a deja constitue le 26/11/2026 une archive manuelle comportant 7 fichiers SQL et un PNG dans `Tourneo-sauvegardes-PRIVEES/V1-IPv4-20261126-133739`. Il ne faut pas ecraser cette archive. Le test local avec un PostgreSQL generique a echoue sur le role Supabase `supabase_admin` manquant ; **cela ne demontre pas une restauration reussie**. Les fichiers doivent rester prives.
 
 La validation statique CI du nouveau script n'est ni un essai de restauration ni un export reel. Toute migration en production reste interdite tant qu'une copie conforme (Supabase Auth, stockage binaire, donnees et roles) n'a pas ete restauree et que la migration V2 complete n'a pas ete essayee sur cette copie.
+
+## Audit hors ligne de l'archive IPv4 existante
+
+Le script `scripts/auditer-archive-ipv4-v1.cjs` analyse **en lecture seule** une archive SQL et PNG deja constituee. Il n'accede a aucune base et n'envoie rien sur Internet : seuls les **comptages globaux** sont affiches. Ce programme est teste dans la CI avec des fichiers totalement fictifs.
+
+Avec Node.js installe, il peut etre execute localement depuis le depot avec :
+
+```powershell
+node scripts/auditer-archive-ipv4-v1.cjs "$env:USERPROFILE\Tourneo-sauvegardes-PRIVEES\V1-IPv4-20261126-133739"
+```
+
+Le chemin correspond a l'archive privee preparee le 26 novembre 2026. Le script verifie l'existence des **sept** exports SQL, leurs tailles et SHA-256 calcules localement, les blocs `COPY` essentiels, les comptes/profils/identites/tournois et la presence d'une signature PNG valide quand des objets Storage sont recenses. Il refuse les lignes vides et les blocs `COPY` imbriques. Il ne modifie pas l'archive et ne publie ni lignes SQL, ni images, ni mots de passe.
+
+**Limites importantes :** l'outil recalcule les SHA-256 mais ne peut pas certifier leur concordance avec une empreinte anterieure si aucun manifeste de reference n'a ete cree lors de l'export ; il ne controle pas l'integralite de chaque enregistrement SQL et n'execute aucune restauration. Il ne valide pas non plus l'authentification Google, les sessions, les donnees binaires au-dela de la signature PNG, ou les permissions/RLS.
+
+Un resultat `STRUCTURE COHERENTE` est **une verification preliminaire**, pas un feu vert pour lancer la migration. **Ne jamais transmettre le dossier prive au depot ou a une conversation.**
