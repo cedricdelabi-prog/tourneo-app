@@ -65,6 +65,8 @@ try {
     Write-Host "Copie de repetition conservee : $db"
 } finally {
     & docker exec $c rm -rf "/tmp/$db" 2>$null | Out-Null
-    Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
+    try {
+        if ([IO.Directory]::Exists($tmp)) { [IO.Directory]::Delete($tmp, $true) }
+    } catch { Write-Warning 'Nettoyage du dossier temporaire non termine ; les resultats SQL restent inchanges.' }
     if ($created) { Write-Host "Base de repetition isolee : $db" }
 }
