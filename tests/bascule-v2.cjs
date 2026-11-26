@@ -65,6 +65,15 @@ assert.match(ecarts,/notifications_android/);
 assert.match(ecarts,/tourneo_worker_prendre/);
 assert.doesNotMatch(ecarts,/^\s*(?:insert\s+into|update\s+\S+\s+set|delete\s+from|truncate\s+|drop\s+|alter\s+|create\s+(?:table|function|policy|view|trigger))\b/im,
   'The read-only inventory must contain no SQL mutations');
+// L'inventaire de securite des RPC de partage doit rester strictement consultatif.
+const auditPartage=fs.readFileSync(path.join(__dirname,'../docs/sql/audit_rpc_partage_v1_v2_readonly.sql'),'utf8');
+assert.match(auditPartage,/has_function_privilege/);
+assert.match(auditPartage,/pg_get_function_identity_arguments/);
+assert.match(auditPartage,/tourneo_public_v2/);
+assert.match(auditPartage,/tourneo_partage_web_v2/);
+assert.match(auditPartage,/tourneo_pronostics_lecture/);
+assert.doesNotMatch(auditPartage,/^\\s*(?:insert\\s+into|update\\s+\\S+\\s+set|delete\\s+from|truncate\\s+|drop\\s+|alter\\s+|create\\s+(?:table|function|policy|view|trigger))\\b/im,
+  'Audit RPC must not include SQL mutations');
 const draft=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'),'utf8');
 assert.match(draft,/STAGING COPY/);
 assert.ok(!/drop\s+(?:table|column)/i.test(draft),'Staging compatibility cannot remove legacy columns');
