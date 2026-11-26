@@ -3,12 +3,19 @@ import webpush from 'web-push';
 import {texteBilan,validerBilan,pngBase64}from'./bilan.ts';
 import {traiterEnvois} from './transport.ts';
 import {lireCompteFirebase,creerTransportAndroid} from './android.ts';
+// Le test reste le choix par défaut. La production exige deux opt-ins explicites.
+const url=Deno.env.get('SUPABASE_URL')||'';
+const reference=Deno.env.get('TOURNEO_NOTIFICATIONS_PROJECT_REF')??'kmjfmjhdnokkaiolxiin';
+const production=reference==='gjtxlzhfqcecyfciyllc';
+if((reference!=='kmjfmjhdnokkaiolxiin'&&!production)||
+ url!=='https://'+reference+'.supabase.co'||
+ (production&&Deno.env.get('TOURNEO_NOTIFICATIONS_PRODUCTION_APPROVED')!=='true')){
+ throw new Error('Projet notifications non autorisé');
+}
+const site=production?'https://www.tourneo.org':'https://tourneo-v2-test.vercel.app';
 const compteAndroid=lireCompteFirebase(Deno.env.get('FCM_SERVICE_ACCOUNT'));
 const android=compteAndroid?creerTransportAndroid(compteAndroid):null;
-const url=Deno.env.get('SUPABASE_URL')||'';
-if(new URL(url).hostname!=='kmjfmjhdnokkaiolxiin.supabase.co')throw new Error('Projet V2 requis');
 const db=createClient(url,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'',{auth:{persistSession:false,autoRefreshToken:false}});
-const site='https://tourneo-v2-test.vercel.app';
 const emailActif=Boolean(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('TOURNEO_EMAIL_FROM'));
 async function initialiser(){const cles=webpush.generateVAPIDKeys();const r=await db.rpc('tourneo_worker_initialiser',{p_publique:cles.publicKey,p_privee:cles.privateKey,p_email:emailActif});if(r.error){console.error('notifications-init',r.error.code);throw r.error;}const a=await db.rpc('tourneo_worker_android',{p_projet:compteAndroid?.project_id||null});if(a.error){console.error('notifications-android-config',a.error.code);throw a.error;}return r.data;}
 let config:ReturnType<typeof initialiser>|undefined;
