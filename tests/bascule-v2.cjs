@@ -55,6 +55,16 @@ assert.match(src,/kmjfmjhdnokkaiolxiin/);
 assert.match(src,/gjtxlzhfqcecyfciyllc/);
 const sql=fs.readFileSync(path.join(__dirname,'../docs/sql/preflight_v1_v2.sql'),'utf8');
 assert.ok(!/\b(?:drop|truncate|delete|update|insert|alter)\s+(?:table|from|into|public\.)/i.test(sql),'Production preflight must remain read-only');
+// Le diagnostic d'ecart ne doit jamais modifier la base de production.
+const ecarts=fs.readFileSync(path.join(__dirname,'../docs/sql/verifier_ecarts_v2_20261126.sql'),'utf8');
+assert.match(ecarts,/information_schema\.columns/,'missing column inventory must be checked');
+assert.match(ecarts,/pg_proc/,'missing function inventory must be checked');
+assert.match(ecarts,/to_regclass/,'missing table inventory must be checked');
+assert.match(ecarts,/tourneo_android_appareils/);
+assert.match(ecarts,/notifications_android/);
+assert.match(ecarts,/tourneo_worker_prendre/);
+assert.doesNotMatch(ecarts,/^\s*(?:insert\s+into|update\s+\S+\s+set|delete\s+from|truncate\s+|drop\s+|alter\s+|create\s+(?:table|function|policy|view|trigger))\b/im,
+  'The read-only inventory must contain no SQL mutations');
 const draft=fs.readFileSync(path.join(__dirname,'../docs/sql/compatibilite_v1_v2_staging_DRAFT.sql'),'utf8');
 assert.match(draft,/STAGING COPY/);
 assert.ok(!/drop\s+(?:table|column)/i.test(draft),'Staging compatibility cannot remove legacy columns');
