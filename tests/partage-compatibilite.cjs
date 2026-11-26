@@ -49,6 +49,22 @@ const privateAlias='55555555-5555-4555-8555-555555555555';
    const permissions=(await db.query("select has_function_privilege('anon','public.get_tourneo_public(uuid)','EXECUTE') as anon, has_function_privilege('authenticated','public.get_tourneo_public(uuid)','EXECUTE') as member")).rows[0];
    assert.equal(permissions.anon,false);
    assert.equal(permissions.member,false);
+   // Rejouer le scénario avec les droits d'un vrai visiteur anonyme,
+   // au lieu d'appeler uniquement les fonctions comme propriétaire de la base.
+   await db.exec('set role anon');
+   try {
+     for(const fn of ['tourneo_public_v2','tourneo_public_compat_v2']) {
+       assert.equal((await db.query('select public.'+fn+"('"+publicId+"'::uuid) as result")).rows[0].result.id,publicId);
+       for(const id of [privateId,privateAlias]) {
+         const exposed=(await db.query('select public.'+fn+"('"+id+"'::uuid) as result")).rows[0].result;
+         assert.equal(exposed,null,'Anon peut voir un tournoi prive via '+fn);
+       }
+     }
+     await assert.rejects(db.query("select public.tourneo_public_v2_internal('"+publicId+"'::uuid)"),/permission denied|not allowed|permission/i);
+     await assert.rejects(db.query("select * from public.get_tourneo_public('"+publicId+"'::uuid)"),/permission denied|not allowed|permission/i);
+   } finally {
+     await db.exec('reset role');
+   }
    await db.exec("update public.tournois set est_public=false where id='"+publicId+"'");
    assert.equal(await get('tourneo_public_v2',publicId),null);
    assert.equal(await get('tourneo_public_compat_v2',publicAlias),null);
