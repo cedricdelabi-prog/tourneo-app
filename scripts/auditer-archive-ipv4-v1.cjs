@@ -22,6 +22,7 @@ async function compterCopie(fichier,schema,table){
   for await(const ligne of reader){
    if(!dansBloc){if(pattern.test(ligne)){if(vu)STOP('plusieurs blocs '+schema+'.'+table);vu=true;dansBloc=true;}continue;}
    if(ligne==='\\.'){dansBloc=false;termine=true;continue;}
+   if(ligne.length===0)STOP('ligne vide a l interieur du bloc COPY '+schema+'.'+table);
    if(termine)STOP('COPY supplementaire '+schema+'.'+table);
    n++;
   }
